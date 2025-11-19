@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 public class Portfolio {
   private Integer portfolioId;//포트폴리오 ID
+  private Integer memberId;
   private String title;//포트폴리오 제목
   private Byte[] file; //파일
   private String portfolioFeedback; //포트폴리오 피드백
