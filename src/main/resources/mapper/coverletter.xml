@@ -22,7 +22,7 @@
   <select id="selectAllCoverLetters" resultType="com.example.demo.coverletter.entity.CoverLetter">
     SELECT coverletter_id AS coverletterId, 
            member_id AS memberId, 
-           support_motive AS suppportMotive, 
+           support_motive AS supportMotive, 
            growth_experience AS growthExperience, 
            job_capability AS jobCapability, 
            future_plan AS futurePlan,
@@ -30,6 +30,7 @@
            created_at AS createdAt, 
            updated_at AS updatedAt
     FROM coverletter
+    WHERE member_id = #{memberId}
   </select>
 
   <!-- 자소서 상세보기 -->
@@ -57,13 +58,13 @@
       future_plan = #{futurePlan}, 
       cover_feedback = CAST(#{coverFeedback} AS JSONB),  
       updated_at = NOW()
-    WHERE coverletter_id = #{coverletterId}
+    WHERE coverletter_id = #{coverletterId} AND member_id = #{memberId}
   </update>
 
   <!-- 자소서 삭제하기 -->
   <delete id="deleteCoverLetter">
     DELETE FROM coverletter
-    WHERE coverletter_id = #{coverletterId}
+    WHERE coverletter_id = #{coverletterId} AND member_id = #{memberId}
   </delete>
 
 </mapper>
