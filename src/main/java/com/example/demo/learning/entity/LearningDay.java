@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class LearningDayEntity {
+public class LearningDay {
   private Integer dayId; // 일별 ID
   private Integer weekId; // 주별 ID
   private int dayNumber; // 일차

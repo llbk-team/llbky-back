@@ -5,14 +5,13 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class LearningWeekEntity {
-  private Integer weekId; // 주별 ID
+public class Learning {
   private Integer learningId; // 학습 ID
-  private int weekNumber; // 주차
+  private Integer memberId; // 사용자 ID
   private String title; // 제목
-  private String goal; // 목표
   private String status; // 진행 상태
-  private String learningWeekSummery; // 주별 학습 요약
+  private String learningSummery; // 학습 요약
+  private String learningRecommendation; // 학습 추천
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }
