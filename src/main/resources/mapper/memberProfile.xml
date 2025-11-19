@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.member.dao.MemberProfileDao">
+    <select id="findByMemberId" resultType="com.example.demo.member.dto.MemberProfile">
+        SELECT 
+            profile_id AS profileId,
+            member_id AS memberId,
+            core_scores AS coreScores,
+            member_mentoring AS memberMentoring,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM member_profile
+        WHERE member_id = #{memberId}
+    </select>
+
+    
+    <insert id="upsert">
+        INSERT INTO member_profile
+        (member_id, core_scores, member_mentoring, created_at, updated_at)
+        VALUES
+        (#{memberId}, CAST(#{coreScores} AS jsonb), CAST(#{memberMentoring} AS jsonb), now(), now())
+        ON CONFLICT (member_id)
+        DO UPDATE SET
+            core_scores = EXCLUDED.core_scores,
+            member_mentoring = EXCLUDED.member_mentoring,
+            updated_at = now()
+    </insert>
+</mapper>
