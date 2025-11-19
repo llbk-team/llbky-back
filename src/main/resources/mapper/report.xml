@@ -15,8 +15,8 @@
             member_id       AS memberId,
             title,
             memo,
-            snapshot_json   AS snapshotJson,
-            report_summary  AS reportSummary,
+            snapshot_json::text  AS snapshotJson,
+            report_summary::text AS reportSummary,
             created_at      AS createdAt
         FROM report
         WHERE report_id = #{reportId}
@@ -28,8 +28,8 @@
             member_id       AS memberId,
             title,
             memo,
-            snapshot_json   AS snapshotJson,
-            report_summary  AS reportSummary,
+            snapshot_json::text  AS snapshotJson,
+            report_summary::text AS reportSummary,
             created_at      AS createdAt
         FROM report
         WHERE member_id = #{memberId}

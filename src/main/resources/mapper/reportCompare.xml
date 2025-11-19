@@ -3,11 +3,15 @@
 
 <mapper namespace="com.example.demo.report.dao.ReportCompareDao">
     <select id="findByPair" resultType="com.example.demo.report.dto.ReportCompare">
-        SELECT compare_id AS compareId, report_id1 AS reportId1,
-                report_id2 AS reportId2, content, created_at AS createdAt
+        SELECT 
+            compare_id AS compareId, 
+            report_id1 AS reportId1,
+            report_id2 AS reportId2, 
+            content::text AS content,
+            created_at AS createdAt
         FROM report_compare
-        WHERE (report_id1 = #{id1} AND report_id2 = #{id2})
-            OR (report_id1 = #{id2} AND report_id2 = #{id1})
+        WHERE (report_id1 = #{reportId1} AND report_id2 = #{reportId2})
+            OR (report_id1 = #{reportId2} AND report_id2 = #{reportId1})
         LIMIT 1
     </select>
 
