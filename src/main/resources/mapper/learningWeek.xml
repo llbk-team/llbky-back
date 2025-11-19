@@ -7,41 +7,52 @@
     <!-- INSERT -->
     <!-- 처음 로드맵 생성할 때 -->
     <insert id="insert" parameterType="com.example.demo.learning.entity.LearningWeek" useGeneratedKeys="true" keyProperty="weekId" keyColumn="week_id">
-        INSERT INTO learning (member_id, title, status)
-        VALUES (#{memberId}, #{title}, #{status});
+        INSERT INTO learning_week (learning_id, week_number, title, goal, status)
+        VALUES (#{learningId}, #{weekNumber}, #{title}, #{goal}, #{status});
     </insert>
 
-    <!-- SELECT: learningId로 조회 -->
-    <select id="selectedByLearningId" parameterType="int" resultType="com.example.demo.learning.entity.LearningWeek">
+    <!-- SELECT: weekId로 주차 조회 -->
+    <select id="selectedByWeekId" parameterType="int" resultType="com.example.demo.learning.entity.LearningWeek">
         SELECT *
-        FROM learning
+        FROM learning_week
+        WHERE week_id = #{weekId};
+    </select>
+
+    <!-- SELECT: 특정 학습 플랜의 모든 주차 조회 -->
+    <select id="selectListByLearningId" parameterType="int" resultType="com.example.demo.learning.entity.LearningWeek">
+        SELECT *
+        FROM learning_week
         WHERE learning_id = #{learningId}
+        ORDER BY week_number ASC;
     </select>
 
-    <!-- SELECT: 사용자별 전체 학습 리스트 -->
-    <select id="selectListByMemberId" parameterType="int" resultType="com.example.demo.learning.entity.LearningWeek">
+
+    <!-- SELECT: 특정 학습 플랜 + 주차 번호로 단건 조회 -->
+    <select id="selectByLearningIdAndWeekNumber" resultType="com.example.demo.learning.entity.LearningWeek">
         SELECT *
-        FROM learning
-        WHERE member_id = #{memberId}
-        ORDER BY created_at DESC
+        FROM learning_week
+        WHERE learning_id = #{learningId} AND week_number = #{weekNumber};
     </select>
 
-    <!-- SELECT: 사용자별 학습 개수 -->
-    <select id="countByMemberId" parameterType="int" resultType="int">
+
+    <!-- SELECT: 특정 학습 플랜의 총 주차 개수 -->
+    <select id="countByLearningId" parameterType="int" resultType="int">
         SELECT COUNT(*)
-        FROM learning
-        WHERE member_id = #{memberId}
+        FROM learning_week
+        WHERE learning_id = #{learningId};
     </select>
 
-    <!-- UPDATE: 학습 상태 또는 AI 요약 변경 -->
+
+    <!-- UPDATE -->
     <update id="update" parameterType="com.example.demo.learning.entity.LearningWeek">
-        UPDATE learning
+        UPDATE learning_week
         SET
-          status = #{status},
-          learning_summary = #{learningSummary},
-          learning_recommandation = #{learningRecommendation},
-          updated_at = NOW()
-        WHERE learning_id = #{learningId}
+            title = #{title},
+            goal = #{goal},
+            status = #{status},
+            week_summary = #{weekSummary},
+            updated_at = NOW()
+        WHERE week_id = #{weekId};
     </update>
 
 </mapper>

@@ -7,41 +7,50 @@
     <!-- INSERT -->
     <!-- 처음 로드맵 생성할 때 -->
     <insert id="insert" parameterType="com.example.demo.learning.entity.LearningDay" useGeneratedKeys="true" keyProperty="dayId" keyColumn="day_id">
-        INSERT INTO learning (member_id, title, status)
-        VALUES (#{memberId}, #{title}, #{status});
+        INSERT INTO learning_day (week_id, day_number, title, content, status)
+        VALUES (#{weekId}, #{dayNumber}, #{title}, #{content}, #{status});
     </insert>
 
-    <!-- SELECT: learningId로 조회 -->
-    <select id="selectedByLearningId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
+    <!-- SELECT: dayId로 조회 -->
+    <select id="selectedByDayId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
         SELECT *
-        FROM learning
+        FROM learning_day
+        WHERE day_id = #{dayId};
+    </select>
+
+    <!-- SELECT: 특정 주차 전체 일차 조회 -->
+    <select id="selectListByWeekId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
+        SELECT *
+        FROM learning_day
+        WHERE week_id = #{weekId}
+        ORDER BY day_number ASC;
+    </select>
+
+    <!-- SELECT: 특정 학습 플랜 전체 일차 조회 -->
+    <select id="selectListByLearningId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
+        SELECT *
+        FROM learning_day
         WHERE learning_id = #{learningId}
+        ORDER BY week_id ASC, day_number ASC;
     </select>
 
-    <!-- SELECT: 사용자별 전체 학습 리스트 -->
-    <select id="selectListByMemberId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
+    <!-- SELECT: 주차 + 일차 번호로 1개 조회 -->
+    <select id="selectByWeekIdAndDayNumber" resultType="com.example.demo.learning.entity.LearningDay">
         SELECT *
-        FROM learning
-        WHERE member_id = #{memberId}
-        ORDER BY created_at DESC
+        FROM learning_day
+        WHERE week_id = #{weekId} AND day_number = #{dayNumber};
     </select>
 
-    <!-- SELECT: 사용자별 학습 개수 -->
-    <select id="countByMemberId" parameterType="int" resultType="int">
-        SELECT COUNT(*)
-        FROM learning
-        WHERE member_id = #{memberId}
-    </select>
-
-    <!-- UPDATE: 학습 상태 또는 AI 요약 변경 -->
+    <!-- UPDATE -->
     <update id="update" parameterType="com.example.demo.learning.entity.LearningDay">
-        UPDATE learning
+        UPDATE learning_day
         SET
-          status = #{status},
-          learning_summary = #{learningSummary},
-          learning_recommandation = #{learningRecommendation},
-          updated_at = NOW()
-        WHERE learning_id = #{learningId}
+            title = #{title},
+            content = #{content},
+            learning_day_summary = #{learningDaySummary},
+            status = #{status},
+            updated_at = NOW()
+        WHERE day_id = #{dayId};
     </update>
 
 </mapper>
