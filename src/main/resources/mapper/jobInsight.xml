@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.newstrend.dao.JobInsightDao">
+  <!-- 인사이트 저장 -->
+  <insert id="insertJobInsight"
+    parameterType="JobInsight"
+    useGeneratedKeys="true"
+    keyProperty="jobInsight">
+      insert into job_insight(
+        member_id, job_title, analysis_json, recommendation_json, created_at
+      )
+      values(
+        #{memberId}, #{jobTitle},
+        cast(#{analysisJson} AS JSONB),
+        cast(#{recommendationJson} AS JSONB),
+        now()
+      )
+  </insert>
+
+  <!-- 특정 사용자 최신 인사이트 조회(1개) -->
+  <select id="selectInsightByMemberId"
+    parameterType="int"
+    resultType="JobInsight">
+      select
+        insight_id, member_id, job_title, analysis_json, recommendation_json, created_at
+      from job_insight
+      where member_id = #{memberId}
+      order by created_at desc
+      limit 1
+  </select>
+
+  <!-- 사용자 전체 인사이트 조회 -->
+  <select id="selectAllInsightByMemberId"
+    parameterType="int"
+    resultType="JobInsight">
+     select
+      insight_id, memeber_id, job_title, analysis_json, recommendation_json, created_at
+    from job_insight
+    where member_id = #{memberId}
+    order by created_at desc
+  </select>
+</mapper>

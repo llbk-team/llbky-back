@@ -1,14 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
-<!DOCTYPE configuration
-  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
-  "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "https://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
   <settings>
-    <setting name="mapUnderscoreToCamelCase" value="true"/>
+    <setting name="mapUnderscoreToCamelCase" value="true" />
     <setting name="jdbcTypeForNull" value="NULL" />
-    <setting name="logImpl" value="STDOUT_LOGGING"/>
+    <setting name="logImpl" value="STDOUT_LOGGING" />
   </settings>
 
   <typeAliases>
@@ -19,7 +16,14 @@
     <typeAlias type="com.example.demo.learning.entity.Learning" alias="Learning" />
     <typeAlias type="com.example.demo.learning.entity.LearningWeek" alias="LearningWeek" />
     <typeAlias type="com.example.demo.learning.entity.LearningDay" alias="LearningDay" />
-    
+    <typeAlias type="com.example.demo.newstrend.entity.JobInsight" alias="JobInsight" />
+    <typeAlias type="com.example.demo.newstrend.entity.KeywordMaster" alias="KeywordMaster" />
+    <typeAlias type="com.example.demo.newstrend.entity.NewsKeyword" alias="NewsKeyword" />
+    <typeAlias type="com.example.demo.newstrend.entity.NewsSummary" alias="NewsSummary" />
+    <typeAlias type="com.example.demo.newstrend.entity.SavedKeyword" alias="SavedKeyword" />
+    <typeAlias type="com.example.demo.newstrend.entity.TrendRecord" alias="TrendRecord" />
+    <typeAlias type="com.example.demo.newstrend.entity.VectorStore" alias="VectorStore" />
+
   </typeAliases>
 
 </configuration>
