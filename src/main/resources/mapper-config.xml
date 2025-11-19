@@ -13,10 +13,13 @@
 
   <typeAliases>
     <typeAlias type="com.example.demo.portfolio.entity.Portfolio" alias="Portfolio" />
+    <typeAlias type="com.example.demo.portfolio.entity.PortfolioImage" alias="PortfolioImage" />
+    <typeAlias type="com.example.demo.resume.entity.Resume" alias="Resume" />
 
     <typeAlias type="com.example.demo.learning.entity.Learning" alias="Learning" />
     <typeAlias type="com.example.demo.learning.entity.LearningWeek" alias="LearningWeek" />
     <typeAlias type="com.example.demo.learning.entity.LearningDay" alias="LearningDay" />
+    
   </typeAliases>
 
 </configuration>
