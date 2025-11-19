@@ -18,12 +18,20 @@
         WHERE learning_id = #{learningId}
     </select>
 
-    <!-- SELECT: 사용자별 전체 학습 리스트 -->
+    <!-- SELECT: 사용자별 전체 학습 리스트 조회 -->
     <select id="selectListByMemberId" parameterType="int" resultType="com.example.demo.learning.entity.Learning">
         SELECT *
         FROM learning
         WHERE member_id = #{memberId}
         ORDER BY created_at DESC
+    </select>
+
+    <!-- SELECT: 상태별 학습 리스트 조회 -->
+    <select id="selectListByStatus" resultType="com.example.demo.learning.entity.Learning">
+        SELECT *
+        FROM learning
+        WHERE member_id = #{memberId} AND status = #{status}
+        ORDER BY created_at DESC;
     </select>
 
     <!-- SELECT: 사용자별 학습 개수 -->
