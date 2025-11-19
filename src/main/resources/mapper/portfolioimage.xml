@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.example.demo.portfolio.dao.PortfolioImageDao">
+    <!-- ##### 이미지 생성 ##### -->
+     <!--단일 이미지 단일 저장-->
+    <insert id="insertPortfolioImage" parameterType="PortfolioImage"
+     useGeneratedKeys="true" keyProperty="imageId">
+     INSERT INTO portfolio_image(
+      portfolio_id, page_no , filename, filedata,filetype, created_at
+     )
+     VALUES(
+      #{portfolioId},#{pageNo},#{filename},#{filedata},#{filetype},NOW()
+     )
+    </insert>
+    <!-- 포트폴리오 이미지 배치저장(PDF 변환후 한번에 저장)-->
+    <insert id="insertPortfolioImages" parameterType="java.util.List">
+      INSERT INTO portfolio_image(
+        portfolio_id, page_no, filename, filedata, filetype, created_at
+      ) VALUES
+      <foreach collection="list" item="image" separator=",">
+        (#{image.portfolioId}, #{image.pageNo}, #{image.filename}, 
+        #{image.filedata}, #{image.filetype}, NOW())
+      </foreach>
+    </insert>
+
+
+    <!---////////////////////////////이미지 조회//////////////////////////////// -->
+    <!-- 특정 포트폴리오의 모든 이미지 조회 (페이지 순서대로) -->
+    <select id="selectImagesByPortfolioId" parameterType="int" resultType="PortfolioImage">
+      SELECT
+        image_id AS imageId
+        portfolio_id AS portfolioId, 
+        page_no AS pageNo, 
+        filename, 
+        filedata, 
+        filetype, 
+        created_at AS createdAt
+        FROM portfolio_image 
+      WHERE portfolio_id = #{portfolioId}
+      ORDER BY page_no ASC
+    </select>
+
+     <!-- 특정 포트폴리오의 특정 페이지 이미지 조회 -->
+    <select id="selectImageByPortfolioIdAndPageNo" parameterType="map"
+    resultType="PortfolioImage">
+      SELECT 
+        image_id AS imageId,
+        portfolio_id AS portfolioId, 
+        page_no AS pageNo, 
+        filename, 
+        filedata, 
+        filetype, 
+        created_at AS createdAt
+      FROM portfolio_image 
+      WHERE portfolio_id = #{portfolioId} AND page_no = #{pageNo}
+      LIMIT 1
+    </select>
+
+    <!-- 이미지 ID로 단일 이미지 조회 -->
+  <select id="selectImageById" 
+          parameterType="int" 
+          resultType="PortfolioImage">
+    SELECT 
+      image_id AS imageId,
+      portfolio_id AS portfolioId, 
+      page_no AS pageNo, 
+      filename, 
+      filedata, 
+      filetype, 
+      created_at AS createdAt
+    FROM portfolio_image 
+    WHERE image_id = #{imageId}
+  </select>
+
+  <!-- 특정 포트폴리오의 썸네일만 조회 (첫 페이지) -->
+  <select id="selectThumbnailByPortfolioId" 
+          parameterType="int" 
+          resultType="PortfolioImage">
+    SELECT 
+      image_id AS imageId,
+      portfolio_id AS portfolioId, 
+      page_no AS pageNo, 
+      filename, 
+      filedata, 
+      filetype, 
+      created_at AS createdAt
+    FROM portfolio_image 
+    WHERE portfolio_id = #{portfolioId}
+    ORDER BY page_no ASC
+    LIMIT 1
+  </select>
+
+
+
+    <!---////////////////////////////이미지 수정//////////////////////////////// -->
+    <update id="updatePortfolioImage" parameterType="PortfolioImage">
+      UPDATE portfolio_image 
+        SET 
+          filename = #{filename},
+          filetype = #{filetype}
+          <if test="filedata != null">
+            , filedata = #{filedata}
+          </if>
+      WHERE image_id = #{imageId}
+    </update>
+
+
+
+    <!---////////////////////////////이미지 삭제//////////////////////////////// -->
+
+    <!-- 특정 이미지 삭제 -->
+    <delete id="deleteImageById" parameterType="int">
+      DELETE FROM portfolio_image 
+      WHERE image_id = #{imageId}
+    </delete>
+
+    <!-- 특정 포트폴리오의 모든 이미지 삭제 -->
+    <delete id="deleteImagesByPortfolioId" parameterType="int">
+      DELETE FROM portfolio_image 
+      WHERE portfolio_id = #{portfolioId}
+    </delete>
+
+    <!-- ##### 통계 및 유틸리티 ##### -->
+    <!-- 특정 포트폴리오의 총 이미지(페이지) 수 조회 -->
+    <select id="countImagesByPortfolioId" 
+            parameterType="int" 
+            resultType="int">
+      SELECT COUNT(*) 
+      FROM portfolio_image 
+      WHERE portfolio_id = #{portfolioId}
+    </select>
+
+    <!-- 모든 포트폴리오 이미지 조회 (관리자용) -->
+    <select id="selectAllImages" resultType="PortfolioImage">
+      SELECT 
+        image_id AS imageId,
+        portfolio_id AS portfolioId, 
+        page_no AS pageNo, 
+        filename, 
+        filedata, 
+        filetype, 
+        created_at AS createdAt
+      FROM portfolio_image 
+      ORDER BY portfolio_id ASC, page_no ASC
+    </select>
+
+  </mapper>
