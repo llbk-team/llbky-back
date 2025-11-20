@@ -2,41 +2,59 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
   <mapper namespace="com.example.demo.portfolio.dao.PortfolioImageDao">
-    <!-- ##### 이미지 생성 ##### -->
+ 
+   <!-- ##### 이미지 생성 ##### -->
      <!--단일 이미지 단일 저장-->
     <insert id="insertPortfolioImage" parameterType="PortfolioImage"
      useGeneratedKeys="true" keyProperty="imageId">
      INSERT INTO portfolio_image(
-      portfolio_id, page_no , filename, filedata,filetype, created_at
+      portfolio_id, page_no, filename, filedata, filetype, created_at, page_feedback
      )
      VALUES(
-      #{portfolioId},#{pageNo},#{filename},#{filedata},#{filetype},NOW()
+      #{portfolioId}, #{pageNo}, #{filename}, #{filedata}, #{filetype}, NOW(),
+      <choose>
+        <when test="pageFeedback != null">
+          #{pageFeedback}::jsonb
+        </when>
+        <otherwise>
+          NULL
+        </otherwise>
+      </choose>
      )
     </insert>
+    
     <!-- 포트폴리오 이미지 배치저장(PDF 변환후 한번에 저장)-->
     <insert id="insertPortfolioImages" parameterType="java.util.List">
       INSERT INTO portfolio_image(
-        portfolio_id, page_no, filename, filedata, filetype, created_at
+        portfolio_id, page_no, filename, filedata, filetype, created_at, page_feedback
       ) VALUES
       <foreach collection="list" item="image" separator=",">
         (#{image.portfolioId}, #{image.pageNo}, #{image.filename}, 
-        #{image.filedata}, #{image.filetype}, NOW())
+        #{image.filedata}, #{image.filetype}, NOW(),
+        <choose>
+          <when test="image.pageFeedback != null">
+            #{image.pageFeedback}::jsonb
+          </when>
+          <otherwise>
+            NULL
+          </otherwise>
+        </choose>)
       </foreach>
     </insert>
-
 
     <!---////////////////////////////이미지 조회//////////////////////////////// -->
     <!-- 특정 포트폴리오의 모든 이미지 조회 (페이지 순서대로) -->
     <select id="selectImagesByPortfolioId" parameterType="int" resultType="PortfolioImage">
       SELECT
-        image_id AS imageId
+        image_id AS imageId,
         portfolio_id AS portfolioId, 
         page_no AS pageNo, 
         filename, 
         filedata, 
         filetype, 
-        created_at AS createdAt
-        FROM portfolio_image 
+        created_at AS createdAt,
+        page_feedback::text AS pageFeedback
+      FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId}
       ORDER BY page_no ASC
     </select>
@@ -51,7 +69,8 @@
         filename, 
         filedata, 
         filetype, 
-        created_at AS createdAt
+        created_at AS createdAt,
+        page_feedback::text AS pageFeedback
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId} AND page_no = #{pageNo}
       LIMIT 1
@@ -68,7 +87,8 @@
       filename, 
       filedata, 
       filetype, 
-      created_at AS createdAt
+      created_at AS createdAt,
+      page_feedback::text AS pageFeedback
     FROM portfolio_image 
     WHERE image_id = #{imageId}
   </select>
@@ -84,14 +104,13 @@
       filename, 
       filedata, 
       filetype, 
-      created_at AS createdAt
+      created_at AS createdAt,
+      page_feedback::text AS pageFeedback
     FROM portfolio_image 
     WHERE portfolio_id = #{portfolioId}
     ORDER BY page_no ASC
     LIMIT 1
   </select>
-
-
 
     <!---////////////////////////////이미지 수정//////////////////////////////// -->
     <update id="updatePortfolioImage" parameterType="PortfolioImage">
@@ -102,10 +121,18 @@
           <if test="filedata != null">
             , filedata = #{filedata}
           </if>
+          <if test="pageFeedback != null">
+            , page_feedback = #{pageFeedback}::jsonb
+          </if>
       WHERE image_id = #{imageId}
     </update>
 
-
+    <!-- 페이지별 AI 피드백 업데이트 -->
+    <update id="updatePageFeedback" parameterType="map">
+      UPDATE portfolio_image 
+      SET page_feedback = #{feedback}::jsonb
+      WHERE image_id = #{imageId}
+    </update>
 
     <!---////////////////////////////이미지 삭제//////////////////////////////// -->
 
@@ -140,7 +167,8 @@
         filename, 
         filedata, 
         filetype, 
-        created_at AS createdAt
+        created_at AS createdAt,
+        page_feedback::text AS pageFeedback
       FROM portfolio_image 
       ORDER BY portfolio_id ASC, page_no ASC
     </select>

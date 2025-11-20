@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.portfolio.dao.PortfolioGuideDao">
+
+    <!-- 포트폴리오 가이드 생성 -->
+    <insert id="insertGuide" parameterType="PortfolioGuide"
+            useGeneratedKeys="true" keyProperty="guideId">
+        INSERT INTO portfolio_guide(
+            member_id, title, criteria_id, guide_content, 
+            completion_percentage, is_completed, current_step, total_steps,
+            guide_feedback, created_at, updated_at
+        ) VALUES(
+            #{memberId}, #{title}, #{criteriaId}, 
+            <choose>
+                <when test="guideContent != null">
+                    #{guideContent}::jsonb
+                </when>
+                <otherwise>
+                    NULL
+                </otherwise>
+            </choose>,
+            #{completionPercentage}, #{isCompleted}, #{currentStep}, #{totalSteps},
+            <choose>
+                <when test="guideFeedback != null">
+                    #{guideFeedback}::jsonb
+                </when>
+                <otherwise>
+                    NULL
+                </otherwise>
+            </choose>,
+            NOW(), NOW()
+        )
+    </insert>
+
+    <!-- 가이드 ID로 조회 -->
+    <select id="selectGuideById" parameterType="int" resultType="PortfolioGuide">
+        SELECT 
+            guide_id AS guideId,
+            member_id AS memberId,
+            title,
+            criteria_id AS criteriaId,
+            guide_content::text AS guideContent,
+            completion_percentage AS completionPercentage,
+            is_completed AS isCompleted,
+            current_step AS currentStep,
+            total_steps AS totalSteps,
+            guide_feedback::text AS guideFeedback,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM portfolio_guide 
+        WHERE guide_id = #{guideId}
+    </select>
+
+    <!-- 회원별 가이드 목록 조회 -->
+    <select id="selectGuidesByMemberId" parameterType="int" resultType="PortfolioGuide">
+        SELECT 
+            guide_id AS guideId,
+            member_id AS memberId,
+            title,
+            criteria_id AS criteriaId,
+            guide_content::text AS guideContent,
+            completion_percentage AS completionPercentage,
+            is_completed AS isCompleted,
+            current_step AS currentStep,
+            total_steps AS totalSteps,
+            guide_feedback::text AS guideFeedback,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM portfolio_guide 
+        WHERE member_id = #{memberId}
+        ORDER BY updated_at DESC
+    </select>
+
+    <!-- 완료된 가이드 조회 -->
+    <select id="selectCompletedGuidesByMemberId" parameterType="int" resultType="PortfolioGuide">
+        SELECT 
+            guide_id AS guideId,
+            member_id AS memberId,
+            title,
+            criteria_id AS criteriaId,
+            guide_content::text AS guideContent,
+            completion_percentage AS completionPercentage,
+            is_completed AS isCompleted,
+            current_step AS currentStep,
+            total_steps AS totalSteps,
+            guide_feedback::text AS guideFeedback,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM portfolio_guide 
+        WHERE member_id = #{memberId} AND is_completed = true
+        ORDER BY updated_at DESC
+    </select>
+
+    <!-- 진행 중인 가이드 조회 -->
+    <select id="selectInProgressGuidesByMemberId" parameterType="int" resultType="PortfolioGuide">
+        SELECT 
+            guide_id AS guideId,
+            member_id AS memberId,
+            title,
+            criteria_id AS criteriaId,
+            guide_content::text AS guideContent,
+            completion_percentage AS completionPercentage,
+            is_completed AS isCompleted,
+            current_step AS currentStep,
+            total_steps AS totalSteps,
+            guide_feedback::text AS guideFeedback,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM portfolio_guide 
+        WHERE member_id = #{memberId} AND is_completed = false
+        ORDER BY updated_at DESC
+    </select>
+
+    <!-- 가이드 업데이트 -->
+    <update id="updateGuide" parameterType="PortfolioGuide">
+        UPDATE portfolio_guide SET 
+            title = #{title},
+            <if test="guideContent != null">
+                guide_content = #{guideContent}::jsonb,
+            </if>
+            completion_percentage = #{completionPercentage},
+            is_completed = #{isCompleted},
+            current_step = #{currentStep},
+            <if test="guideFeedback != null">
+                guide_feedback = #{guideFeedback}::jsonb,
+            </if>
+            updated_at = NOW()
+        WHERE guide_id = #{guideId}
+    </update>
+
+    <!-- 가이드 진행률 업데이트 -->
+    <update id="updateGuideProgress" parameterType="map">
+        UPDATE portfolio_guide SET 
+            completion_percentage = #{completionPercentage},
+            current_step = #{currentStep},
+            is_completed = 
+                <choose>
+                    <when test="completionPercentage >= 100">true</when>
+                    <otherwise>false</otherwise>
+                </choose>,
+            updated_at = NOW()
+        WHERE guide_id = #{guideId}
+    </update>
+
+    <!-- 가이드 콘텐츠 업데이트 -->
+    <update id="updateGuideContent" parameterType="map">
+        UPDATE portfolio_guide SET 
+            guide_content = #{content}::jsonb,
+            updated_at = NOW()
+        WHERE guide_id = #{guideId}
+    </update>
+
+    <!-- AI 가이드 피드백 업데이트 -->
+    <update id="updateGuideFeedback" parameterType="map">
+        UPDATE portfolio_guide SET 
+            guide_feedback = #{feedback}::jsonb,
+            updated_at = NOW()
+        WHERE guide_id = #{guideId}
+    </update>
+
+    <!-- 가이드 완료 처리 -->
+    <update id="completeGuide" parameterType="int">
+        UPDATE portfolio_guide SET 
+            completion_percentage = 100,
+            is_completed = true,
+            current_step = total_steps,
+            updated_at = NOW()
+        WHERE guide_id = #{guideId}
+    </update>
+
+    <!-- 가이드 삭제 -->
+    <delete id="deleteGuide" parameterType="int">
+        DELETE FROM portfolio_guide 
+        WHERE guide_id = #{guideId}
+    </delete>
+
+    <!-- 회원의 모든 가이드 삭제 -->
+    <delete id="deleteGuidesByMemberId" parameterType="int">
+        DELETE FROM portfolio_guide 
+        WHERE member_id = #{memberId}
+    </delete>
+
+    <!-- 가이드 개수 조회 -->
+    <select id="countGuidesByMemberId" parameterType="int" resultType="int">
+        SELECT COUNT(*) 
+        FROM portfolio_guide 
+        WHERE member_id = #{memberId}
+    </select>
+
+    <!-- 완료된 가이드 개수 조회 -->
+    <select id="countCompletedGuidesByMemberId" parameterType="int" resultType="int">
+        SELECT COUNT(*) 
+        FROM portfolio_guide 
+        WHERE member_id = #{memberId} AND is_completed = true
+    </select>
+
+    <!-- 평균 완료율 조회 -->
+    <select id="getAverageCompletionByMemberId" parameterType="int" resultType="double">
+        SELECT COALESCE(AVG(completion_percentage), 0) 
+        FROM portfolio_guide 
+        WHERE member_id = #{memberId}
+    </select>
+
+    <!-- 최근 생성된 가이드 조회 (관리자용) -->
+    <select id="selectRecentGuides" parameterType="int" resultType="PortfolioGuide">
+        SELECT 
+            guide_id AS guideId,
+            member_id AS memberId,
+            title,
+            criteria_id AS criteriaId,
+            guide_content::text AS guideContent,
+            completion_percentage AS completionPercentage,
+            is_completed AS isCompleted,
+            current_step AS currentStep,
+            total_steps AS totalSteps,
+            guide_feedback::text AS guideFeedback,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM portfolio_guide 
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

@@ -5,16 +5,15 @@
 <mapper namespace="com.example.demo.resume.dao.ResumeDao">
 
 <!--이령서 생성-->
-
-  <insert id="insertResume" parameterType="Resume"
+<insert id="insertResume" parameterType="Resume"
   useGeneratedKeys="true" keyProperty="resumeId">
     INSERT INTO resume(
       member_id, title, career_info, education_info, skills, 
-      certificates, awards, activity, resume_feedback, created_at, updated_at
+      certificates, awards, activities, resume_feedback, created_at, updated_at
     )VALUES(
       #{memberId}, #{title}, 
       #{careerInfo}::jsonb, #{educationInfo}::jsonb, #{skills}::jsonb,
-      #{certificates}::jsonb, #{awards}::jsonb, #{activity}::jsonb,
+      #{certificates}::jsonb, #{awards}::jsonb, #{activities}::jsonb,
       #{resumeFeedback}::jsonb, NOW(), NOW()
     )
   </insert>
@@ -27,7 +26,7 @@
                skills::text as skills,
                certificates::text as certificates,
                awards::text as awards,
-               activity::text as activity,
+               activities::text as activities,
                resume_feedback::text as resumeFeedback,
                created_at, updated_at
         FROM resume 
@@ -42,7 +41,7 @@
                skills::text as skills,
                certificates::text as certificates,
                awards::text as awards,
-               activity::text as activity,
+               activities::text as activities,
                resume_feedback::text as resumeFeedback,
                created_at, updated_at
         FROM resume 
@@ -59,7 +58,7 @@
             skills = #{skills}::jsonb,
             certificates = #{certificates}::jsonb,
             awards = #{awards}::jsonb,
-            activity = #{activity}::jsonb,
+            activities = #{activities}::jsonb,
             resume_feedback = #{resumeFeedback}::jsonb,
             updated_at = NOW()
         WHERE resume_id = #{resumeId}
@@ -87,7 +86,7 @@
                skills::text as skills,
                certificates::text as certificates,
                awards::text as awards,
-               activity::text as activity,
+               activities::text as activities,
                resume_feedback::text as resumeFeedback,
                created_at, updated_at
         FROM resume 
@@ -117,7 +116,7 @@
                skills::text as skills,
                certificates::text as certificates,
                awards::text as awards,
-               activity::text as activity,
+               activities::text as activities,
                resume_feedback::text as resumeFeedback,
                created_at, updated_at
         FROM resume 
@@ -125,4 +124,5 @@
         LIMIT #{limit}
     </select>
 
+    
 </mapper>
