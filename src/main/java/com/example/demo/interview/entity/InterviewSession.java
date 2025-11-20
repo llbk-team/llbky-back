@@ -11,6 +11,11 @@ public class InterviewSession {
 
   private String type;  //면접 유형
   private String targetCompany; //희망 기업
+
+  private String documentFileName;  //서류 파일 이름
+  private String documentFileType;  //서류 파일 타입
+  private byte[] documentFileData;  //서류 바이너리 데이터
+
   private String reportFeedback;  //종합 피드백
   
   private LocalDateTime createdAt;  //생성일
