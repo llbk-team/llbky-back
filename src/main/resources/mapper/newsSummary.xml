@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.newstrend.dao.NewsSummaryDao">
+
+    <!-- INSERT -->
+    <insert id="insertNewsSummary" 
+      parameterType="NewsSummary">
+        insert into news_summary (
+            member_id,
+            source_name,
+            source_url,
+            title,
+            published_at,
+            summary_text,
+            detail_summary,
+            analysis_json
+        )
+        VALUES (
+            #{memberId},
+            #{sourceName},
+            #{sourceUrl},
+            #{title},
+            #{publishedAt},
+            #{summaryText},
+            #{detailSummary},
+            CAST(#{analysisJson} AS JSONB)
+        )
+    </insert>
+
+    <!-- SELECT: PK 단일 조회 -->
+    <select id="selectNewsSummaryById" 
+      resultType="NewsSummary">
+        select
+          summary_id,
+          member_id,
+          source_name,
+          source_url,
+          title,
+          published_at,
+          summary_text,
+          detail_summary,
+          analysis_json,
+          created_at
+        from news_summary
+        where summary_id = #{summaryId}
+    </select>
+
+    <!-- SELECT: URL 기준 중복 체크 -->
+    <select id="selectNewsSummaryBySourceUrl" 
+      resultType="NewsSummary">
+        select
+          summary_id,
+          member_id,
+          source_name,
+          source_url,
+          title,
+          published_at,
+          summary_text,
+          detail_summary,
+          analysis_json,
+          created_at
+        from news_summary
+        where source_url = #{sourceUrl}
+        LIMIT 1
+    </select>
+
+    <!-- SELECT: 특정 사용자 최신 N개 뉴스 카드 -->
+    <select id="selectLatestNewsSummaryByMemberId" 
+      resultType="NewsSummary">
+        select
+            summary_id,
+            member_id,
+            source_name,
+            source_url,
+            title,
+            published_at,
+            summary_text,
+            detail_summary,
+            analysis_json,
+            created_at
+        from news_summary
+        where member_id = #{memberId}
+        order by created_at DESC
+        limit #{limit}
+    </select>
+
+    <!-- DELETE -->
+    <delete id="deleteNewsSummary">
+        delete from news_summary
+        where summary_id = #{summaryId}
+    </delete>
+
+</mapper>

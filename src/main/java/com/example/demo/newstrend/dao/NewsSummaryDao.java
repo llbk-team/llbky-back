@@ -11,15 +11,15 @@ public interface NewsSummaryDao {
   // 뉴스 요약 저장
   public int insertNewsSummary(NewsSummary newsSummary);
 
+  // 단일 뉴스 조회
+  public NewsSummary selectNewsSummaryById(int summaryId);
+
   // URL 중복 체크
-  public NewsSummary selectBySourceUrl(String sourceUrl);
+  public NewsSummary selectNewsSummaryBySourceUrl(String sourceUrl);
 
-  // 뉴스 상세보기
-  public NewsSummary selectNewsById(Integer summaryId);
+  // 특정 멤버의 뉴스 조회
+  public List<NewsSummary> selectLateNewsSummaryByMemberId(int memberId, int limit);
 
-  // 희망 직무로만 뉴스 추천
-  public List<NewsSummary> selectNewsByKeyword(String keyword);
-
-  // 희망 직무 + 관심 키워드
-  public List<NewsSummary> selectNewsByKeywordList(List<String> keywords);
+  // 뉴스 삭제
+  public int deletNewsSummary(int summaryId);
 }
