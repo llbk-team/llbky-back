@@ -9,7 +9,7 @@ public class InterviewSession {
   private Integer sessionId;  //면접 ID
   private Integer memberId; //사용자 ID
 
-  private String type;  //면접 유형
+  private String interviewType;  //면접 유형
   private String targetCompany; //희망 기업
 
   private String documentFileName;  //서류 파일 이름
