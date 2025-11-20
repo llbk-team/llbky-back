@@ -52,7 +52,7 @@ public class InsightAllTestController {
 
   @GetMapping("/news/list")
   public Object listNews() {
-    return newsSummaryDao.selectLatestNewsByMemberId(1, 6);
+    return newsSummaryDao.selectLatestNewsByMemberId(1, 1);
   }
 
   @DeleteMapping("/news/delete/{id}")
