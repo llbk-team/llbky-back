@@ -11,16 +11,22 @@
           keyProperty="answerId"
   >
     INSERT INTO interview_answer
-      (question_id, audio_file, video_file, answer_text, answer_feedback, created_at, updated_at)
+      (question_id, audio_file_name, audio_file_type, audio_file_data, video_file_name, video_file_type, video_file_data, 
+      answer_text, answer_feedback, created_at, updated_at)
     VALUES
-      (#{questionId}, #{audioFile}, #{videoFile}, #{answerText}, CAST(#{answerFeedback} AS JSONB), NOW(), NOW())
+      (#{questionId}, #{audioFileName}, #{audioFileType}, #{audioFileData}, #{videoFileName}, #{videoFileType}, #{videoFileData}, 
+      #{answerText}, CAST(#{answerFeedback} AS JSONB), NOW(), NOW())
   </insert>
 
   <!-- 답변 다시 제출 -->
   <update id="updateInterviewAnswer" parameterType="com.example.demo.interview.entity.InterviewAnswer">
     UPDATE interview_answer
-    SET audio_file = #{audioFile}, 
-        video_file = #{videoFile}, 
+    SET audio_file_name = #{audioFileName}, 
+        audio_file_type = #{audioFileType}, 
+        audio_file_data = #{audioFileData}, 
+        video_file_name = #{videoFileName}, 
+        video_file_type = #{videoFileType}, 
+        video_file_data = #{videoFileData}, 
         answer_text = #{answerText}, 
         answer_feedback = CAST(#{answerFeedback} AS JSONB), 
         updated_at = NOW()
@@ -31,8 +37,12 @@
   <select id="selectInterviewAnswerByQuestionId" resultType="com.example.demo.interview.entity.InterviewAnswer">
     SELECT answer_id AS answerId,
            question_id AS questionId, 
-           audio_file AS audioFile, 
-           video_file AS videoFile, 
+           audio_file_name AS audioFileName, 
+           audio_file_type AS audioFileType, 
+           audio_file_data AS audioFileData, 
+           video_file_name AS videoFileName, 
+           video_file_type AS videoFileType, 
+           video_file_data AS videoFileData,
            answer_text AS answerText, 
            answer_feedback::text AS answerFeedback, 
            created_at AS createdAt,
