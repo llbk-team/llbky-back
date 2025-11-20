@@ -26,7 +26,7 @@
            growth_experience AS growthExperience, 
            job_capability AS jobCapability, 
            future_plan AS futurePlan,
-           cover_feedback AS coverFeedback, 
+           cover_feedback::text AS coverFeedback, 
            created_at AS createdAt, 
            updated_at AS updatedAt
     FROM coverletter
@@ -41,7 +41,7 @@
            growth_experience AS growthExperience, 
            job_capability AS jobCapability, 
            future_plan AS futurePlan,
-           cover_feedback AS coverFeedback, 
+           cover_feedback::text AS coverFeedback, 
            created_at AS createdAt, 
            updated_at AS updatedAt
     FROM coverletter

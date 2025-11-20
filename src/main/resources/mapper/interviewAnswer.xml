@@ -34,7 +34,7 @@
            audio_file AS audioFile, 
            video_file AS videoFile, 
            answer_text AS answerText, 
-           answer_feedback AS answerFeedback, 
+           answer_feedback::text AS answerFeedback, 
            created_at AS createdAt,
            updated_at AS updatedAt
     FROM interview_answer

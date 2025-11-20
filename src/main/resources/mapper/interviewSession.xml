@@ -30,7 +30,7 @@
            member_id AS memberId, 
            type AS type, 
            target_company AS targetCompany, 
-           report_feedback AS reportFeedback, 
+           report_feedback::text AS reportFeedback, 
            created_at AS createdAt, 
            updated_at AS updatedAt
     FROM interview_session
@@ -44,7 +44,7 @@
            member_id AS memberId, 
            type AS type, 
            target_company AS targetCompany, 
-           report_feedback AS reportFeedback, 
+           report_feedback::text AS reportFeedback, 
            created_at AS createdAt, 
            updated_at AS updatedAt
     FROM interview_session
