@@ -15,6 +15,6 @@ public class TrendInsight {
   private LocalDate startDate;
   private LocalDate endDate;
 
-  private String insightJson; // LLM이 분석한 트렌드 페이지 전체 구성 UI 데이터
+  private String insightJson; // LLM이 분석한 트렌드 페이지 전체 구성 UI 데이터 JSONB
   private LocalDateTime createdAt;
 }
