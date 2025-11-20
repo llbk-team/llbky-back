@@ -16,7 +16,8 @@
             published_at,
             summary_text,
             detail_summary,
-            analysis_json
+            analysis_json,
+            keywords_json
         )
         VALUES (
             #{memberId},
@@ -26,24 +27,15 @@
             #{publishedAt},
             #{summaryText},
             #{detailSummary},
-            CAST(#{analysisJson} AS JSONB)
+            CAST(#{analysisJson} AS JSONB),
+            CAST(#{keywordsJson} AS JSONB)
         )
     </insert>
 
     <!-- 단일 뉴스 조회 -->
     <select id="selectNewsSummaryById" 
       resultType="NewsSummary">
-        select
-          summary_id,
-          member_id,
-          source_name,
-          source_url,
-          title,
-          published_at,
-          summary_text,
-          detail_summary,
-          analysis_json,
-          created_at
+        select *
         from news_summary
         where summary_id = #{summaryId}
     </select>
@@ -51,17 +43,7 @@
     <!-- URL 중복 체크 -->
     <select id="selectNewsSummaryBySourceUrl" 
       resultType="NewsSummary">
-        select
-          summary_id,
-          member_id,
-          source_name,
-          source_url,
-          title,
-          published_at,
-          summary_text,
-          detail_summary,
-          analysis_json,
-          created_at
+        select *
         from news_summary
         where source_url = #{sourceUrl}
         LIMIT 1
@@ -70,17 +52,7 @@
     <!-- 특정 멤버의 뉴스 조회 -->
     <select id="selectLatestNewsSummaryByMemberId" 
       resultType="NewsSummary">
-        select
-            summary_id,
-            member_id,
-            source_name,
-            source_url,
-            title,
-            published_at,
-            summary_text,
-            detail_summary,
-            analysis_json,
-            created_at
+        select *
         from news_summary
         where member_id = #{memberId}
         order by created_at DESC

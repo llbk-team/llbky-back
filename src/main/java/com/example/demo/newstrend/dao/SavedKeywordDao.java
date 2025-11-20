@@ -3,6 +3,7 @@ package com.example.demo.newstrend.dao;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.example.demo.newstrend.entity.SavedKeyword;
 
@@ -15,7 +16,9 @@ public interface SavedKeywordDao {
   public List<SavedKeyword> selectSavedKeywordListByMemberId(int memberId);
 
   // 키워드 중복 체크
-  public SavedKeyword selectSavedKeyword(int memberId, String keyword);
+  public SavedKeyword selectSavedKeyword(
+    @Param("memberId") int memberId,
+    @Param("keyword") String keyword);
 
   // 삭제
   public int deleteSavedKeyword(int savedKeywordId);

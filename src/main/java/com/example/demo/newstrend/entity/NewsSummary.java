@@ -17,5 +17,6 @@ public class NewsSummary {
   private String summaryText; // 3줄 요약 내용
   private String detailSummary; // 긴 요약
   private String analysisJson; // 감정/편향/신뢰도 통합
+  private String keywordsJson;
   private LocalDateTime createdAt; // 생성일
 }
