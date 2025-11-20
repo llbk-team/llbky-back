@@ -12,10 +12,10 @@
   >
     INSERT INTO interview_answer
       (question_id, audio_file_name, audio_file_type, audio_file_data, video_file_name, video_file_type, video_file_data, 
-      answer_text, answer_feedback, created_at, updated_at)
+      answer_text, answer_feedback)
     VALUES
       (#{questionId}, #{audioFileName}, #{audioFileType}, #{audioFileData}, #{videoFileName}, #{videoFileType}, #{videoFileData}, 
-      #{answerText}, CAST(#{answerFeedback} AS JSONB), NOW(), NOW())
+      #{answerText}, CAST(#{answerFeedback} AS JSONB))
   </insert>
 
   <!-- 답변 다시 제출 -->

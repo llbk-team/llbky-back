@@ -12,10 +12,10 @@
   >
     INSERT INTO interview_session
       (member_id, interview_type, target_company, document_file_name, document_file_type, document_file_data,
-      report_feedback, created_at, updated_at)
+      report_feedback)
     VALUES
       (#{memberId}, #{interviewType}, #{targetCompany}, #{documentFileName}, #{documentFileType}, #{documentFileData}, 
-      CAST(#{reportFeedback} AS JSONB), NOW(), NOW())
+      CAST(#{reportFeedback} AS JSONB))
   </insert>
 
   <!-- 면접 세션 종료 시 종합 피드백 생성 -->
