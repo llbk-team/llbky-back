@@ -24,7 +24,6 @@
     <typeAlias type="com.example.demo.newstrend.entity.TrendInsight" alias="TrendInsight" />
     
     <typeAlias type="com.example.demo.interview.entity.InterviewSession" alias="InterviewSession" />
-    <typeAlias type="com.example.demo.interview.entity.InterviewDocument" alias="InterviewDocument" />
     <typeAlias type="com.example.demo.interview.entity.InterviewQuestion" alias="InterviewQuestion" />
     <typeAlias type="com.example.demo.interview.entity.InterviewAnswer" alias="InterviewAnswer" />
 

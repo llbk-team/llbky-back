@@ -12,10 +12,10 @@
   >
     INSERT INTO coverletter
       (member_id, support_motive, growth_experience, job_capability, future_plan, 
-      cover_feedback, created_at, updated_at)
+      cover_feedback)
     VALUES
       (#{memberId}, #{supportMotive}, #{growthExperience}, #{jobCapability}, #{futurePlan}, 
-      CAST(#{coverFeedback} AS JSONB), NOW(), NOW())
+      CAST(#{coverFeedback} AS JSONB))
   </insert>
 
   <!-- 자소서 목록 조회 -->

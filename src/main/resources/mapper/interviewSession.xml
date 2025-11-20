@@ -11,11 +11,11 @@
           keyProperty="sessionId"
   >
     INSERT INTO interview_session
-      (member_id, type, target_company, document_file_name, document_file_type, document_file_data,
-      report_feedback, created_at, updated_at)
+      (member_id, interview_type, target_company, document_file_name, document_file_type, document_file_data,
+      report_feedback)
     VALUES
-      (#{memberId}, #{type}, #{targetCompany}, #{documentFileName}, #{documentFileType}, #{documentFileData}, 
-      CAST(#{reportFeedback} AS JSONB), NOW(), NOW())
+      (#{memberId}, #{interviewType}, #{targetCompany}, #{documentFileName}, #{documentFileType}, #{documentFileData}, 
+      CAST(#{reportFeedback} AS JSONB))
   </insert>
 
   <!-- 면접 세션 종료 시 종합 피드백 생성 -->
@@ -30,7 +30,7 @@
   <select id="selectAllInterviewSessions" resultType="com.example.demo.interview.entity.InterviewSession">
     SELECT session_id AS sessionId, 
            member_id AS memberId, 
-           type AS type, 
+           interview_type AS interviewType, 
            target_company AS targetCompany, 
            document_file_name AS documentFileName,
            document_file_type AS documentFileType,
@@ -47,7 +47,7 @@
   <select id="selectOneInterviewSession" resultType="com.example.demo.interview.entity.InterviewSession">
     SELECT session_id AS sessionId, 
            member_id AS memberId, 
-           type AS type, 
+           interview_type AS interviewType,
            target_company AS targetCompany, 
            document_file_name AS documentFileName,
            document_file_type AS documentFileType,

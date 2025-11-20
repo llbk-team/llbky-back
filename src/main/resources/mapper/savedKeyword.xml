@@ -6,10 +6,10 @@
 <mapper namespace="com.example.demo.newstrend.dao.SavedKeywordDao">
   <!-- 키워드 저장 -->
    <insert id="insertSavedKeyword"
-    parameterType="SavedKeyword">
-      insert into(
+    parameterType="com.example.demo.newstrend.entity.SavedKeyword">
+      insert into saved_keyword(
         member_id, keyword, source_label
-      )
+      ) 
       values(
         #{memberId}, #{keyword},#{sourceLabel}
       )
@@ -17,7 +17,7 @@
 
   <!-- 특정 멤버 키워드 전체 조회 -->
    <select id="selectSavedKeywordListByMemberId"
-    resultType="SavedKeyword">
+    resultType="com.example.demo.newstrend.entity.SavedKeyword">
       select
         saved_keyword_id,
         member_id,
@@ -30,8 +30,8 @@
   </select>
 
   <!-- 멤버 + 키워드 중복 체크 -->
-   <select id="selectSavedKeywordListByMemberId"
-    resultType="SavedKeyword">
+   <select id="selectSavedKeyword"
+    resultType="com.example.demo.newstrend.entity.SavedKeyword">
       select
         saved_keyword_id,
         member_id,
