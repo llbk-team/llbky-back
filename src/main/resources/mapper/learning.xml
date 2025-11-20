@@ -47,7 +47,7 @@
         SET
           status = #{status},
           learning_summary = #{learningSummary},
-          learning_recommandation = #{learningRecommendation},
+          learning_recommendation = #{learningRecommendation},
           updated_at = NOW()
         WHERE learning_id = #{learningId}
     </update>

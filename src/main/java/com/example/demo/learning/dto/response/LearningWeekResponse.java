@@ -9,6 +9,6 @@ import lombok.Data;
 public class LearningWeekResponse {
   private String title;
   private String goal;
-  private String learningWeekSummery;
+  private String learningWeekSummary;
   private List<LearningDayResponse> days;
 }

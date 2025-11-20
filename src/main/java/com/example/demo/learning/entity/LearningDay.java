@@ -13,7 +13,7 @@ public class LearningDay {
   private String content; // 내용
   private int studyTimeMin; // 학습 시간
   private String status; // 진행 상태
-  private String learningDaySummery; // 일별 학습 정리
+  private String learningDaySummary; // 일별 학습 정리
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }

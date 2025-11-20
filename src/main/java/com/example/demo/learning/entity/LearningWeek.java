@@ -12,7 +12,7 @@ public class LearningWeek {
   private String title; // 제목
   private String goal; // 목표
   private String status; // 진행 상태
-  private String learningWeekSummery; // 주별 학습 요약
+  private String learningWeekSummary; // 주별 학습 요약
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }
