@@ -21,6 +21,7 @@
   <!-- 직무 인사이트 조회 -->
    <select id="selectLatestJobInsight"
     resultType="JobInsight">
+    select
       insight_id, 
       member_id, 
       base_job_title, 
@@ -29,13 +30,13 @@
       created_at
     from job_insight
     where member_id = #{memberId}
-    order by create_at desc
+    order by created_at desc
     limit 1
   </select>
 
   <!-- 삭제 -->
    <delete id="deleteJobInsight">
     delete from job_insight
-    where job_id = #{insightId}
+    where insight_id = #{insightId}
    </delete>
 </mapper>

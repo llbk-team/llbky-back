@@ -56,7 +56,7 @@ public class InsightAllTestController {
   }
 
   @DeleteMapping("/news/delete/{id}")
-  public String deleteNews(@PathVariable int id) {
+  public String deleteNews(@PathVariable("id") int id) {
     int r = newsSummaryDao.deleteNewsSummary(id);
     return "News DELETE result = " + r;
   }
@@ -86,7 +86,7 @@ public class InsightAllTestController {
   }
 
   @DeleteMapping("/keyword/delete/{id}")
-  public String deleteKeyword(@PathVariable int id) {
+  public String deleteKeyword(@PathVariable("id") int id) {
     int r = savedKeywordDao.deleteSavedKeyword(id);
     return "Keyword DELETE result = " + r;
   }
@@ -113,7 +113,7 @@ public class InsightAllTestController {
   }
 
   @DeleteMapping("/trend/delete/{id}")
-  public String deleteTrend(@PathVariable int id) {
+  public String deleteTrend(@PathVariable("id") int id) {
     int r = trendInsightDao.deleteTrendInsight(id);
     return "Trend DELETE result = " + r;
   }
@@ -139,7 +139,7 @@ public class InsightAllTestController {
   }
 
   @DeleteMapping("/job/delete/{id}")
-  public String deleteJob(@PathVariable int id) {
+  public String deleteJob(@PathVariable("id") int id) {
     int r = jobInsightDao.deleteJobInsight(id);
     return "Job DELETE result = " + r;
   }

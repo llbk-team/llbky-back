@@ -50,7 +50,7 @@
     </select>
 
     <!-- 특정 멤버의 뉴스 조회 -->
-    <select id="selectLatestNewsSummaryByMemberId" 
+    <select id="selectLatestNewsByMemberId" 
       resultType="NewsSummary">
         select *
         from news_summary
