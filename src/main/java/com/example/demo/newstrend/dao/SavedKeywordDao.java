@@ -1,0 +1,22 @@
+package com.example.demo.newstrend.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.example.demo.newstrend.entity.SavedKeyword;
+
+@Mapper
+public interface SavedKeywordDao {
+  // 키워드 저장
+  public int insertSavedKeyword(SavedKeyword savedKeyword);
+
+  // 멤버 키워드 전체 조회
+  public List<SavedKeyword> selectSavedKeywordListByMemberId(int memberId);
+
+  // 키워드 중복 체크
+  public SavedKeyword selectSavedKeyword(int memberId, String keyword);
+
+  // 삭제
+  public int deleteSavedKeyword(int savedKeywordId);
+}

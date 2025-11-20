@@ -5,7 +5,7 @@
 
 <mapper namespace="com.example.demo.newstrend.dao.NewsSummaryDao">
 
-    <!-- INSERT -->
+    <!-- 뉴스 저장 -->
     <insert id="insertNewsSummary" 
       parameterType="NewsSummary">
         insert into news_summary (
@@ -30,7 +30,7 @@
         )
     </insert>
 
-    <!-- SELECT: PK 단일 조회 -->
+    <!-- 단일 뉴스 조회 -->
     <select id="selectNewsSummaryById" 
       resultType="NewsSummary">
         select
@@ -48,7 +48,7 @@
         where summary_id = #{summaryId}
     </select>
 
-    <!-- SELECT: URL 기준 중복 체크 -->
+    <!-- URL 중복 체크 -->
     <select id="selectNewsSummaryBySourceUrl" 
       resultType="NewsSummary">
         select
@@ -67,7 +67,7 @@
         LIMIT 1
     </select>
 
-    <!-- SELECT: 특정 사용자 최신 N개 뉴스 카드 -->
+    <!-- 특정 멤버의 뉴스 조회 -->
     <select id="selectLatestNewsSummaryByMemberId" 
       resultType="NewsSummary">
         select
@@ -87,7 +87,7 @@
         limit #{limit}
     </select>
 
-    <!-- DELETE -->
+    <!-- 뉴스 삭제 -->
     <delete id="deleteNewsSummary">
         delete from news_summary
         where summary_id = #{summaryId}
