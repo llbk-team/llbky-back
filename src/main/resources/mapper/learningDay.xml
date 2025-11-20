@@ -29,9 +29,10 @@
     <!-- SELECT: 특정 학습 플랜 전체 일차 조회 -->
     <select id="selectListByLearningId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
         SELECT *
-        FROM learning_day
-        WHERE learning_id = #{learningId}
-        ORDER BY week_id ASC, day_number ASC;
+        FROM learning_day d
+        JOIN learning_week w ON d.week_id = w.week_id
+        WHERE w.learning_id = #{learningId}
+        ORDER BY w.week_id ASC, d.day_number ASC;
     </select>
 
     <!-- SELECT: 주차 + 일차 번호로 1개 조회 -->
