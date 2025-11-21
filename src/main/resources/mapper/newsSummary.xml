@@ -35,7 +35,18 @@
     <!-- 단일 뉴스 조회 -->
     <select id="selectNewsSummaryById" 
       resultType="NewsSummary">
-        select *
+        select
+          summary_id,
+          member_id,
+          source_name,
+          source_url,
+          title,
+          published_at,
+          summary_text,
+          detail_summary,
+          analysis_json,
+          keywords_json,
+          created_at
         from news_summary
         where summary_id = #{summaryId}
     </select>
@@ -43,7 +54,18 @@
     <!-- URL 중복 체크 -->
     <select id="selectNewsSummaryBySourceUrl" 
       resultType="NewsSummary">
-        select *
+        select
+          summary_id,
+          member_id,
+          source_name,
+          source_url,
+          title,
+          published_at,
+          summary_text,
+          detail_summary,
+          analysis_json,
+          keywords_json,
+          created_at
         from news_summary
         where source_url = #{sourceUrl}
         LIMIT 1
@@ -52,7 +74,18 @@
     <!-- 특정 멤버의 뉴스 조회 -->
     <select id="selectLatestNewsByMemberId" 
       resultType="NewsSummary">
-        select *
+        select
+          summary_id,
+          member_id,
+          source_name,
+          source_url,
+          title,
+          published_at,
+          summary_text,
+          detail_summary,
+          analysis_json,
+          keywords_json,
+          created_at
         from news_summary
         where member_id = #{memberId}
         order by created_at DESC

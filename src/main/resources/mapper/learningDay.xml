@@ -13,14 +13,36 @@
 
     <!-- SELECT: dayId로 조회 -->
     <select id="selectedByDayId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
-        SELECT *
+        SELECT
+            day_id,
+            week_id,
+            day_number,
+            title,
+            content,
+            study_time_min,
+            status,
+            learning_day_summary,
+            created_at,
+            updated_at
+        FROM learning_day
+        WHERE day_id = #{dayId};
         FROM learning_day
         WHERE day_id = #{dayId};
     </select>
 
     <!-- SELECT: 특정 주차 전체 일차 조회 -->
     <select id="selectListByWeekId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
-        SELECT *
+        SELECT
+            day_id,
+            week_id,
+            day_number,
+            title,
+            content,
+            study_time_min,
+            status,
+            learning_day_summary,
+            created_at,
+            updated_at
         FROM learning_day
         WHERE week_id = #{weekId}
         ORDER BY day_number ASC;
@@ -28,7 +50,17 @@
 
     <!-- SELECT: 특정 학습 플랜 전체 일차 조회 -->
     <select id="selectListByLearningId" parameterType="int" resultType="com.example.demo.learning.entity.LearningDay">
-        SELECT *
+        SELECT
+            d.day_id,
+            d.week_id,
+            d.day_number,
+            d.title,
+            d.content,
+            d.study_time_min,
+            d.status,
+            d.learning_day_summary,
+            d.created_at,
+            d.updated_at
         FROM learning_day d
         JOIN learning_week w ON d.week_id = w.week_id
         WHERE w.learning_id = #{learningId}
@@ -37,7 +69,17 @@
 
     <!-- SELECT: 주차 + 일차 번호로 1개 조회 -->
     <select id="selectByWeekIdAndDayNumber" resultType="com.example.demo.learning.entity.LearningDay">
-        SELECT *
+         SELECT
+            day_id,
+            week_id,
+            day_number,
+            title,
+            content,
+            study_time_min,
+            status,
+            learning_day_summary,
+            created_at,
+            updated_at
         FROM learning_day
         WHERE week_id = #{weekId} AND day_number = #{dayNumber};
     </select>

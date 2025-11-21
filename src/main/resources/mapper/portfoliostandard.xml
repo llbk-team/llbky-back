@@ -18,11 +18,11 @@
     <!-- 평가 기준 ID로 조회 -->
     <select id="selectStandardById" parameterType="int" resultType="PortfolioStandard">
         SELECT 
-            standard_id AS standardId,
-            standard_name AS standardName,
-            standard_description AS standardDescription,
-            prompt_template AS promptTemplate,
-            weight_percentage AS weightPercentage
+            standard_id,
+            standard_name,
+            standard_description,
+            prompt_template,
+            weight_percentage
         FROM portfolio_standard 
         WHERE standard_id = #{standardId}
     </select>
@@ -30,11 +30,11 @@
     <!-- 모든 평가 기준 조회 -->
     <select id="selectAllStandards" resultType="PortfolioStandard">
         SELECT 
-            standard_id AS standardId,
-            standard_name AS standardName,
-            standard_description AS standardDescription,
-            prompt_template AS promptTemplate,
-            weight_percentage AS weightPercentage
+            standard_id,
+            standard_name,
+            standard_description,
+            prompt_template,
+            weight_percentage
         FROM portfolio_standard 
         ORDER BY standard_name
     </select>
@@ -42,11 +42,11 @@
     <!-- 평가 기준명으로 조회 -->
     <select id="selectStandardByName" parameterType="String" resultType="PortfolioStandard">
         SELECT 
-            standard_id AS standardId,
-            standard_name AS standardName,
-            standard_description AS standardDescription,
-            prompt_template AS promptTemplate,
-            weight_percentage AS weightPercentage
+            standard_id,
+            standard_name,
+            standard_description,
+            prompt_template,
+            weight_percentage
         FROM portfolio_standard 
         WHERE standard_name = #{standardName}
     </select>
@@ -76,11 +76,11 @@
     <!-- 특정 가중치 이상의 평가 기준 조회 -->
     <select id="selectStandardsByMinWeight" parameterType="int" resultType="PortfolioStandard">
         SELECT 
-            standard_id AS standardId,
-            standard_name AS standardName,
-            standard_description AS standardDescription,
-            prompt_template AS promptTemplate,
-            weight_percentage AS weightPercentage
+            standard_id,
+            standard_name,
+            standard_description,
+            prompt_template,
+            weight_percentage
         FROM portfolio_standard 
         WHERE weight_percentage >= #{minWeight}
         ORDER BY weight_percentage DESC
@@ -98,7 +98,9 @@
 
     <!-- 평가 기준 일괄 삽입 -->
     <insert id="insertStandardsBatch" parameterType="list">
-        INSERT INTO portfolio_standard(standard_name, standard_description, prompt_template, weight_percentage) 
+        INSERT INTO portfolio_standard(
+            standard_name, standard_description, prompt_template, weight_percentage
+        ) 
         VALUES
         <foreach collection="list" item="standard" separator=",">
             (#{standard.standardName}, #{standard.standardDescription}, 

@@ -4,39 +4,39 @@
 <mapper namespace="com.example.demo.member.dao.MemberDao">
     <insert id="insert" parameterType="com.example.demo.member.dto.Member" useGeneratedKeys="true" keyProperty="memberId">
         INSERT INTO member
-        (name, login_id, password, email, job_group, job_role, career_years, created_at, updated_at)
+        (name, login_id, password, email, job_group, job_role, career_years)
         VALUES
-        (#{name}, #{loginId}, #{password}, #{email}, #{jobGroup}, #{jobRole}, #{careerYears}, now(), now())
+        (#{name}, #{loginId}, #{password}, #{email}, #{jobGroup}, #{jobRole}, #{careerYears})
     </insert>
 
     <select id="findById" parameterType="long" resultType="com.example.demo.member.dto.Member">
         SELECT
-            member_id    AS memberId,
+            member_id,
             name,
-            login_id     AS loginId,
+            login_id,
             password,
             email,
-            job_group    AS jobGroup,
-            job_role     AS jobRole,
-            career_years AS careerYears,
-            created_at   AS createdAt,
-            updated_at   AS updatedAt
+            job_group,
+            job_role,
+            career_years,
+            created_at,
+            updated_at
         FROM member
         WHERE member_id = #{memberId}
     </select>
 
     <select id="findByLoginId" parameterType="string" resultType="com.example.demo.member.dto.Member">
         SELECT
-            member_id    AS memberId,
+            member_id,
             name,
-            login_id     AS loginId,
+            login_id,
             password,
             email,
-            job_group    AS jobGroup,
-            job_role     AS jobRole,
-            career_years AS careerYears,
-            created_at   AS createdAt,
-            updated_at   AS updatedAt
+            job_group,
+            job_role,
+            career_years,
+            created_at,
+            updated_at
         FROM member
         WHERE login_id = #{loginId}
     </select>
