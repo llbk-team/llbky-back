@@ -14,7 +14,7 @@
       #{portfolioId}, #{pageNo}, #{filename}, #{filedata}, #{filetype}, 
       <choose>
         <when test="pageFeedback != null">
-          #{pageFeedback}::jsonb
+           CAST(#{pageFeedback} AS jsonb)
         </when>
         <otherwise>
           NULL
@@ -33,7 +33,7 @@
         #{image.filedata}, #{image.filetype}, 
         <choose>
           <when test="image.pageFeedback != null">
-            #{image.pageFeedback}::jsonb
+             CAST(#{image.pageFeedback} AS jsonb)
           </when>
           <otherwise>
             NULL
@@ -46,14 +46,14 @@
     <!-- 특정 포트폴리오의 모든 이미지 조회 (페이지 순서대로) -->
     <select id="selectImagesByPortfolioId" parameterType="int" resultType="PortfolioImage">
       SELECT
-        image_id AS imageId,
-        portfolio_id AS portfolioId, 
-        page_no AS pageNo, 
+        image_id ,
+        portfolio_id , 
+        page_no , 
         filename, 
         filedata, 
         filetype, 
-        created_at AS createdAt,
-        page_feedback::text AS pageFeedback
+        created_at ,
+        page_feedback 
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId}
       ORDER BY page_no ASC
@@ -63,17 +63,17 @@
     <select id="selectImageByPortfolioIdAndPageNo" parameterType="map"
     resultType="PortfolioImage">
       SELECT 
-        image_id AS imageId,
-        portfolio_id AS portfolioId, 
-        page_no AS pageNo, 
+        image_id ,
+        portfolio_id , 
+        page_no , 
         filename, 
         filedata, 
         filetype, 
-        created_at AS createdAt,
-        page_feedback::text AS pageFeedback
+        created_at ,
+        page_feedback
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId} AND page_no = #{pageNo}
-      LIMIT 1
+     
     </select>
 
     <!-- 이미지 ID로 단일 이미지 조회 -->
@@ -81,14 +81,14 @@
           parameterType="int" 
           resultType="PortfolioImage">
     SELECT 
-      image_id AS imageId,
-      portfolio_id AS portfolioId, 
-      page_no AS pageNo, 
+      image_id ,
+      portfolio_id , 
+      page_no , 
       filename, 
       filedata, 
       filetype, 
-      created_at AS createdAt,
-      page_feedback::text AS pageFeedback
+      created_at ,
+      page_feedback
     FROM portfolio_image 
     WHERE image_id = #{imageId}
   </select>
@@ -98,14 +98,14 @@
           parameterType="int" 
           resultType="PortfolioImage">
     SELECT 
-      image_id AS imageId,
-      portfolio_id AS portfolioId, 
-      page_no AS pageNo, 
+      image_id ,
+      portfolio_id , 
+      page_no , 
       filename, 
       filedata, 
       filetype, 
-      created_at AS createdAt,
-      page_feedback::text AS pageFeedback
+      created_at,
+      page_feedback
     FROM portfolio_image 
     WHERE portfolio_id = #{portfolioId}
     ORDER BY page_no ASC
@@ -122,7 +122,7 @@
             , filedata = #{filedata}
           </if>
           <if test="pageFeedback != null">
-            , page_feedback = #{pageFeedback}::jsonb
+            , page_feedback = CAST(#{pageFeedback} AS jsonb)
           </if>
       WHERE image_id = #{imageId}
     </update>
@@ -130,7 +130,7 @@
     <!-- 페이지별 AI 피드백 업데이트 -->
     <update id="updatePageFeedback" parameterType="map">
       UPDATE portfolio_image 
-      SET page_feedback = #{feedback}::jsonb
+      SET page_feedback = CAST(#{feedback} AS jsonb)
       WHERE image_id = #{imageId}
     </update>
 
@@ -161,14 +161,14 @@
     <!-- 모든 포트폴리오 이미지 조회 (관리자용) -->
     <select id="selectAllImages" resultType="PortfolioImage">
       SELECT 
-        image_id AS imageId,
-        portfolio_id AS portfolioId, 
-        page_no AS pageNo, 
+        image_id,
+        portfolio_id , 
+        page_no , 
         filename, 
         filedata, 
         filetype, 
-        created_at AS createdAt,
-        page_feedback::text AS pageFeedback
+        created_at,
+        page_feedback
       FROM portfolio_image 
       ORDER BY portfolio_id ASC, page_no ASC
     </select>
