@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.portfolio.dao.PortfolioStandardDao">
+
+    <!-- 평가 기준 템플릿 생성 -->
+    <insert id="insertStandard" parameterType="PortfolioStandard"
+            useGeneratedKeys="true" keyProperty="standardId">
+        INSERT INTO portfolio_standard(
+            standard_name, standard_description, prompt_template, weight_percentage
+        ) VALUES(
+            #{standardName}, #{standardDescription}, #{promptTemplate}, 
+            COALESCE(#{weightPercentage}, 20)
+        )
+    </insert>
+
+    <!-- 평가 기준 ID로 조회 -->
+    <select id="selectStandardById" parameterType="int" resultType="PortfolioStandard">
+        SELECT 
+            standard_id AS standardId,
+            standard_name AS standardName,
+            standard_description AS standardDescription,
+            prompt_template AS promptTemplate,
+            weight_percentage AS weightPercentage
+        FROM portfolio_standard 
+        WHERE standard_id = #{standardId}
+    </select>
+
+    <!-- 모든 평가 기준 조회 -->
+    <select id="selectAllStandards" resultType="PortfolioStandard">
+        SELECT 
+            standard_id AS standardId,
+            standard_name AS standardName,
+            standard_description AS standardDescription,
+            prompt_template AS promptTemplate,
+            weight_percentage AS weightPercentage
+        FROM portfolio_standard 
+        ORDER BY standard_name
+    </select>
+
+    <!-- 평가 기준명으로 조회 -->
+    <select id="selectStandardByName" parameterType="String" resultType="PortfolioStandard">
+        SELECT 
+            standard_id AS standardId,
+            standard_name AS standardName,
+            standard_description AS standardDescription,
+            prompt_template AS promptTemplate,
+            weight_percentage AS weightPercentage
+        FROM portfolio_standard 
+        WHERE standard_name = #{standardName}
+    </select>
+
+    <!-- 평가 기준 수정 -->
+    <update id="updateStandard" parameterType="PortfolioStandard">
+        UPDATE portfolio_standard SET 
+            standard_name = #{standardName},
+            standard_description = #{standardDescription},
+            prompt_template = #{promptTemplate},
+            weight_percentage = #{weightPercentage}
+        WHERE standard_id = #{standardId}
+    </update>
+
+    <!-- 평가 기준 삭제 -->
+    <delete id="deleteStandard" parameterType="int">
+        DELETE FROM portfolio_standard 
+        WHERE standard_id = #{standardId}
+    </delete>
+
+    <!-- 평가 기준 개수 조회 -->
+    <select id="countStandards" resultType="int">
+        SELECT COUNT(*) 
+        FROM portfolio_standard
+    </select>
+
+    <!-- 특정 가중치 이상의 평가 기준 조회 -->
+    <select id="selectStandardsByMinWeight" parameterType="int" resultType="PortfolioStandard">
+        SELECT 
+            standard_id AS standardId,
+            standard_name AS standardName,
+            standard_description AS standardDescription,
+            prompt_template AS promptTemplate,
+            weight_percentage AS weightPercentage
+        FROM portfolio_standard 
+        WHERE weight_percentage >= #{minWeight}
+        ORDER BY weight_percentage DESC
+    </select>
+
+    <!-- 평가 기준명 중복 체크 -->
+    <select id="existsStandardByName" parameterType="String" resultType="boolean">
+        SELECT CASE 
+            WHEN COUNT(*) > 0 THEN true 
+            ELSE false 
+        END
+        FROM portfolio_standard 
+        WHERE standard_name = #{standardName}
+    </select>
+
+    <!-- 평가 기준 일괄 삽입 -->
+    <insert id="insertStandardsBatch" parameterType="list">
+        INSERT INTO portfolio_standard(standard_name, standard_description, prompt_template, weight_percentage) 
+        VALUES
+        <foreach collection="list" item="standard" separator=",">
+            (#{standard.standardName}, #{standard.standardDescription}, 
+             #{standard.promptTemplate}, COALESCE(#{standard.weightPercentage}, 20))
+        </foreach>
+    </insert>
+
+</mapper>

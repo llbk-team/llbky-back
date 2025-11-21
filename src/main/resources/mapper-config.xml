@@ -11,7 +11,7 @@
   <typeAliases>
     <typeAlias type="com.example.demo.portfolio.entity.Portfolio" alias="Portfolio" />
     <typeAlias type="com.example.demo.portfolio.entity.PortfolioImage" alias="PortfolioImage" />
-    <typeAlias type="com.example.demo.portfolio.entity.PortfolioEvaluationCriteria" alias="PortfolioEvaluationCriteria" />
+    <typeAlias type="com.example.demo.portfolio.entity.PortfolioStandard" alias="PortfolioStandard" />
     <typeAlias type="com.example.demo.portfolio.entity.PortfolioGuide" alias="PortfolioGuide" />
     <typeAlias type="com.example.demo.resume.entity.Resume" alias="Resume" />
 

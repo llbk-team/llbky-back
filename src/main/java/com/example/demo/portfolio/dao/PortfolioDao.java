@@ -10,7 +10,7 @@ import com.example.demo.portfolio.entity.Portfolio;
 @Mapper
 public interface PortfolioDao {
 
-  public int insertProtfolio(Portfolio portfolio);//포트폴리오 생성 
+  public int insertPortfolio(Portfolio portfolio);//포트폴리오 생성 
 
   public Portfolio selectPortfolioById(Integer portfolioId); // 포트폴리오 조회
  

@@ -8,11 +8,11 @@
     <insert id="insertGuide" parameterType="PortfolioGuide"
             useGeneratedKeys="true" keyProperty="guideId">
         INSERT INTO portfolio_guide(
-            member_id, title, criteria_id, guide_content, 
+            member_id, title, standard_id, guide_content, 
             completion_percentage, is_completed, current_step, total_steps,
             guide_feedback, created_at, updated_at
         ) VALUES(
-            #{memberId}, #{title}, #{criteriaId}, 
+            #{memberId}, #{title}, #{standardId}, 
             <choose>
                 <when test="guideContent != null">
                     #{guideContent}::jsonb
@@ -40,7 +40,7 @@
             guide_id AS guideId,
             member_id AS memberId,
             title,
-            criteria_id AS criteriaId,
+            standard_id AS standardId,
             guide_content::text AS guideContent,
             completion_percentage AS completionPercentage,
             is_completed AS isCompleted,
@@ -59,7 +59,7 @@
             guide_id AS guideId,
             member_id AS memberId,
             title,
-            criteria_id AS criteriaId,
+            standard_id AS standardId,
             guide_content::text AS guideContent,
             completion_percentage AS completionPercentage,
             is_completed AS isCompleted,
@@ -79,7 +79,7 @@
             guide_id AS guideId,
             member_id AS memberId,
             title,
-            criteria_id AS criteriaId,
+            standard_id AS standardId,
             guide_content::text AS guideContent,
             completion_percentage AS completionPercentage,
             is_completed AS isCompleted,
@@ -99,7 +99,7 @@
             guide_id AS guideId,
             member_id AS memberId,
             title,
-            criteria_id AS criteriaId,
+            standard_id AS standardId,
             guide_content::text AS guideContent,
             completion_percentage AS completionPercentage,
             is_completed AS isCompleted,
@@ -110,6 +110,26 @@
             updated_at AS updatedAt
         FROM portfolio_guide 
         WHERE member_id = #{memberId} AND is_completed = false
+        ORDER BY updated_at DESC
+    </select>
+
+    <!-- 특정 평가 기준으로 가이드 조회 -->
+    <select id="selectGuidesByStandardId" parameterType="int" resultType="PortfolioGuide">
+        SELECT 
+            guide_id AS guideId,
+            member_id AS memberId,
+            title,
+            standard_id AS standardId,
+            guide_content::text AS guideContent,
+            completion_percentage AS completionPercentage,
+            is_completed AS isCompleted,
+            current_step AS currentStep,
+            total_steps AS totalSteps,
+            guide_feedback::text AS guideFeedback,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM portfolio_guide 
+        WHERE standard_id = #{standardId}
         ORDER BY updated_at DESC
     </select>
 
@@ -209,7 +229,7 @@
             guide_id AS guideId,
             member_id AS memberId,
             title,
-            criteria_id AS criteriaId,
+            standard_id AS standardId,
             guide_content::text AS guideContent,
             completion_percentage AS completionPercentage,
             is_completed AS isCompleted,
@@ -221,6 +241,20 @@
         FROM portfolio_guide 
         ORDER BY created_at DESC
         LIMIT #{limit}
+    </select>
+
+    <!-- 특정 평가 기준별 가이드 통계 -->
+    <select id="countGuidesByStandardId" parameterType="int" resultType="int">
+        SELECT COUNT(*) 
+        FROM portfolio_guide 
+        WHERE standard_id = #{standardId}
+    </select>
+
+    <!-- 특정 평가 기준별 완료된 가이드 수 -->
+    <select id="countCompletedGuidesByStandardId" parameterType="int" resultType="int">
+        SELECT COUNT(*) 
+        FROM portfolio_guide 
+        WHERE standard_id = #{standardId} AND is_completed = true
     </select>
 
 </mapper>
