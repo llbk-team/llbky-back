@@ -11,7 +11,7 @@
       portfolio_id, page_no, filename, filedata, filetype, created_at, page_feedback
      )
      VALUES(
-      #{portfolioId}, #{pageNo}, #{filename}, #{filedata}, #{filetype}, NOW(),
+      #{portfolioId}, #{pageNo}, #{filename}, #{filedata}, #{filetype}, 
       <choose>
         <when test="pageFeedback != null">
           #{pageFeedback}::jsonb
@@ -30,7 +30,7 @@
       ) VALUES
       <foreach collection="list" item="image" separator=",">
         (#{image.portfolioId}, #{image.pageNo}, #{image.filename}, 
-        #{image.filedata}, #{image.filetype}, NOW(),
+        #{image.filedata}, #{image.filetype}, 
         <choose>
           <when test="image.pageFeedback != null">
             #{image.pageFeedback}::jsonb

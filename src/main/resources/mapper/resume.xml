@@ -14,7 +14,7 @@
       #{memberId}, #{title}, 
       #{careerInfo}::jsonb, #{educationInfo}::jsonb, #{skills}::jsonb,
       #{certificates}::jsonb, #{awards}::jsonb, #{activities}::jsonb,
-      #{resumeFeedback}::jsonb, NOW(), NOW()
+      #{resumeFeedback}::jsonb, NOW()
     )
   </insert>
 
@@ -77,29 +77,6 @@
         DELETE FROM resume 
         WHERE resume_id = #{value}
     </delete>
-
-    <!-- 이력서 검색 -->
-    <select id="searchResumes" parameterType="map" resultType="Resume">
-        SELECT resume_id, member_id, title, 
-               career_info::text as careerInfo,
-               education_info::text as educationInfo,
-               skills::text as skills,
-               certificates::text as certificates,
-               awards::text as awards,
-               activities::text as activities,
-               resume_feedback::text as resumeFeedback,
-               created_at, updated_at
-        FROM resume 
-        WHERE member_id = #{memberId}
-        <if test="keyword != null and keyword != ''">
-            AND (
-                title ILIKE '%' || #{keyword} || '%' 
-                OR career_info::text ILIKE '%' || #{keyword} || '%'
-                OR skills::text ILIKE '%' || #{keyword} || '%'
-            )
-        </if>
-        ORDER BY updated_at DESC
-    </select>
 
     <!-- 이력서 개수 조회 -->
     <select id="countResumesByMemberId" parameterType="int" resultType="int">

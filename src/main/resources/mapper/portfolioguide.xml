@@ -30,7 +30,7 @@
                     NULL
                 </otherwise>
             </choose>,
-            NOW(), NOW()
+            NOW()
         )
     </insert>
 
