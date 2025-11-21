@@ -13,14 +13,32 @@
 
     <!-- SELECT: weekId로 주차 조회 -->
     <select id="selectedByWeekId" parameterType="int" resultType="com.example.demo.learning.entity.LearningWeek">
-        SELECT *
+        SELECT
+            week_id,
+            learning_id,
+            week_number,
+            title,
+            goal,
+            status,
+            week_summary,
+            created_at,
+            updated_at
         FROM learning_week
         WHERE week_id = #{weekId};
     </select>
 
     <!-- SELECT: 특정 학습 플랜의 모든 주차 조회 -->
     <select id="selectListByLearningId" parameterType="int" resultType="com.example.demo.learning.entity.LearningWeek">
-        SELECT *
+        SELECT
+            week_id,
+            learning_id,
+            week_number,
+            title,
+            goal,
+            status,
+            week_summary,
+            created_at,
+            updated_at
         FROM learning_week
         WHERE learning_id = #{learningId}
         ORDER BY week_number ASC;
@@ -29,7 +47,16 @@
 
     <!-- SELECT: 특정 학습 플랜 + 주차 번호로 단건 조회 -->
     <select id="selectByLearningIdAndWeekNumber" resultType="com.example.demo.learning.entity.LearningWeek">
-        SELECT *
+        SELECT
+            week_id,
+            learning_id,
+            week_number,
+            title,
+            goal,
+            status,
+            week_summary,
+            created_at,
+            updated_at
         FROM learning_week
         WHERE learning_id = #{learningId} AND week_number = #{weekNumber};
     </select>
