@@ -36,7 +36,7 @@ public class PortfolioTestController {
   public String insert() {
       Portfolio portfolio = new Portfolio();
       portfolio.setMemberId(1);
-      portfolio.setTitle("테스트1");
+      portfolio.setTitle("테스트2");
       portfolio.setPortfolioFeedback("{\"message\": \"피드백 내용\"}");
       
       portfolioDao.insertPortfolio(portfolio);

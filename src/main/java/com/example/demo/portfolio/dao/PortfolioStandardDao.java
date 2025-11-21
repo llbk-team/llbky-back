@@ -11,54 +11,24 @@ import com.example.demo.portfolio.entity.PortfolioStandard;
 public interface PortfolioStandardDao {
 
 
-   /**
-     * 평가 기준 템플릿 생성
-     */
-    int insertStandard(PortfolioStandard standard);
+    public int insertStandard(PortfolioStandard standard);//평가 기준 템플릿 생성
 
-    /**
-     * 평가 기준 ID로 조회
-     */
-    PortfolioStandard selectStandardById(@Param("standardId") int standardId);
+    public PortfolioStandard selectStandardById(@Param("standardId") int standardId);//평가 기준 ID로 조회
 
-    /**
-     * 모든 평가 기준 조회
-     */
-    List<PortfolioStandard> selectAllStandards();
+    public List<PortfolioStandard> selectAllStandards();// 모든 평가 기준 조회
 
-    /**
-     * 평가 기준명으로 조회
-     */
-    PortfolioStandard selectStandardByName(@Param("standardName") String standardName);
+    public PortfolioStandard selectStandardByName(@Param("standardName") String standardName);//평가 기준명으로 조회
 
-    /**
-     * 평가 기준 수정
-     */
-    int updateStandard(PortfolioStandard standard);
+    public int updateStandard(PortfolioStandard standard);//평가 기준 수정
 
-    /**
-     * 평가 기준 삭제
-     */
-    int deleteStandard(@Param("standardId") int standardId);
+    public int deleteStandard(@Param("standardId") int standardId);//평가 기준 삭제
 
-    /**
-     * 평가 기준 개수 조회
-     */
-    int countStandards();
+    public int countStandards();//평가 기준 개수 조회
 
-    /**
-     * 특정 가중치 이상의 평가 기준 조회
-     */
-    List<PortfolioStandard> selectStandardsByMinWeight(@Param("minWeight") int minWeight);
+    public List<PortfolioStandard> selectStandardsByMinWeight(@Param("minWeight") int minWeight);//특정 가중치 이상의 평가 기준 조회
+   
+    public boolean existsStandardByName(@Param("standardName") String standardName);//평가 기준명 중복 체크
 
-    /**
-     * 평가 기준명 중복 체크
-     */
-    boolean existsStandardByName(@Param("standardName") String standardName);
-
-    /**
-     * 평가 기준 일괄 삽입
-     */
-    int insertStandardsBatch(List<PortfolioStandard> standards);
+    public int insertStandardsBatch(List<PortfolioStandard> standards);//평가 기준 일괄 삽입
 
 }
