@@ -13,4 +13,5 @@ public class PortfolioImage {
   private Byte[] filedata; //데이터
   private String filetype; //파일 타입
   private LocalDateTime createdAt; //생성일
+  private String pageFeedback; // 페이지별 AI 피드백
 }
