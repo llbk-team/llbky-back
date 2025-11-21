@@ -35,18 +35,18 @@
 
   <!-- 면접 질문 선택 시 연관된 답변 조회 -->
   <select id="selectInterviewAnswerByQuestionId" resultType="com.example.demo.interview.entity.InterviewAnswer">
-    SELECT answer_id AS answerId,
-           question_id AS questionId, 
-           audio_file_name AS audioFileName, 
-           audio_file_type AS audioFileType, 
-           audio_file_data AS audioFileData, 
-           video_file_name AS videoFileName, 
-           video_file_type AS videoFileType, 
-           video_file_data AS videoFileData,
-           answer_text AS answerText, 
-           answer_feedback::text AS answerFeedback, 
-           created_at AS createdAt,
-           updated_at AS updatedAt
+    SELECT answer_id,
+           question_id, 
+           audio_file_name, 
+           audio_file_type, 
+           audio_file_data, 
+           video_file_name, 
+           video_file_type, 
+           video_file_data,
+           answer_text, 
+           answer_feedback, 
+           created_at,
+           updated_at
     FROM interview_answer
     WHERE question_id = #{questionId}
   </select>

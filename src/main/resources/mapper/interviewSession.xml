@@ -28,16 +28,16 @@
 
   <!-- 종료된 면접 세션(면접 리포트) 목록 조회 -->
   <select id="selectAllInterviewSessions" resultType="com.example.demo.interview.entity.InterviewSession">
-    SELECT session_id AS sessionId, 
-           member_id AS memberId, 
-           interview_type AS interviewType, 
-           target_company AS targetCompany, 
-           document_file_name AS documentFileName,
-           document_file_type AS documentFileType,
-           document_file_data AS documentFileData,
-           report_feedback::text AS reportFeedback, 
-           created_at AS createdAt, 
-           updated_at AS updatedAt
+    SELECT session_id, 
+           member_id, 
+           interview_type, 
+           target_company, 
+           document_file_name,
+           document_file_type,
+           document_file_data,
+           report_feedback, 
+           created_at, 
+           updated_at
     FROM interview_session
     WHERE member_id = #{memberId}
     ORDER BY created_at DESC
@@ -45,16 +45,16 @@
 
   <!-- 면접 리포트 상세보기 시 면접 정보 조회 -->
   <select id="selectOneInterviewSession" resultType="com.example.demo.interview.entity.InterviewSession">
-    SELECT session_id AS sessionId, 
-           member_id AS memberId, 
-           interview_type AS interviewType,
-           target_company AS targetCompany, 
-           document_file_name AS documentFileName,
-           document_file_type AS documentFileType,
-           document_file_data AS documentFileData,
-           report_feedback::text AS reportFeedback, 
-           created_at AS createdAt, 
-           updated_at AS updatedAt
+    SELECT session_id, 
+           member_id, 
+           interview_type,
+           target_company, 
+           document_file_name,
+           document_file_type,
+           document_file_data,
+           report_feedback, 
+           created_at, 
+           updated_at
     FROM interview_session
     WHERE session_id = #{sessionId}
   </select>

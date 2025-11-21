@@ -7,19 +7,18 @@
  <insert id="insertPortfolio" parameterType="Portfolio"
    useGeneratedKeys="true" keyProperty="portfolioId">
     INSERT INTO portfolio(
-      member_id, title, pdf_file, original_filename, content_type, page_count, portfolio_feedback, created_at, updated_at
+      member_id, title, pdf_file, original_filename, content_type, page_count, portfolio_feedback
     ) 
     VALUES(
-    #{memberId}, #{title}, #{pdfFile}, #{originalFilename}, #{contentType}, #{pageCount},
-    <choose>
+      #{memberId}, #{title}, #{pdfFile}, #{originalFilename}, #{contentType}, #{pageCount},
+      <choose>
         <when test="portfolioFeedback != null">
-          #{portfolioFeedback}::jsonb
+          CAST(#{portfolioFeedback} AS JSONB)
         </when>
         <otherwise>
           NULL
         </otherwise>
-      </choose>,
-      NOW()
+      </choose>
     )
   </insert>
 
@@ -28,22 +27,22 @@
   <update id="updatePortfolio" parameterType="Portfolio">
     UPDATE portfolio
     SET title = #{title},
-    updated_at = NOW()
-    <if test="pdfFile != null">
-        , pdf_file = #{pdfFile}
-    </if>
-    <if test="originalFilename != null">
-        , original_filename = #{originalFilename}
-    </if>
-    <if test="contentType != null">
-        , content_type = #{contentType}
-    </if>
-    <if test="pageCount != null">
-        , page_count = #{pageCount}
-    </if>
-    <if test="portfolioFeedback != null">
-      , portfolio_feedback = #{portfolioFeedback}::jsonb
-    </if>
+      updated_at = NOW()
+      <if test="pdfFile != null">
+          , pdf_file = #{pdfFile}
+      </if>
+      <if test="originalFilename != null">
+          , original_filename = #{originalFilename}
+      </if>
+      <if test="contentType != null">
+          , content_type = #{contentType}
+      </if>
+      <if test="pageCount != null">
+          , page_count = #{pageCount}
+      </if>
+      <if test="portfolioFeedback != null">
+        , portfolio_feedback = CAST(#{portfolioFeedback} AS JSONB)
+      </if>
     WHERE portfolio_id = #{portfolioId}
   </update>
 
@@ -51,14 +50,13 @@
   <update id="updatePortfolioFeedback" parameterType="map">
     UPDATE portfolio 
     SET 
-      portfolio_feedback = #{feedback}::jsonb,
+      portfolio_feedback = CAST(#{portfolioFeedback} AS JSONB),
       updated_at = NOW()
     WHERE portfolio_id = #{portfolioId}
   </update>
 
 
   <!-- 포트폴리오 updated_at 갱신 -->
-   <!-- 포트폴리오 updated_at 갱신 -->
   <update id="updatePortfolioTimestamp" parameterType="int">
     UPDATE portfolio 
     SET updated_at = NOW()
@@ -68,12 +66,12 @@
 
 
 
-<!--/////////////////////////////////////////////////////////삭제-->
+  <!--/////////////////////////////////////////////////////////삭제-->
 
-<delete id="deletePortfolio" parameterType="int">
-  DELETE FROM portfolio
-  WHERE portfolio_id=#{portfolioId}
-</delete>
+  <delete id="deletePortfolio" parameterType="int">
+    DELETE FROM portfolio
+    WHERE portfolio_id=#{portfolioId}
+  </delete>
 
   <!-- 회원의 모든 포트폴리오 삭제 -->
   <delete id="deletePortfoliosByMemberId" parameterType="int">
@@ -102,16 +100,16 @@
           parameterType="int" 
           resultType="Portfolio">
     SELECT 
-      portfolio_id AS portfolioId,
-      member_id AS memberId,
+      portfolio_id,
+      member_id,
       title,
-      pdf_file AS pdfFile,
-      original_filename AS originalFilename,
-      content_type AS contentType,
-      page_count AS pageCount,
-      portfolio_feedback AS portfolioFeedback,
-      created_at AS createdAt,
-      updated_at AS updatedAt
+      pdf_file,
+      original_filename,
+      content_type,
+      page_count,
+      portfolio_feedback,
+      created_at,
+      updated_at
     FROM portfolio 
     ORDER BY created_at DESC
     LIMIT #{limit}
@@ -124,16 +122,16 @@
           parameterType="int" 
           resultType="Portfolio">
     SELECT 
-      portfolio_id AS portfolioId,
-      member_id AS memberId,
+      portfolio_id,
+      member_id,
       title,
-      pdf_file AS pdfFile,
-      original_filename AS originalFilename,
-      content_type AS contentType,
-      page_count AS pageCount,
-      portfolio_feedback AS portfolioFeedback,
-      created_at AS createdAt,
-      updated_at AS updatedAt
+      pdf_file,
+      original_filename,
+      content_type,
+      page_count,
+      portfolio_feedback,
+      created_at,
+      updated_at
     FROM portfolio 
     WHERE portfolio_id = #{portfolioId}
   </select>
@@ -143,16 +141,16 @@
           parameterType="int" 
           resultType="Portfolio">
     SELECT 
-      portfolio_id AS portfolioId,
-      member_id AS memberId,
+      portfolio_id,
+      member_id,
       title,
-      pdf_file AS pdfFile,
-      original_filename AS originalFilename,
-      content_type AS contentType,
-      page_count AS pageCount,
-      portfolio_feedback AS portfolioFeedback,
-      created_at AS createdAt,
-      updated_at AS updatedAt
+      pdf_file,
+      original_filename,
+      content_type,
+      page_count,
+      portfolio_feedback,
+      created_at,
+      updated_at
     FROM portfolio 
     WHERE member_id = #{memberId}
     ORDER BY created_at DESC
@@ -161,16 +159,16 @@
   <!-- 모든 포트폴리오 조회 -->
   <select id="selectAllPortfolios" resultType="Portfolio">
     SELECT 
-      portfolio_id AS portfolioId,
-      member_id AS memberId,
+      portfolio_id,
+      member_id,
       title,
-      pdf_file AS pdfFile,
-      original_filename AS originalFilename,
-      content_type AS contentType,
-      page_count AS pageCount,
-      portfolio_feedback AS portfolioFeedback,
-      created_at AS createdAt,
-      updated_at AS updatedAt
+      pdf_file,
+      original_filename,
+      content_type,
+      page_count,
+      portfolio_feedback,
+      created_at,
+      updated_at
     FROM portfolio 
     ORDER BY created_at DESC
   </select>

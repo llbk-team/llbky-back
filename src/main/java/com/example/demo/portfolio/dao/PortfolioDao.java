@@ -30,7 +30,7 @@ public interface PortfolioDao {
      */
   public int updatePortfolioFeedback(
     @Param("portfolioId") Integer portfolioId,
-    @Param("feedback") String feedback);//AI 피드백 업데이트 (JSONB 컬럼)
+    @Param("portfolioFeedback") String portfolioFeedback);//AI 피드백 업데이트 (JSONB 컬럼)
   
 
   public int updatePortfolioTimestamp(Integer portfolioId);//포트폴리오 updated_at 갱신
