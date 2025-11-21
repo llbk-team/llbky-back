@@ -8,11 +8,10 @@
    <insert id="insertJobInsight"
     parameterType="JobInsight">
       insert into job_insight(
-        member_id, base_job_title, analysis_json, related_jobs_json
+        member_id, analysis_json, related_jobs_json
       )
       values(
         #{memberId}, 
-        #{baseJobTitle}, 
         CAST(#{analysisJson} AS JSONB),
         CAST(#{relatedJobsJson} AS JSONB)
       )
@@ -23,8 +22,7 @@
     resultType="JobInsight">
     select
       insight_id, 
-      member_id, 
-      base_job_title, 
+      member_id,
       analysis_json, 
       related_jobs_json,
       created_at

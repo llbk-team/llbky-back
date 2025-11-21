@@ -9,14 +9,12 @@
     parameterType="TrendInsight">
       insert into trend_insight(
         member_id,
-        base_job_title,
         start_date,
         end_date,
         insight_json
       )
       values(
         #{memberId},
-        #{baseJobTitle},
         #{startDate},
         #{endDate},
         CAST(#{insightJson} AS JSONB)
@@ -29,7 +27,6 @@
       select
         trend_id,
         member_id,
-        base_job_title,
         start_date,
         end_date,
         insight_json,

@@ -98,7 +98,6 @@ public class InsightAllTestController {
   public String insertTrend() {
     TrendInsight ti = new TrendInsight();
     ti.setMemberId(1);
-    ti.setBaseJobTitle("백엔드 개발자");
     ti.setStartDate(LocalDate.of(2025, 1, 1));
     ti.setEndDate(LocalDate.of(2025, 1, 7));
     ti.setInsightJson("{\"market\":\"AI 채용 증가\",\"score\":88}");
@@ -125,7 +124,6 @@ public class InsightAllTestController {
   public String insertJob() {
     JobInsight ji = new JobInsight();
     ji.setMemberId(1);
-    ji.setBaseJobTitle("백엔드 개발자");
     ji.setAnalysisJson("{\"strength\":\"API 설계 능력 우수\",\"weakness\":\"테스트 부족\"}");
     ji.setRelatedJobsJson("[\"AI 엔지니어\", \"데이터 엔지니어\"]");
 
