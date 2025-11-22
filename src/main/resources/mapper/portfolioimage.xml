@@ -8,10 +8,10 @@
     <insert id="insertPortfolioImage" parameterType="PortfolioImage"
      useGeneratedKeys="true" keyProperty="imageId">
      INSERT INTO portfolio_image(
-      portfolio_id, page_no, filename, filedata, filetype
+      portfolio_id, page_no
      )
      VALUES(
-      #{portfolioId}, #{pageNo}, #{filename}, #{filedata}, #{filetype}
+      #{portfolioId}, #{pageNo}
      )
     </insert>
 
@@ -21,12 +21,9 @@
       SELECT
         image_id ,
         portfolio_id , 
-        page_no , 
-        filename, 
-        filedata, 
-        filetype, 
-        created_at ,
-        page_feedback 
+        page_no, 
+        created_at,
+        page_feedback
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId}
       ORDER BY page_no ASC
@@ -38,11 +35,8 @@
       SELECT 
         image_id ,
         portfolio_id , 
-        page_no , 
-        filename, 
-        filedata, 
-        filetype, 
-        created_at ,
+        page_no,  
+        created_at,
         page_feedback
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId} AND page_no = #{pageNo}
@@ -57,9 +51,6 @@
       image_id ,
       portfolio_id , 
       page_no , 
-      filename, 
-      filedata, 
-      filetype, 
       created_at ,
       page_feedback
     FROM portfolio_image 
@@ -74,9 +65,6 @@
       image_id ,
       portfolio_id , 
       page_no , 
-      filename, 
-      filedata, 
-      filetype, 
       created_at,
       page_feedback
     FROM portfolio_image 
