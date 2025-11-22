@@ -9,7 +9,7 @@
         (#{name}, #{loginId}, #{password}, #{email}, #{jobGroup}, #{jobRole}, #{careerYears})
     </insert>
 
-    <select id="findById" parameterType="long" resultType="com.example.demo.member.dto.Member">
+    <select id="findById" parameterType="int" resultType="com.example.demo.member.dto.Member">
         SELECT
             member_id,
             name,
