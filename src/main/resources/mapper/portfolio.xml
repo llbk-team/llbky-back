@@ -7,18 +7,10 @@
  <insert id="insertPortfolio" parameterType="Portfolio"
    useGeneratedKeys="true" keyProperty="portfolioId">
     INSERT INTO portfolio(
-      member_id, title, pdf_file, original_filename, content_type, page_count, portfolio_feedback
+      member_id, title, pdf_file, original_filename, content_type
     ) 
     VALUES(
-      #{memberId}, #{title}, #{pdfFile}, #{originalFilename}, #{contentType}, #{pageCount},
-      <choose>
-        <when test="portfolioFeedback != null">
-          CAST(#{portfolioFeedback} AS JSONB)
-        </when>
-        <otherwise>
-          NULL
-        </otherwise>
-      </choose>
+      #{memberId}, #{title}, #{pdfFile}, #{originalFilename}, #{contentType}
     )
   </insert>
 

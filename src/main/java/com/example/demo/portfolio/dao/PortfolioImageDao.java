@@ -12,8 +12,6 @@ public interface PortfolioImageDao {
 
   public int insertPortfolioImage(PortfolioImage portfolioImage); //포트폴리오 이미지 단일 저장
 
-  public int insertPortfolioImages(List<PortfolioImage> imageList); //포트폴리오 이미지 배치 저장(pdf 변환후 한번에 저장)
-
   public List<PortfolioImage> selectImagesByPortfolioId(Integer portfolioId);// 특정 포트폴리오의 모든 이미지 조회
 
   public PortfolioImage selectImageByPortfolioIdAndPageNo(

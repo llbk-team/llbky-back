@@ -8,38 +8,11 @@
     <insert id="insertPortfolioImage" parameterType="PortfolioImage"
      useGeneratedKeys="true" keyProperty="imageId">
      INSERT INTO portfolio_image(
-      portfolio_id, page_no, filename, filedata, filetype, created_at, page_feedback
+      portfolio_id, page_no
      )
      VALUES(
-      #{portfolioId}, #{pageNo}, #{filename}, #{filedata}, #{filetype}, 
-      <choose>
-        <when test="pageFeedback != null">
-           CAST(#{pageFeedback} AS jsonb)
-        </when>
-        <otherwise>
-          NULL
-        </otherwise>
-      </choose>
+      #{portfolioId}, #{pageNo}
      )
-    </insert>
-    
-    <!-- 포트폴리오 이미지 배치저장(PDF 변환후 한번에 저장)-->
-    <insert id="insertPortfolioImages" parameterType="java.util.List">
-      INSERT INTO portfolio_image(
-        portfolio_id, page_no, filename, filedata, filetype, created_at, page_feedback
-      ) VALUES
-      <foreach collection="list" item="image" separator=",">
-        (#{image.portfolioId}, #{image.pageNo}, #{image.filename}, 
-        #{image.filedata}, #{image.filetype}, 
-        <choose>
-          <when test="image.pageFeedback != null">
-             CAST(#{image.pageFeedback} AS jsonb)
-          </when>
-          <otherwise>
-            NULL
-          </otherwise>
-        </choose>)
-      </foreach>
     </insert>
 
     <!---////////////////////////////이미지 조회//////////////////////////////// -->
@@ -48,12 +21,9 @@
       SELECT
         image_id ,
         portfolio_id , 
-        page_no , 
-        filename, 
-        filedata, 
-        filetype, 
-        created_at ,
-        page_feedback 
+        page_no, 
+        created_at,
+        page_feedback
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId}
       ORDER BY page_no ASC
@@ -65,11 +35,8 @@
       SELECT 
         image_id ,
         portfolio_id , 
-        page_no , 
-        filename, 
-        filedata, 
-        filetype, 
-        created_at ,
+        page_no,  
+        created_at,
         page_feedback
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId} AND page_no = #{pageNo}
@@ -84,9 +51,6 @@
       image_id ,
       portfolio_id , 
       page_no , 
-      filename, 
-      filedata, 
-      filetype, 
       created_at ,
       page_feedback
     FROM portfolio_image 
@@ -101,9 +65,6 @@
       image_id ,
       portfolio_id , 
       page_no , 
-      filename, 
-      filedata, 
-      filetype, 
       created_at,
       page_feedback
     FROM portfolio_image 
