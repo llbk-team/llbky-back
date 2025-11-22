@@ -8,10 +8,12 @@
     <insert id="insertStandard" parameterType="PortfolioStandard"
             useGeneratedKeys="true" keyProperty="standardId">
         INSERT INTO portfolio_standard(
-            standard_name, standard_description, prompt_template, weight_percentage
+            standard_name, standard_description, prompt_template, weight_percentage, job_group,
+            job_role, evaluation_items, score_range_description
         ) VALUES(
             #{standardName}, #{standardDescription}, #{promptTemplate}, 
-            COALESCE(#{weightPercentage}, 20)
+            COALESCE(#{weightPercentage}, 20), #{jobGroup},
+            #{jobRole}, #{evaluationItems}, #{scoreRangeDescription}
         )
     </insert>
 
@@ -22,7 +24,13 @@
             standard_name,
             standard_description,
             prompt_template,
-            weight_percentage
+            weight_percentage,
+            job_group,
+            job_role,
+            created_at,
+            updated_at,
+            evaluation_items,
+            score_range_description
         FROM portfolio_standard 
         WHERE standard_id = #{standardId}
     </select>
@@ -34,10 +42,60 @@
             standard_name,
             standard_description,
             prompt_template,
-            weight_percentage
+            weight_percentage,
+            job_group,
+            job_role,
+            created_at,
+            updated_at,
+            evaluation_items,
+            score_range_description
         FROM portfolio_standard 
         ORDER BY standard_name
     </select>
+
+    <!-- 직무 정보로 표준 조회 -->
+    <select id="selectStandardsByJobInfo" resultType="PortfolioStandard">
+        SELECT 
+            standard_id,
+            standard_name,
+            standard_description,
+            prompt_template,
+            weight_percentage,
+            job_group,
+            job_role,
+            created_at,
+            updated_at,
+            evaluation_items,
+            score_range_description
+        FROM portfolio_standard
+        WHERE 
+            (job_group = #{param1} AND job_role = #{param2})
+            OR (job_group = #{param1} AND job_role IS NULL)
+        ORDER BY 
+            weight_percentage DESC, standard_id ASC
+    </select>
+
+    <!-- 직군별 표준 조회 (is_general 제거) -->
+    <select id="selectStandardsByJobGroup" parameterType="string" resultType="PortfolioStandard">
+        SELECT 
+            standard_id,
+            standard_name,
+            standard_description,
+            prompt_template,
+            weight_percentage,
+            job_group,
+            job_role,
+            created_at,
+            updated_at,
+            evaluation_items,
+            score_range_description
+        FROM portfolio_standard
+        WHERE job_group = #{jobGroup}
+        ORDER BY 
+            weight_percentage DESC,
+            standard_id ASC
+    </select>
+
 
     <!-- 평가 기준명으로 조회 -->
     <select id="selectStandardByName" parameterType="String" resultType="PortfolioStandard">
@@ -46,7 +104,13 @@
             standard_name,
             standard_description,
             prompt_template,
-            weight_percentage
+            weight_percentage,
+            job_group,
+            job_role,
+            created_at,
+            updated_at,
+            evaluation_items,
+            score_range_description
         FROM portfolio_standard 
         WHERE standard_name = #{standardName}
     </select>
@@ -57,7 +121,12 @@
             standard_name = #{standardName},
             standard_description = #{standardDescription},
             prompt_template = #{promptTemplate},
-            weight_percentage = #{weightPercentage}
+            weight_percentage = #{weightPercentage},
+            job_group = #{jobGroup},
+            job_role = #{jobRole},
+            evaluation_items = #{evaluationItems},
+            score_range_description = #{scoreRangeDescription},
+            updated_at = NOW()
         WHERE standard_id = #{standardId}
     </update>
 
@@ -80,7 +149,13 @@
             standard_name,
             standard_description,
             prompt_template,
-            weight_percentage
+            weight_percentage,
+            job_group,
+            job_role,
+            created_at,
+            updated_at,
+            evaluation_items,
+            score_range_description
         FROM portfolio_standard 
         WHERE weight_percentage >= #{minWeight}
         ORDER BY weight_percentage DESC
@@ -99,13 +174,16 @@
     <!-- 평가 기준 일괄 삽입 -->
     <insert id="insertStandardsBatch" parameterType="list">
         INSERT INTO portfolio_standard(
-            standard_name, standard_description, prompt_template, weight_percentage
+            standard_name, standard_description, prompt_template, weight_percentage, job_group, job_role,
+            evaluation_items, score_range_description
         ) 
         VALUES
         <foreach collection="list" item="standard" separator=",">
             (#{standard.standardName}, #{standard.standardDescription}, 
-             #{standard.promptTemplate}, COALESCE(#{standard.weightPercentage}, 20))
+             #{standard.promptTemplate}, COALESCE(#{standard.weightPercentage}, 20), 
+             #{standard.jobGroup}, #{standard.jobRole}, #{standard.evaluationItems}, #{standard.scoreRangeDescription})
         </foreach>
     </insert>
+
 
 </mapper>
