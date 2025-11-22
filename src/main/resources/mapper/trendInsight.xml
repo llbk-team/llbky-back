@@ -4,42 +4,47 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.demo.newstrend.dao.TrendInsightDao">
+
   <!-- LLM 생성 결과 저장 -->
-   <insert id="insertTrendInsight"
-    parameterType="TrendInsight">
-      insert into trend_insight(
-        member_id,
-        start_date,
-        end_date,
-        insight_json
-      )
-      values(
-        #{memberId},
-        #{startDate},
-        #{endDate},
-        CAST(#{insightJson} AS JSONB)
-      )
+  <insert id="insertTrendInsight"
+          parameterType="TrendInsight">
+    INSERT INTO trend_insight(
+      member_id,
+      start_date,
+      end_date,
+      trend_json,
+      insight_json
+    )
+    VALUES(
+      #{memberId},
+      #{startDate},
+      #{endDate},
+      CAST(#{trendJson} AS JSONB),
+      CAST(#{insightJson} AS JSONB)
+    )
   </insert>
 
   <!-- 최신 인사이트 조회 -->
-   <select id="selectLatestTrendInsight"
-    resultType="TrendInsight">
-      select
-        trend_id,
-        member_id,
-        start_date,
-        end_date,
-        insight_json,
-        created_at
-      from trend_insight
-      where member_id = #{memberId}
-      order by created_at desc
-      limit 1
+  <select id="selectLatestTrendInsight"
+          resultType="TrendInsight">
+    SELECT
+      trend_id,
+      member_id,
+      start_date,
+      end_date,
+      trend_json,
+      insight_json,
+      created_at
+    FROM trend_insight
+    WHERE member_id = #{memberId}
+    ORDER BY created_at DESC
+    LIMIT 1
   </select>
 
   <!-- 삭제 -->
-   <delete id="deleteTrendInsight">
-    delete from trend_insight
-    where trend_id = #{trendId}
-   </delete>
+  <delete id="deleteTrendInsight">
+    DELETE FROM trend_insight
+    WHERE trend_id = #{trendId}
+  </delete>
+
 </mapper>
