@@ -8,7 +8,7 @@ import com.example.demo.member.dto.Member;
 @Mapper
 public interface MemberDao {
     int insert(Member member);
-    Member findById(@Param("memberId") Long memberId);
+    Member findById(@Param("memberId") Integer memberId);
     Member findByLoginId(@Param("loginId") String loginId);
     int update(Member member);
 }
