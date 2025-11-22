@@ -19,5 +19,4 @@ public class Resume {
   private LocalDateTime createdAt;//생성일
   private LocalDateTime updatedAt;//수정일
 
-
 }
