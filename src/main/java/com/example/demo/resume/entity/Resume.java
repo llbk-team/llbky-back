@@ -8,6 +8,8 @@ import lombok.Data;
 public class Resume {
   private Integer resumeId; //이력서 ID
   private Integer memberId;  //사용사ID
+
+  // JSON
   private String title; // 이력서 제목
   private String careerInfo; //경력
   private String educationInfo;//이력
@@ -16,6 +18,7 @@ public class Resume {
   private String awards;//수상
   private String activities;//활동
   private String resumeFeedback; //이력서 피드백
+
   private LocalDateTime createdAt;//생성일
   private LocalDateTime updatedAt;//수정일
 

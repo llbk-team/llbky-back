@@ -19,19 +19,17 @@
 </insert>
 
   <!-- 이력서 상세 조회-->
-   <select id="selectResumeById" resultType="Resume">
-        SELECT resume_id, member_id, title, 
-               career_info,
-               education_info,
-               skills,
-               certificates,
-               awards,
-               activities,
-               resume_feedback,
-               created_at, updated_at
-        FROM resume 
+   <select id="selectResumeById" parameterType="int" resultType="Resume">
+        SELECT 
+            resume_id, member_id, title,
+            career_info, education_info, skills,
+            certificates, awards, activities,
+            resume_feedback, created_at, updated_at
+        FROM resume
         WHERE resume_id = #{resumeId}
     </select>
+
+
 
     <!-- 회원별 이력서 목록 조회 -->
     <select id="selectResumesByMemberId" resultType="Resume">
@@ -65,7 +63,7 @@
     </update>
 
      <!-- AI 피드백만 업데이트 -->
-    <update id="updateResumeFeedback" parameterType="map">
+    <update id="updateResumeFeedback">
         UPDATE resume SET 
             resume_feedback = CAST(#{feedback} AS jsonb),
             updated_at = NOW()
@@ -75,7 +73,7 @@
     <!-- 이력서 삭제 -->
     <delete id="deleteResume" parameterType="int">
         DELETE FROM resume 
-        WHERE resume_id = #{value}
+        WHERE resume_id = #{resumeId}
     </delete>
 
     <!-- 이력서 개수 조회 -->

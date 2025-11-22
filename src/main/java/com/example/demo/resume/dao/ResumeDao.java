@@ -12,9 +12,9 @@ public interface ResumeDao {
 
   public int insertResume(Resume resume);//이력서 생성
 
-  public Resume selectResumeById(int resumeId);//이력서 상세 조회
+  public Resume selectResumeById(@Param("resumeId") int resumeId);//이력서 상세 조회
 
-  public List<Resume> selectResumesByMemberId(int memberId);//회원별 이력서 목록 조회
+  public List<Resume> selectResumesByMemberId(@Param("memberId") int memberId);//회원별 이력서 목록 조회
 
   public int updateResume(Resume resume);//이력서 수정 (전체)
 
