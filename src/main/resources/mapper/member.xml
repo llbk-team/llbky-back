@@ -4,18 +4,18 @@
 <mapper namespace="com.example.demo.member.dao.MemberDao">
     <insert id="insert" parameterType="com.example.demo.member.dto.Member" useGeneratedKeys="true" keyProperty="memberId">
         INSERT INTO member
-        (name, login_id, password, email, job_group, job_role, career_years)
+        (member_name, login_id, member_password, member_email, job_group, job_role, career_years)
         VALUES
-        (#{name}, #{loginId}, #{password}, #{email}, #{jobGroup}, #{jobRole}, #{careerYears})
+        (#{member_name}, #{loginId}, #{member_password}, #{member_email}, #{jobGroup}, #{jobRole}, #{careerYears})
     </insert>
 
     <select id="findById" parameterType="int" resultType="com.example.demo.member.dto.Member">
         SELECT
             member_id,
-            name,
+            member_name,
             login_id,
-            password,
-            email,
+            member_password,
+            member_email,
             job_group,
             job_role,
             career_years,
@@ -28,10 +28,10 @@
     <select id="findByLoginId" parameterType="string" resultType="com.example.demo.member.dto.Member">
         SELECT
             member_id,
-            name,
+            member_name,
             login_id,
-            password,
-            email,
+            member_password,
+            member_email,
             job_group,
             job_role,
             career_years,
@@ -43,8 +43,8 @@
 
      <update id="update" parameterType="com.example.demo.member.dto.Member">
         UPDATE member
-        SET name = #{name},
-            email = #{email},
+        SET member_name = #{member_name},
+            member_email = #{member_email},
             job_group = #{jobGroup},
             job_role = #{jobRole},
             career_years = #{careerYears},
