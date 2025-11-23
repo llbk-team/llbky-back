@@ -8,7 +8,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.example.demo.ai.portfolioguide.PortfolioGuideAgent;
-import com.example.demo.coverletter.controller.CoverLetterTestController;
+
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
 import com.example.demo.portfolio.dao.PortfolioGuideDao;
@@ -47,8 +47,8 @@ public class PortfolioGuideService {
         PortfolioStandardDao portfolioStandardDao,
         MemberDao memberDao,
         ObjectMapper objectMapper,
-        PortfolioGuideAgent portfolioGuideAgent,
-        CoverLetterTestController coverLetterTestController){
+        PortfolioGuideAgent portfolioGuideAgent
+       ){
         this.portfolioGuideDao=portfolioGuideDao;
         this.portfolioStandardDao =portfolioStandardDao;
         this.memberDao=memberDao;
