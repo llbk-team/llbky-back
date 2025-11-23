@@ -1,8 +1,17 @@
 package com.example.demo.resume.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.resume.dto.response.ResumeReportResponse;
 import com.example.demo.resume.entity.Resume;
@@ -39,12 +48,12 @@ public class ResumeController {
     }
 
     // AI 피드백 반영
-    @PutMapping("/apply-feedback")
-    public ResponseEntity<Integer> applyFeedback(
-            @RequestParam("resumeId") int resumeId,
-            @RequestBody String feedbackJson) {
+    @PutMapping("/{resumeId}/rewrite-career")
+    public ResponseEntity<?> applyCareer(
+            @PathVariable("resumeId") int resumeId,
+            @RequestParam("index") int index) throws Exception {
 
-        int updated = resumeService.applyFeedback(resumeId, feedbackJson);
-        return ResponseEntity.ok(updated);
+        int result = resumeService.applyCareerRewrite(resumeId, index);
+        return ResponseEntity.ok(result);
     }
 }

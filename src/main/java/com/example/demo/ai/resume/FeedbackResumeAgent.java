@@ -1,4 +1,4 @@
-package com.example.demo.ai;
+package com.example.demo.ai.resume;
 
 import java.util.List;
 import java.util.Map;
@@ -21,13 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class ResumeAiAgent {
+public class FeedbackResumeAgent {
     private ChatClient chatClient;
     private ObjectMapper mapper = new ObjectMapper();
     private MemberDao memberDao;
     private ResumeDao resumeDao;
 
-    public ResumeAiAgent(ChatClient.Builder chatClientBuilder, MemberDao memberDao, ResumeDao resumeDao) {
+    public FeedbackResumeAgent(ChatClient.Builder chatClientBuilder, MemberDao memberDao, ResumeDao resumeDao) {
         this.chatClient = chatClientBuilder.build();
         this.memberDao = memberDao;
         this.resumeDao = resumeDao;
