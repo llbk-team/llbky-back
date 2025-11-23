@@ -53,7 +53,7 @@
         ORDER BY standard_name
     </select>
 
-    <!-- 직무 정보로 표준 조회 -->
+    <!-- 직무 정보로 표준 조회 (LIKE 패턴으로 유연한 매칭) -->
     <select id="selectStandardsByJobInfo" resultType="PortfolioStandard">
         SELECT 
             standard_id,
@@ -69,10 +69,12 @@
             score_range_description
         FROM portfolio_standard
         WHERE 
-            (job_group = #{param1} AND job_role = #{param2})
-            OR (job_group = #{param1} AND job_role IS NULL)
+            (job_group LIKE '%' || #{param1} || '%' OR #{param1} LIKE '%' || job_group || '%')
+            AND (job_role LIKE '%' || #{param2} || '%' OR #{param2} LIKE '%' || job_role || '%' OR job_role IS NULL)
         ORDER BY 
-            weight_percentage DESC, standard_id ASC
+            CASE WHEN job_role IS NOT NULL THEN 0 ELSE 1 END,
+            weight_percentage DESC, 
+            standard_id ASC
     </select>
 
     <!-- 직군별 표준 조회 (is_general 제거) -->

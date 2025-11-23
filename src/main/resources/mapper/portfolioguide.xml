@@ -138,15 +138,27 @@
         UPDATE portfolio_guide 
         SET 
             title = #{title},
-            <if test="guideContent != null">
-                guide_content = CAST(#{guideContent} AS JSONB)
-            </if>
+            guide_content = 
+            <choose>
+                <when test="guideContent != null">
+                    CAST(#{guideContent} AS JSONB)
+                </when>
+                <otherwise>
+                    guide_content
+                </otherwise>
+            </choose>,
             completion_percentage = #{completionPercentage},
             is_completed = #{isCompleted},
             current_step = #{currentStep},
-            <if test="guideFeedback != null">
-                guide_feedback = CAST(#{guideFeedback} AS JSONB)
-            </if>
+            guide_feedback = 
+            <choose>
+                <when test="guideFeedback != null">
+                    CAST(#{guideFeedback} AS JSONB)
+                </when>
+                <otherwise>
+                    guide_feedback
+                </otherwise>
+            </choose>,
             updated_at = NOW()
         WHERE guide_id = #{guideId}
     </update>
@@ -157,11 +169,7 @@
         SET 
             completion_percentage = #{completionPercentage},
             current_step = #{currentStep},
-            is_completed = 
-                <choose>
-                    <when test="completionPercentage >= 100">true</when>
-                    <otherwise>false</otherwise>
-                </choose>,
+            is_completed = #{isCompleted},
             updated_at = NOW()
         WHERE guide_id = #{guideId}
     </update>
