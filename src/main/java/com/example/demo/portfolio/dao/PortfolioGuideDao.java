@@ -7,6 +7,37 @@ import org.apache.ibatis.annotations.Param;
 
 import com.example.demo.portfolio.entity.PortfolioGuide;
 
+/*
+
+
+-- 2. 사용자별 포트폴리오 가이드 테이블
+CREATE TABLE portfolio_guide (
+    guide_id SERIAL PRIMARY KEY,
+    member_id INT NOT NULL REFERENCES member(member_id) ON DELETE CASCADE,
+    standard_id INT NOT NULL REFERENCES portfolio_standard(standard_id) ON DELETE CASCADE,  -- ✅ 올바른 FK 설정
+    title VARCHAR(200) NOT NULL DEFAULT '새 포트폴리오 가이드',
+    
+    -- 가이드 작성 내용 (JSONB)
+    guide_content JSONB,                         -- 단계별 가이드 작성 내용
+    
+    -- 진행 상태
+    completion_percentage INTEGER DEFAULT 0 CHECK (completion_percentage >= 0 AND completion_percentage <= 100),
+    is_completed BOOLEAN DEFAULT FALSE,
+    current_step INTEGER DEFAULT 1,             -- 현재 작성 중인 단계
+    total_steps INTEGER DEFAULT 5,              -- 전체 단계 수
+    
+    -- AI 코칭 결과
+    guide_feedback JSONB,                        -- AI 가이드 코칭 결과
+    
+    -- 시간 정보
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+*/
+
+
+
 @Mapper
 public interface PortfolioGuideDao {
   
