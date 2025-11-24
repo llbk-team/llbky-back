@@ -44,6 +44,7 @@ public class FeedbackResumeAgent {
         // JSON 문자열 -> Request DTO 변환
         ResumeReportRequest request = parseResumeToRequest(resume);
 
+
         // 멤버 조회
         Member member = memberDao.findById(memberId);
         if (member != null)
@@ -59,6 +60,8 @@ public class FeedbackResumeAgent {
         } catch (Exception e) {
             throw new RuntimeException("JSON 변환 실패", e);
         }
+        log.info("REQUEST TO GPT = {}", mapper.writeValueAsString(request));
+
 
         // 프롬프트
         String systemPrompt = """
@@ -71,18 +74,28 @@ public class FeedbackResumeAgent {
                 - 경력 기술의 구체성, 애매한 표현, 중복 여부 검토
                 - 기술·경력·직무 연결성이 있는지 확인
                 - 직무(targetJob)와의 매칭도 점수 포함
-                - 개선이 필요한 문장은 before → after 형태로 제안
+                - 개선이 필요한 문장은 before → after 형태로 제안과 함께 이렇게 수정한 이유(reason) 작성
                 - format 구조에 포함된 필드만 출력하며 추가/누락 금지
 
+                ★★ 매우 중요한 규칙 (before 오류 방지) ★★
+                1) rewriteSuggestions.before는 반드시 원문 이력서의 career.description에서 가져온 '그대로의 문장'이어야 한다.
+                2) before 문장을 요약, 변형, 해석 금지. 단 한 글자도 바꾸지 말 것.
+                3) 원문에 존재하지 않는 문장은 절대로 before에 넣지 않는다.
+                4) 경력이 없을 경우 원문 description이 비어 있음 그럴때는 rewriteSuggestions에 경력사항이 없으니 보완점이나 개선점으로 주어야 한다.
+                5) after와 reason만 AI가 생성하며, before는 오직 원문 그대로 복사만 한다.
+
                 출력 규칙:
-                - JSON만 출력
-                - 배열은 반드시 JSON 배열로 출력 (문자열 아님)
+                - JSON만 출력 (문자열 형태 X)
+                - 배열은 반드시 JSON 배열로 출력
                 - format 구조를 그대로 따라야 함
                 """;
         String prompt = """
                 다음은 지원자의 이력서 데이터입니다.
                 이력서를 분석하고 format에 맞는 JSON만 출력하세요.
 
+                format:
+                %s
+                
                 input:
                 %s
                 """.formatted(format, inputJson);

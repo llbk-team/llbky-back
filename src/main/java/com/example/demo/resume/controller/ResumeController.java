@@ -48,12 +48,11 @@ public class ResumeController {
     }
 
     // AI 피드백 반영
-    @PutMapping("/{resumeId}/rewrite-career")
+    @PutMapping("/rewrite/{resumeId}")
     public ResponseEntity<?> applyCareer(
-            @PathVariable("resumeId") int resumeId,
-            @RequestParam("index") int index) throws Exception {
+            @PathVariable("resumeId") int resumeId) throws Exception {
 
-        int result = resumeService.applyCareerRewrite(resumeId, index);
+        int result = resumeService.applyCareerRewrite(resumeId);
         return ResponseEntity.ok(result);
     }
 }
