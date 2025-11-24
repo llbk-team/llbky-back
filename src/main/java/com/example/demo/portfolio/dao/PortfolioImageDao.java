@@ -12,27 +12,16 @@ public interface PortfolioImageDao {
 
   public int insertPortfolioImage(PortfolioImage portfolioImage); //포트폴리오 이미지 단일 저장
 
-  public List<PortfolioImage> selectImagesByPortfolioId(Integer portfolioId);// 특정 포트폴리오의 모든 이미지 조회
+  public List<PortfolioImage> selectImagesByPortfolioId(Integer portfolioId); // 특정 포트폴리오의 모든 이미지 조회
+
+  public PortfolioImage selectBeforePage(@Param("portfolioId") Integer portfolioId, @Param("pageNo") Integer pageNo); // 이전 페이지 피드백 조회
 
   public PortfolioImage selectImageByPortfolioIdAndPageNo(
       @Param("portfolioId") Integer portfolioId,
-      @Param("pageNo") Integer pageNo); //특정 포트폴리오의 특정 페이지 이미지 조회
-
-  public PortfolioImage selectImageById(Integer imageId); //이미지 ID로 단일 이미지 조회
-
-  public PortfolioImage selectThumbnailByPortfolioId(Integer portfolioId);//특정 포트폴리오의 썸네일만 조회 (첫 페이지)
-
-  //수정
-
-  public int updatePortfolioImage(PortfolioImage portfolioImage);//이미지 정보 수정 (filename, filetype 등)
-
-  public int deleteImageById(Integer imageId);//특정 이미지 삭제
-
-  public int deleteImagesByPortfolioId(Integer portfolioId);//특정 포트폴리오의 모든 이미지 삭제
+      @Param("pageNo") Integer pageNo); // 특정 포트폴리오의 특정 페이지 이미지 조회
 
 
-// ##### 통계 및 유틸리티 #####
-  public int countImagesByPortfolioId(Integer portfolioId);//특정 포트폴리오의 총 이미지 수 조회
+  // 통계 및 유틸리티
+  public int countImagesByPortfolioId(Integer portfolioId); // 특정 포트폴리오의 총 이미지 수 조회
 
-  public List<PortfolioImage> selectAllImages(); //모든 포트폴리오 이미지 조회
 }

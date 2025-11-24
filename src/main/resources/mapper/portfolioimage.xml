@@ -3,20 +3,18 @@
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
   <mapper namespace="com.example.demo.portfolio.dao.PortfolioImageDao">
  
-   <!-- ##### 이미지 생성 ##### -->
-     <!--단일 이미지 단일 저장-->
+    <!-- 이미지 생성  -->
     <insert id="insertPortfolioImage" parameterType="PortfolioImage"
      useGeneratedKeys="true" keyProperty="imageId">
      INSERT INTO portfolio_image(
-      portfolio_id, page_no
+      portfolio_id, page_no, page_feedback
      )
      VALUES(
-      #{portfolioId}, #{pageNo}
+      #{portfolioId}, #{pageNo}, CAST(#{pageFeedback} AS JSONB)
      )
     </insert>
 
-    <!---////////////////////////////이미지 조회//////////////////////////////// -->
-    <!-- 특정 포트폴리오의 모든 이미지 조회 (페이지 순서대로) -->
+    <!-- 특정 포트폴리오의 모든 이미지 조회 -->
     <select id="selectImagesByPortfolioId" parameterType="int" resultType="PortfolioImage">
       SELECT
         image_id ,
@@ -27,6 +25,13 @@
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId}
       ORDER BY page_no ASC
+    </select>
+
+    <select id="selectBeforePage" resultType="PortfolioImage">
+      SELECT image_id, portfolio_id, page_no, page_feedback, created_at
+      FROM portfolio_image
+      WHERE portfolio_id = #{portfolioId} AND page_no = #{pageNo} - 1
+      LIMIT 1
     </select>
 
      <!-- 특정 포트폴리오의 특정 페이지 이미지 조회 -->
@@ -43,71 +48,6 @@
      
     </select>
 
-    <!-- 이미지 ID로 단일 이미지 조회 -->
-  <select id="selectImageById" 
-          parameterType="int" 
-          resultType="PortfolioImage">
-    SELECT 
-      image_id ,
-      portfolio_id , 
-      page_no , 
-      created_at ,
-      page_feedback
-    FROM portfolio_image 
-    WHERE image_id = #{imageId}
-  </select>
-
-  <!-- 특정 포트폴리오의 썸네일만 조회 (첫 페이지) -->
-  <select id="selectThumbnailByPortfolioId" 
-          parameterType="int" 
-          resultType="PortfolioImage">
-    SELECT 
-      image_id ,
-      portfolio_id , 
-      page_no , 
-      created_at,
-      page_feedback
-    FROM portfolio_image 
-    WHERE portfolio_id = #{portfolioId}
-    ORDER BY page_no ASC
-    LIMIT 1
-  </select>
-
-    <!---////////////////////////////이미지 수정//////////////////////////////// -->
-    <update id="updatePortfolioImage" parameterType="PortfolioImage">
-      UPDATE portfolio_image 
-        SET 
-          filename = #{filename},
-          filetype = #{filetype}
-          <if test="filedata != null">
-            , filedata = #{filedata}
-          </if>
-          <if test="pageFeedback != null">
-            , page_feedback = CAST(#{pageFeedback} AS jsonb)
-          </if>
-      WHERE image_id = #{imageId}
-    </update>
-
-    <!-- 페이지별 AI 피드백 업데이트 -->
-    <update id="updatePageFeedback" parameterType="map">
-      UPDATE portfolio_image 
-      SET page_feedback = CAST(#{feedback} AS jsonb)
-      WHERE image_id = #{imageId}
-    </update>
-
-    <!---////////////////////////////이미지 삭제//////////////////////////////// -->
-
-    <!-- 특정 이미지 삭제 -->
-    <delete id="deleteImageById" parameterType="int">
-      DELETE FROM portfolio_image 
-      WHERE image_id = #{imageId}
-    </delete>
-
-    <!-- 특정 포트폴리오의 모든 이미지 삭제 -->
-    <delete id="deleteImagesByPortfolioId" parameterType="int">
-      DELETE FROM portfolio_image 
-      WHERE portfolio_id = #{portfolioId}
-    </delete>
 
     <!-- ##### 통계 및 유틸리티 ##### -->
     <!-- 특정 포트폴리오의 총 이미지(페이지) 수 조회 -->
@@ -117,21 +57,6 @@
       SELECT COUNT(*) 
       FROM portfolio_image 
       WHERE portfolio_id = #{portfolioId}
-    </select>
-
-    <!-- 모든 포트폴리오 이미지 조회 (관리자용) -->
-    <select id="selectAllImages" resultType="PortfolioImage">
-      SELECT 
-        image_id,
-        portfolio_id , 
-        page_no , 
-        filename, 
-        filedata, 
-        filetype, 
-        created_at,
-        page_feedback
-      FROM portfolio_image 
-      ORDER BY portfolio_id ASC, page_no ASC
     </select>
 
   </mapper>

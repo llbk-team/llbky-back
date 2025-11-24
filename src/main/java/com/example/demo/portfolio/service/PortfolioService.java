@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.demo.ai.PortfolioPageAnalysisService;
+import com.example.demo.ai.portfolio.PortfolioPageAnalysisService;
 import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.dao.PortfolioImageDao;
 import com.example.demo.portfolio.dto.request.PortfolioCreateRequest;
-import com.example.demo.portfolio.dto.response.PortfolioCreateResponse;
 import com.example.demo.portfolio.entity.Portfolio;
 
 @Service
@@ -25,6 +25,7 @@ public class PortfolioService {
   @Autowired
   private PortfolioPageAnalysisService portfolioPageAnalysisService;
 
+  @Transactional
   public Integer createPortfolio(PortfolioCreateRequest request) throws Exception {
 
     MultipartFile pdfFile = request.getPdfFile();
@@ -37,14 +38,15 @@ public class PortfolioService {
     portfolio.setContentType(pdfFile.getContentType());
     portfolio.setPdfFile(pdfFile.getBytes());
 
-    Integer portfolioId = portfolioDao.insertPortfolio(portfolio);
-    return portfolioId;
+    portfolioDao.insertPortfolio(portfolio);
+
+    return portfolio.getPortfolioId();
   }
 
   // 페이지별로 분석하는 에이전트 호출
   public List<String> analyzePortfolio(Integer portfolioId) throws Exception {
     Portfolio portfolio = portfolioDao.selectPortfolioById(portfolioId);
-    return portfolioPageAnalysisService.analyzePortfolio(portfolio.getPdfFile(), portfolioId);
+    return portfolioPageAnalysisService.analyzePortfolio(portfolio.getPdfFile(), portfolioId, portfolio.getMemberId());
   }
 
 
