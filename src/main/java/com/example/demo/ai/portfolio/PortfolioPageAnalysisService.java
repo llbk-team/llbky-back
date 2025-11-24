@@ -20,6 +20,7 @@ import org.springframework.util.MimeType;
 
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
+import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.dao.PortfolioImageDao;
 import com.example.demo.portfolio.entity.PortfolioImage;
 
@@ -31,6 +32,9 @@ public class PortfolioPageAnalysisService {
 
   // 필드
   private ChatClient chatClient;
+
+  @Autowired
+  private PortfolioDao portfolioDao;
 
   @Autowired
   private PortfolioImageDao portfolioImageDao;
@@ -49,6 +53,7 @@ public class PortfolioPageAnalysisService {
     PDDocument document = PDDocument.load(pdfBytes); // PDFBox를 이용해 PDF 파일을 로드
     PDFRenderer renderer = new PDFRenderer(document); // PDF 페이지를 하나씩 이미지를 그릴 수 있는 도구 생성
     int pageCount = document.getNumberOfPages(); // PDF 페이지 수 가져오기
+    portfolioDao.updatePortfolioPageCount(portfolioId, pageCount);
 
     List<String> feedbackList = new ArrayList<>(); // 피드백 결과를 반환하기 위한 리스트 생성
 
@@ -132,6 +137,8 @@ public class PortfolioPageAnalysisService {
           .messages(systemMessage, userMessage)
           .call()
           .content();
+
+      Thread.sleep(1000);
 
       log.info("페이지 {} 분석 결과: {}", pageNo, feedback);
 

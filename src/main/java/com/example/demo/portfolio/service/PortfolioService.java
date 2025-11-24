@@ -8,10 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.ai.portfolio.PortfolioPageAnalysisService;
+import com.example.demo.ai.portfolio.PortfolioSummaryAnalysisService;
 import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.dao.PortfolioImageDao;
 import com.example.demo.portfolio.dto.request.PortfolioCreateRequest;
+import com.example.demo.portfolio.dto.response.PortfolioListResponse;
 import com.example.demo.portfolio.entity.Portfolio;
+import com.example.demo.portfolio.entity.PortfolioImage;
 
 @Service
 public class PortfolioService {
@@ -24,6 +27,9 @@ public class PortfolioService {
 
   @Autowired
   private PortfolioPageAnalysisService portfolioPageAnalysisService;
+
+  @Autowired
+  private PortfolioSummaryAnalysisService portfolioSummaryAnalysisService;
 
   @Transactional
   public Integer createPortfolio(PortfolioCreateRequest request) throws Exception {
@@ -49,9 +55,37 @@ public class PortfolioService {
     return portfolioPageAnalysisService.analyzePortfolio(portfolio.getPdfFile(), portfolioId, portfolio.getMemberId());
   }
 
+  // 최종 피드백 생성
+  public String generateSummary(Integer portfolioId) {
+    Portfolio portfolio = portfolioDao.selectPortfolioById(portfolioId);
+    return portfolioSummaryAnalysisService.generateSummary(portfolioId, portfolio.getMemberId());
+  }
 
-  // 이미지 조회
-  
+  // PDF 조회
+  public byte[] getPdf(Integer portfolioId) {
+    Portfolio portfolio = portfolioDao.selectPortfolioById(portfolioId);
+    return portfolio.getPdfFile();
+  }
+
+  // 사용자별 포트폴리오 전체 조회
+  public List<PortfolioListResponse> getPortfolioList(Integer memberId) {
+    return portfolioDao.selectPortfoliosByMemberId(memberId);
+  }
+
+  // 포트폴리오 하나 조회
+  public Portfolio getPortfolioDetail(Integer portfolioId) {
+    return portfolioDao.selectPortfolioById(portfolioId);
+  }
+
+  // 포트폴리오 피드백 조회
+  public List<PortfolioImage> getPageFeedback(Integer portfolioId) {
+    return portfolioImageDao.selectImagesByPortfolioId(portfolioId);
+  }
+
+  // 포트폴리오 삭제
+  public void deletePortfolio(Integer portfolioId) {
+    portfolioDao.deletePortfolio(portfolioId);
+  }
 
 
 }

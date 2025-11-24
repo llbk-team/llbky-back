@@ -13,7 +13,7 @@ public class Portfolio {
   private byte[] pdfFile; //파일
   private String originalFilename; //원본파일
   private String contentType; //타입
-  private String pageCount; //페이지수(PDF만 사용)
+  private int pageCount; //페이지수(PDF만 사용)
   private String portfolioFeedback; //포트폴리오 피드백
   private LocalDateTime createdAt; //생성일
   private LocalDateTime updatedAt; // 수정일

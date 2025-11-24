@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,12 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.portfolio.dto.request.PortfolioCreateRequest;
-import com.example.demo.portfolio.dto.response.PortfolioCreateResponse;
+import com.example.demo.portfolio.dto.response.PortfolioListResponse;
+import com.example.demo.portfolio.entity.Portfolio;
+import com.example.demo.portfolio.entity.PortfolioImage;
 import com.example.demo.portfolio.service.PortfolioService;
 
 
 @RestController
-@RequestMapping("portfolio")
+@RequestMapping("/portfolio")
 public class PortfolioController {
 
   @Autowired
@@ -34,33 +39,51 @@ public class PortfolioController {
     request.setTitle(title);
     request.setPdfFile(pdfFile);
 
-    Integer portfolioId = portfolioService.createPortfolio(request);
+    Integer portfolioId = portfolioService.createPortfolio(request); // PDF 저장
 
     try {
-      List<String> result = portfolioService.analyzePortfolio(portfolioId);
+      portfolioService.analyzePortfolio(portfolioId); // 포트폴리오 분석
+      String result = portfolioService.generateSummary(portfolioId); // 최종 피드백 생성
       return ResponseEntity.ok(result);
     } catch (Exception e) {
       return ResponseEntity.status(500).body(e.getMessage());
     }
   }
-
-
-  // 이미지 페이지 분석
-  // @GetMapping("/{portfolioId}/page/{pageNo}/analyze")
-  // public ResponseEntity<?> analyze(@PathVariable("portfolioId") Integer portfolioId) {
-  //   try {
-  //     List<String> result = portfolioService.analyzePortfolio(portfolioId);
-  //     return ResponseEntity.ok(result);
-  //   } catch (Exception e) {
-  //     return ResponseEntity.status(500).body(e.getMessage());
-  //   }
-  // }
   
+  // PDF 조회
+  @GetMapping("/pdf/{portfolioId}")
+  public ResponseEntity<byte[]> getPdf(@PathVariable("portfolioId") Integer portfolioId) {
+    byte[] pdfBytes = portfolioService.getPdf(portfolioId);
+    return ResponseEntity.ok(pdfBytes);
+  }
 
-  // 페이지 이미지 조회
-  // @GetMapping("/{portfolioId}/image/{pageNo}")
-  // public ResponseEntity<byte[]> getPortfolioImage(@PathVariable("portfolioId") Integer portfolioId, @PathVariable("pageNo") int pageNo) {
-  //   return portfolioService.getPortfolioImage(portfolioId, pageNo);
-  // }
+  // 사용자별 포트폴리오 전체 조회
+  @GetMapping("/list/{memberId}")
+  public ResponseEntity<List<PortfolioListResponse>> getPortfolioList(@PathVariable("memberId") Integer memberId) {
+    List<PortfolioListResponse> list = portfolioService.getPortfolioList(memberId);
+    return ResponseEntity.ok(list);
+  }
+
+  // 포트폴리오 하나 조회
+  @GetMapping("/{portfolioId}")
+  public ResponseEntity<Portfolio> getPortfolio(@PathVariable("portfolioId") Integer portfolioId) {
+    Portfolio portfolio = portfolioService.getPortfolioDetail(portfolioId);
+      return ResponseEntity.ok(portfolio);
+  }
+  
+  // 포트폴리오 상세 피드백 조회
+  @GetMapping("/detail/{portfolioId}")
+  public ResponseEntity<List<PortfolioImage>> getPortfolioImage(@PathVariable("portfolioId") Integer portfolioId) {
+     List<PortfolioImage> response = portfolioService.getPageFeedback(portfolioId);
+    return ResponseEntity.ok(response);
+  }
+
+  // 포트폴리오 삭제
+  @DeleteMapping("/delete/{portfolioId}")
+  public ResponseEntity<String> deletePortfolio(@PathVariable("portfolioId") Integer portfolioId) {
+    portfolioService.deletePortfolio(portfolioId);
+    return ResponseEntity.ok("포트폴리오 삭제 완료");
+  }
+  
 }
 
