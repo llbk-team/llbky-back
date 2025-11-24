@@ -49,59 +49,9 @@ public class PortfolioGuideController {
             request.getMemberId(), 
             request.getInputFieldType(), 
             request.getUserInput() != null ? 
-                request.getUserInput().substring(0, Math.min(30, request.getUserInput().length())) : "null");
+            request.getUserInput().substring(0, Math.min(30, request.getUserInput().length())) : "null");
         
         return portfolioGuideService.provideCoaching(request);
     }
 
-    /**
-     * 빠른 코칭 테스트 API (memberId 1 고정)
-     * 
-     * 테스트 예시:
-     * POST /api/portfolio-guide/quick-test
-     * {
-     *   "inputFieldType": "프로젝트 목적",
-     *   "userInput": "여행지 추천 서비스의 개인화 알고리즘 개선"
-     * }
-     */
-    @PostMapping("/quick-test")
-    public PortfolioGuideResult quickTest(@RequestBody QuickTestRequest quickRequest) {
-        log.info("빠른 테스트 요청 - 입력 필드: {}, 입력 내용: '{}'", 
-            quickRequest.getInputFieldType(), 
-            quickRequest.getUserInput());
-        
-        PortfolioGuideRequest request = PortfolioGuideRequest.builder()
-                .memberId(1) // 테스트용 고정 memberId
-                .guideId(1)
-                .currentStep(1)
-                .inputFieldType(quickRequest.getInputFieldType())
-                .userInput(quickRequest.getUserInput())
-                .build();
-        
-        return portfolioGuideService.provideCoaching(request);
-    }
-
-    /**
-     * 빠른 테스트용 요청 DTO
-     */
-    public static class QuickTestRequest {
-        private String inputFieldType;
-        private String userInput;
-
-        public String getInputFieldType() {
-            return inputFieldType;
-        }
-
-        public void setInputFieldType(String inputFieldType) {
-            this.inputFieldType = inputFieldType;
-        }
-
-        public String getUserInput() {
-            return userInput;
-        }
-
-        public void setUserInput(String userInput) {
-            this.userInput = userInput;
-        }
-    }
 }

@@ -6,4 +6,5 @@ import lombok.Data;
 public class RewriteSuggestion {
   private String before;
   private String after;
+  private String reason; 
 }

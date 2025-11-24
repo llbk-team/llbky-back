@@ -48,7 +48,7 @@ public class ResumeService {
 
   // AI 피드백 반영(경력)
   @Transactional
-  public int applyCareerRewrite(int resumeId, int index) throws Exception {
+  public int applyCareerRewrite(int resumeId) throws Exception {
     Resume resume = resumeDao.selectResumeById(resumeId);
     if (resume == null) {
       throw new RuntimeException("이력서를 찾을 수 없습니다.");
@@ -58,22 +58,40 @@ public class ResumeService {
     ResumeReportResponse feedback = mapper.readValue(resume.getResumeFeedback(), ResumeReportResponse.class);
 
     // 해당 제안 가져오기
-    RewriteSuggestion suggestion = feedback.getRewriteSuggestions().get(index);
+    List<RewriteSuggestion> suggestions = feedback.getRewriteSuggestions();
+    if (suggestions == null || suggestions.isEmpty()) return 0;
 
-    String before = suggestion.getBefore();
-    String after = suggestion.getAfter();
-
-    // JSON 문자열 -> Java 객체 변환
+    // JSON 문자열 -> List<Map> 변환
     List<Map<String, Object>> careerList = mapper.readValue(resume.getCareerInfo(), new TypeReference<>() {});
 
-    for (Map<String, Object> item : careerList) {
-      if (before.equals(item.get("description"))) {
-        item.put("description", after);
+
+    int applyCount = 0;
+
+    for(RewriteSuggestion s : suggestions){
+      String beforeNorm = normalize(s.getBefore());
+
+      for(Map<String, Object> item : careerList){
+        Object descObj = item.get("description");
+        if(descObj == null) continue; // description 없으면 스킵
+
+        String desc = descObj.toString();
+        if (normalize(desc).equals(beforeNorm)){
+          // 반영 내용으로 교체
+          item.put("description", s.getAfter());
+          applyCount++;
+          break; // 다음 제안으로 넘어감
+        }
       }
     }
+
     // JSON 문자열로 변환
     String updateJson = mapper.writeValueAsString(careerList);
+    resumeDao.updateCareerinfo(resumeId, updateJson);
 
-    return resumeDao.updateCareerinfo(resumeId, updateJson);
+    return applyCount;
+  }
+
+  private String normalize(String text){
+    return text == null? "": text.replace("\r\n","\n").trim();
   }
 }
