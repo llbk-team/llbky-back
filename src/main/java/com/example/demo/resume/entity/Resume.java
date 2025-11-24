@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class Resume {
   private Integer resumeId; //이력서 ID
-  private Integer memberId;  //사용사ID
+  private Integer memberId;  //사용자 ID
 
   // JSON
   private String title; // 이력서 제목

@@ -99,12 +99,12 @@
         LIMIT #{limit}
     </select>
 
-    <!-- 경력만 업데이트 -->
-     <update id="updateCareerinfo" parameterType="map">
+    <!-- 경력만 업데이트(첨삭 제안 24일자 이제 안 씀)
+     <update id="updateCareerinfo">
         update resume
         set career_info = CAST(#{careerInfo} AS JSONB),
             updated_at = NOW()
         Where resume_id = #{resumeId}
-     </update>
+     </update> -->
     
 </mapper>
