@@ -329,40 +329,6 @@ public class PortfolioGuideController {
         }
     }
 
-    /**
-     * 🔥 NEW: 가이드 삭제 API
-     * 
-     * POST http://localhost:8081/api/portfolio-guide/{guideId}/delete
-     */
-    @PostMapping("/{guideId}/delete")
-    public ResponseEntity<GuideProgressResponse> deleteGuide(@PathVariable Integer guideId) {
-        try {
-            log.info("🗑️ 가이드 삭제 요청 - guideId: {}", guideId);
-            
-            boolean deleted = portfolioGuideService.deleteGuide(guideId);
-            
-            if (deleted) {
-                log.info("✅ 가이드 삭제 성공 - guideId: {}", guideId);
-                return ResponseEntity.ok(
-                    GuideProgressResponse.builder()
-                        .success(true)
-                        .message("가이드가 성공적으로 삭제되었습니다.")
-                        .build()
-                );
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-            
-        } catch (Exception e) {
-            log.error("❌ 가이드 삭제 중 오류 발생", e);
-            return ResponseEntity.status(500).body(
-                GuideProgressResponse.builder()
-                    .success(false)
-                    .message("가이드 삭제 중 오류가 발생했습니다: " + e.getMessage())
-                    .build()
-            );
-        }
-    }
 
     // ===== 기존 API들 =====
 
@@ -423,39 +389,7 @@ public class PortfolioGuideController {
         }
     }
 
-    /**
-     * 가이드의 AI 피드백을 텍스트 형식으로 조회 (프론트에서 표시용)
-     * GET http://localhost:8081/api/portfolio-guide/{guideId}/feedback/text
-     * 
-     * 예시 응답:
-     * "───── AI 코칭 피드백 ─────
-     * 
-     * 📊 적절성 점수: 85/100점
-     * 
-     * 💬 코칭 메시지:
-     * 프로젝트 제목이 명확하고 기술 스택이 잘 드러납니다...
-     * 
-     * 💡 개선 제안 사항:
-     *   1. 해결하려는 문제를 더 구체적으로 작성해보세요
-     *   2. 목표 사용자층을 명확히 정의해보세요
-     * ..."
-     */
-    @GetMapping("/{guideId}/feedback/text")
-    public ResponseEntity<String> getGuideFeedbackAsText(@PathVariable Integer guideId) {
-        try {
-            log.info("가이드 피드백 텍스트 조회 요청 - guideId: {}", guideId);
-            String feedbackText = portfolioGuideService.getGuideFeedbackAsText(guideId);
-            
-            if (feedbackText == null || feedbackText.contains("실패")) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            return ResponseEntity.ok(feedbackText);
-        } catch (Exception e) {
-            log.error("피드백 텍스트 조회 중 오류 발생", e);
-            return ResponseEntity.status(500).body("피드백을 불러오는 데 실패했습니다.");
-        }
-    }
+
 
     /**
      * 실시간 피드백용 별도 DTO
