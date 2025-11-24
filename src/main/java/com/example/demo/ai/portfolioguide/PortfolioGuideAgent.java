@@ -82,7 +82,7 @@ public class PortfolioGuideAgent {
     }
 
     /**
-     * AI 코칭 생성 - FinalFeedbackAgent 스타일
+     * AI 코칭 생성 
      */
     private PortfolioGuideResult generateCoaching(
             PortfolioGuideRequest request, 
