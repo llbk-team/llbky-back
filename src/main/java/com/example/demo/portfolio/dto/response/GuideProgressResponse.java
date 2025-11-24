@@ -17,87 +17,29 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuideProgressResponse {
-    /**
-     * 성공 여부
-     */
-    private boolean success;
+   
+    private boolean success; // 성공 여부
+    private String message; // 응답 메시지
     
-    /**
-     * 응답 메시지
-     */
-    private String message;
+    private Integer guideId; // 가이드 ID
+    private Integer memberId; // 회원 ID
+    private Integer completionPercentage; // 전체 진행률 (0-100%)
+    private Integer currentStep; // 현재 단계 번호
+    private Integer totalSteps; // 전체 단계 수
+    private Map<String, Object> guideContent; // 가이드 내용 (JSONB에서 파싱된 맵)
+    private List<StepProgress> stepProgress; // 단계별 진행상황
+    private String lastUpdated; // 마지막 업데이트 시간
     
-    /**
-     * 가이드 ID
-     */
-    private Integer guideId;
-    
-    /**
-     * 회원 ID
-     */
-    private Integer memberId;
-    
-    /**
-     * 전체 진행률 (0-100%)
-     */
-    private Integer completionPercentage;
-    
-    /**
-     * 현재 단계 번호
-     */
-    private Integer currentStep;
-    
-    /**
-     * 전체 단계 수
-     */
-    private Integer totalSteps;
-    
-    /**
-     * 가이드 내용 (JSONB에서 파싱된 맵)
-     */
-    private Map<String, Object> guideContent;
-    
-    /**
-     * 단계별 진행상황
-     */
-    private List<StepProgress> stepProgress;
-    
-    /**
-     * 마지막 업데이트 시간
-     */
-    private String lastUpdated;
-    
-    /**
-     * 단계별 진행상황 상세 정보
-     */
+    // 단계별 진행상황 상세 정보
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class StepProgress {
-        /**
-         * 단계 번호
-         */
-        private Integer stepNumber;
-        
-        /**
-         * 단계 제목
-         */
-        private String stepTitle;
-        
-        /**
-         * 단계 진행률 (0-100%)
-         */
-        private Integer progress;
-        
-        /**
-         * 완료된 항목 수
-         */
-        private Integer completedItems;
-        
-        /**
-         * 전체 항목 수
-         */
-        private Integer totalItems;
+        private Integer stepNumber; // 단계 번호
+        private String stepTitle; // 단계 제목
+        private Integer progress; // 단계 진행률 (0-100%)
+        private Integer completedItems; // 완료된 항목 수
+        private Integer totalItems; // 전체 항목 수
     }
 }
