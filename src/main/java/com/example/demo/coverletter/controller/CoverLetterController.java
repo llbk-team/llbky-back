@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.coverletter.dto.request.CoverLetterCoachRequest;
+import com.example.demo.coverletter.dto.response.CoverLetterCoachResponse;
 import com.example.demo.coverletter.dto.response.CoverLetterCreateResponse;
 import com.example.demo.coverletter.dto.response.WritingStyle;
 import com.example.demo.coverletter.entity.CoverLetter;
@@ -26,6 +28,13 @@ public class CoverLetterController {
     // Service
     @Autowired
     private CoverLetterService coverLetterService;
+
+    // 자소서 작성 시 실시간 코칭 받기---------------------------------------------------
+    @PostMapping("/realtime-coach")
+    public ResponseEntity<CoverLetterCoachResponse> coach(@RequestBody CoverLetterCoachRequest request) { 
+        return ResponseEntity.ok(coverLetterService.realtimeCoach(request));        
+    }
+    
 
     // 자소서 리포트 생성-------------------------------------------------------------
     @PostMapping("/save")

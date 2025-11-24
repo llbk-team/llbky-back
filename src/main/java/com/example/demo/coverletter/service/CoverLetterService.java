@@ -9,6 +9,8 @@ import com.example.demo.ai.coverletter.CreateWritingStyleAgent;
 import com.example.demo.ai.coverletter.FinalFeedbackAgent;
 import com.example.demo.ai.coverletter.RealtimeCoachingAgent;
 import com.example.demo.coverletter.dao.CoverLetterDao;
+import com.example.demo.coverletter.dto.request.CoverLetterCoachRequest;
+import com.example.demo.coverletter.dto.response.CoverLetterCoachResponse;
 import com.example.demo.coverletter.dto.response.CoverLetterCreateResponse;
 import com.example.demo.coverletter.dto.response.CoverLetterFinalFeedback;
 import com.example.demo.coverletter.dto.response.WritingStyle;
@@ -28,6 +30,12 @@ public class CoverLetterService {
     private CreateWritingStyleAgent createWritingStyleAgent;
     @Autowired
     private RealtimeCoachingAgent realtimeCoachingAgent;
+
+    // 자소서 작성 시 실시간 코칭 받기 -------------------------------------------------------------------------------------------
+    public CoverLetterCoachResponse realtimeCoach(CoverLetterCoachRequest request) {
+        // AI Agent 호출
+        return realtimeCoachingAgent.execute(request);
+    }
 
 
     // 자소서 리포트 생성 --------------------------------------------------------------------------------------------------

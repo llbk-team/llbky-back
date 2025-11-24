@@ -4,6 +4,7 @@ import java.util.List;
 
 import lombok.Data;
 
+// 최종 피드백 응답
 @Data
 public class CoverLetterFinalFeedback {
 

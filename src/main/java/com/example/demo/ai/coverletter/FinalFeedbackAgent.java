@@ -52,7 +52,7 @@ public class FinalFeedbackAgent {
             2) 강점 3가지
             3) 개선 제안 3가지
 
-            반드시 아래 JSON 형식을 그대로 채워서 출력해라:
+            반드시 아래 JSON 형식을 그대로 채워서 출력하세요:
             %s
 
             --- 자기소개서 내용 ---
