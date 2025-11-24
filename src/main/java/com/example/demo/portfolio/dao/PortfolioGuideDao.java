@@ -41,52 +41,105 @@ CREATE TABLE portfolio_guide (
 @Mapper
 public interface PortfolioGuideDao {
   
-    public int insertGuide(PortfolioGuide guide);//포트폴리오 가이드 생성
+    /**
+     * 포트폴리오 가이드 생성
+     */
+    public int insertGuide(PortfolioGuide guide);
     
+    /**
+     * 가이드 ID로 조회
+     */
+    public PortfolioGuide selectGuideById(@Param("guideId") int guideId);
     
-    public PortfolioGuide selectGuideById(@Param("guideId") int guideId);// 가이드 ID로 조회
+    /**
+     * 회원별 가이드 목록 조회
+     */
+    public List<PortfolioGuide> selectGuidesByMemberId(@Param("memberId") int memberId);
     
-    public List<PortfolioGuide> selectGuidesByMemberId(@Param("memberId") int memberId);//회원별 가이드 목록 조회
-    
-    public List<PortfolioGuide> selectCompletedGuidesByMemberId(@Param("memberId") int memberId);//완료된 가이드 조회
+    /**
+     * 완료된 가이드 조회
+     */
+    public List<PortfolioGuide> selectCompletedGuidesByMemberId(@Param("memberId") int memberId);
 
-    public List<PortfolioGuide> selectInProgressGuidesByMemberId(@Param("memberId") int memberId);//진행 중인 가이드 조회
+    /**
+     * 진행 중인 가이드 조회
+     */
+    public List<PortfolioGuide> selectInProgressGuidesByMemberId(@Param("memberId") int memberId);
+    
+    /**
+     * 특정 평가 기준으로 가이드 조회
+     */
+    public List<PortfolioGuide> selectGuidesByStandardId(@Param("standardId") int standardId);
    
-    public int updateGuide(PortfolioGuide guide);//가이드 업데이트
+    /**
+     * 가이드 업데이트 (전체 필드)
+     */
+    public int updateGuide(PortfolioGuide guide);
     
-    //가이드 진행 상태 업데이트
-    public int updateGuideProgress(
-        @Param("guideId") int guideId,
-        @Param("completionPercentage") int completionPercentage,
-        @Param("currentStep") int currentStep,
-        @Param("isCompleted") Boolean isCompleted
-    );
+    /**
+     * 가이드 진행률만 업데이트
+     */
+    public int updateGuideProgressOnly(java.util.Map<String, Object> params);
     
-
-    public int updateGuideContent(@Param("guideId") int guideId, @Param("content") String content);//가이드 콘텐츠 업데이트
+    /**
+     * 🔥 가이드 콘텐츠 및 진행상황 업데이트 (Map 파라미터)
+     * @param params - guideId, guideContent, completionPercentage, currentStep 포함
+     */
+    public int updateGuideContent(java.util.Map<String, Object> params);
     
+    /**
+     * 🔥 전체 가이드 진행상황 업데이트 (Map 파라미터)
+     * @param params - guideId, guideContent, completionPercentage, currentStep, isCompleted 포함
+     */
+    public int updateGuideProgress(java.util.Map<String, Object> params);
+    
+    /**
+     * AI 가이드 피드백 업데이트
+     */
     public int updateGuideFeedback(@Param("guideId") int guideId, @Param("feedback") String feedback);
     
+    /**
+     * 가이드 완료 처리
+     */
+    public int completeGuide(@Param("guideId") int guideId);
+    
+    /**
+     * 가이드 삭제
+     */
+    public int deleteGuide(@Param("guideId") int guideId);
+    
+    /**
+     * 회원의 모든 가이드 삭제
+     */
+    public int deleteGuidesByMemberId(@Param("memberId") int memberId);
 
-    public int completeGuide(@Param("guideId") int guideId);//가이드 완료 처리
+    /**
+     * 가이드 개수 조회
+     */
+    public int countGuidesByMemberId(@Param("memberId") int memberId);
     
+    /**
+     * 완료된 가이드 개수 조회
+     */
+    public int countCompletedGuidesByMemberId(@Param("memberId") int memberId);
   
-    public int deleteGuide(@Param("guideId") int guideId);//가이드 삭제
+    /**
+     * 평균 완료율 조회
+     */
+    public double getAverageCompletionByMemberId(@Param("memberId") int memberId);
     
-  
-    public int deleteGuidesByMemberId(@Param("memberId") int memberId);//회원의 모든 가이드 삭제
-
-    /* 쓰는 날이 올까?
-    public int countGuidesByMemberId(@Param("memberId") int memberId);//가이드 개수 조회
+    /**
+     * 최근 생성된 가이드 조회 (관리자용)
+     */
+    public List<PortfolioGuide> selectRecentGuides(@Param("limit") int limit);
     
-    public int countCompletedGuidesByMemberId(@Param("memberId") int memberId);//완료된 가이드 개수 조회
-  
-    public double getAverageCompletionByMemberId(@Param("memberId") int memberId);//평균 완료율 조회
+    /**
+     * 특정 평가 기준별 가이드 통계
+     */
+    public int countGuidesByStandardId(@Param("standardId") int standardId);
     
-    public List<PortfolioGuide> selectRecentGuides(@Param("limit") int limit);//최근 생성된 가이드 조회 (관리자용)
-
-    //AI 코칭 피드백 저장
-    public int updateGuideFeedback(@Param("guideId") Integer guideId,
-        @Param("guideFeedback") String guideFeedbackJson);
-*/
+    /**
+     * 특정 평가 기준별 완료된 가이드 수
+     */
+    public int countCompletedGuidesByStandardId(@Param("standardId") int standardId);
 }
