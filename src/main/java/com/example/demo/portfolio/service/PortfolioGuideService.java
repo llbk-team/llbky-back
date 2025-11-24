@@ -178,6 +178,438 @@ public class PortfolioGuideService {
     }
 
     /**
+     * 피드백을 읽기 쉬운 텍스트 형식으로 변환
+     * 프론트에서 표시할 때 사용
+     */
+    public String getGuideFeedbackAsText(Integer guideId) {
+        try {
+            PortfolioGuideResult feedback = getGuideFeedback(guideId);
+            
+            if (feedback == null) {
+                return "저장된 피드백이 없습니다.";
+            }
+            
+            StringBuilder text = new StringBuilder();
+            text.append("\n───── AI 코칭 피드백 ─────\n\n");
+            
+            // 1. 적절성 점수
+            text.append("📊 적절성 점수: ")
+                .append(feedback.getAppropriatenessScore())
+                .append("/100점\n\n");
+            
+            // 2. 코칭 메시지
+            if (feedback.getCoachingMessage() != null && !feedback.getCoachingMessage().isEmpty()) {
+                text.append("💬 코칭 메시지:\n")
+                    .append(feedback.getCoachingMessage())
+                    .append("\n\n");
+            }
+            
+            // 3. 개선 제안 사항
+            if (feedback.getSuggestions() != null && !feedback.getSuggestions().isEmpty()) {
+                text.append("💡 개선 제안 사항:\n");
+                for (int i = 0; i < feedback.getSuggestions().size(); i++) {
+                    text.append("  ")
+                        .append(i + 1)
+                        .append(". ")
+                        .append(feedback.getSuggestions().get(i))
+                        .append("\n");
+                }
+                text.append("\n");
+            }
+            
+            // 4. 예시
+            if (feedback.getExamples() != null && !feedback.getExamples().isEmpty()) {
+                text.append("✨ 작성 예시:\n");
+                for (int i = 0; i < feedback.getExamples().size(); i++) {
+                    text.append("  예시 ")
+                        .append(i + 1)
+                        .append(": ")
+                        .append(feedback.getExamples().get(i))
+                        .append("\n");
+                }
+                text.append("\n");
+            }
+            
+            // 5. 다음 단계 가이드
+            if (feedback.getNextStepGuide() != null && !feedback.getNextStepGuide().isEmpty()) {
+                text.append("🚀 다음 단계:\n")
+                    .append(feedback.getNextStepGuide())
+                    .append("\n\n");
+            }
+            
+            // 6. 진행률
+            if (feedback.getProgressPercentage() != null) {
+                text.append("📈 진행률: ")
+                    .append(feedback.getProgressPercentage())
+                    .append("%\n\n");
+            }
+            
+            text.append("──────────────────\n");
+            
+            return text.toString();
+            
+        } catch (Exception e) {
+            log.error("피드백 텍스트 변환 중 오류 - guideId: {}", guideId, e);
+            return "피드백을 불러오는 데 실패했습니다.";
+        }
+    }
+
+    // ===== 🔥 NEW: 가이드 저장 관련 메서드들 =====
+
+    /**
+     * 🔥 개별 항목 저장
+     * 사용자가 특정 항목을 완료했을 때 해당 내용을 가이드에 저장
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public com.example.demo.portfolio.dto.response.GuideProgressResponse saveGuideItem(
+            com.example.demo.portfolio.dto.request.GuideItemSaveRequest request) {
+        try {
+            log.info("💾 개별 항목 저장 시작 - guideId: {}, 단계: {}, 항목: {}", 
+                request.getGuideId(), 
+                request.getStepNumber(), 
+                request.getItemTitle());
+            
+            // 1. 기존 가이드 조회
+            PortfolioGuide existingGuide = portfolioGuideDao.selectGuideById(request.getGuideId());
+            if (existingGuide == null) {
+                throw new IllegalArgumentException("존재하지 않는 가이드입니다: " + request.getGuideId());
+            }
+            
+            // 2. 기존 가이드 내용 파싱
+            java.util.Map<String, Object> guideContentMap = parseGuideContent(existingGuide.getGuideContent());
+            
+            // 3. 새 항목 추가/업데이트
+            updateItemInGuideContent(guideContentMap, request);
+            
+            // 4. 진행률 계산
+            int newCompletionPercentage = calculateCompletionPercentage(guideContentMap);
+            
+            // 5. DB 업데이트
+            String updatedGuideContentJson = objectMapper.writeValueAsString(guideContentMap);
+            
+            java.util.Map<String, Object> updateParams = new java.util.HashMap<>();
+            updateParams.put("guideId", request.getGuideId());
+            updateParams.put("guideContent", updatedGuideContentJson);
+            updateParams.put("completionPercentage", newCompletionPercentage);
+            updateParams.put("currentStep", request.getStepNumber());
+            
+            int updatedRows = portfolioGuideDao.updateGuideContent(updateParams);
+            
+            if (updatedRows == 0) {
+                throw new RuntimeException("가이드 내용 업데이트에 실패했습니다");
+            }
+            
+            log.info("✅ 개별 항목 저장 완료 - guideId: {}, 새 진행률: {}%", 
+                request.getGuideId(), 
+                newCompletionPercentage);
+            
+            return com.example.demo.portfolio.dto.response.GuideProgressResponse.builder()
+                .success(true)
+                .message("항목이 성공적으로 저장되었습니다")
+                .guideId(request.getGuideId())
+                .completionPercentage(newCompletionPercentage)
+                .currentStep(request.getStepNumber())
+                .lastUpdated(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+                
+        } catch (Exception e) {
+            log.error("❌ 개별 항목 저장 중 오류 발생", e);
+            throw new RuntimeException("개별 항목 저장에 실패했습니다", e);
+        }
+    }
+
+    /**
+     * 🔥 전체 가이드 진행상황 저장
+     * 사용자가 "진행상황 저장" 버튼을 클릭했을 때 모든 내용을 저장
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public com.example.demo.portfolio.dto.response.GuideProgressResponse saveGuideProgress(
+            com.example.demo.portfolio.dto.request.GuideProgressSaveRequest request) {
+        try {
+            log.info("💾 전체 가이드 저장 시작 - guideId: {}, 진행률: {}%", 
+                request.getGuideId(), 
+                request.getCompletionPercentage());
+            
+            // 1. 가이드 내용을 JSONB 형식으로 구성
+            java.util.Map<String, Object> guideContentMap = new java.util.HashMap<>();
+            guideContentMap.put("steps", request.getGuideContent());
+            guideContentMap.put("lastUpdated", LocalDateTime.now().toString());
+            guideContentMap.put("version", "1.0");
+            
+            String guideContentJson = objectMapper.writeValueAsString(guideContentMap);
+            
+            // 2. DB 업데이트
+            java.util.Map<String, Object> updateParams = new java.util.HashMap<>();
+            updateParams.put("guideId", request.getGuideId());
+            updateParams.put("guideContent", guideContentJson);
+            updateParams.put("completionPercentage", request.getCompletionPercentage());
+            updateParams.put("currentStep", request.getCurrentStep());
+            updateParams.put("isCompleted", request.getCompletionPercentage() >= 100);
+            
+            int updatedRows = portfolioGuideDao.updateGuideProgress(updateParams);
+            
+            if (updatedRows == 0) {
+                throw new RuntimeException("가이드 진행상황 업데이트에 실패했습니다");
+            }
+            
+            // 3. 단계별 진행상황 계산
+            List<com.example.demo.portfolio.dto.response.GuideProgressResponse.StepProgress> stepProgressList = 
+                calculateStepProgress(request.getGuideContent());
+            
+            log.info("✅ 전체 가이드 저장 완료 - guideId: {}, 최종 진행률: {}%", 
+                request.getGuideId(), 
+                request.getCompletionPercentage());
+            
+            return com.example.demo.portfolio.dto.response.GuideProgressResponse.builder()
+                .success(true)
+                .message("가이드 진행상황이 성공적으로 저장되었습니다")
+                .guideId(request.getGuideId())
+                .memberId(request.getMemberId())
+                .completionPercentage(request.getCompletionPercentage())
+                .currentStep(request.getCurrentStep())
+                .totalSteps(request.getGuideContent().size())
+                .guideContent(guideContentMap)
+                .stepProgress(stepProgressList)
+                .lastUpdated(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+                
+        } catch (Exception e) {
+            log.error("❌ 전체 가이드 저장 중 오류 발생", e);
+            throw new RuntimeException("전체 가이드 저장에 실패했습니다", e);
+        }
+    }
+
+    /**
+     * 🔥 저장된 가이드 내용 조회
+     * 사용자가 페이지를 다시 열었을 때 이전에 작성한 내용들을 복원
+     */
+    public com.example.demo.portfolio.dto.response.GuideProgressResponse getGuideContent(Integer guideId) {
+        try {
+            log.info("📖 가이드 내용 조회 - guideId: {}", guideId);
+            
+            PortfolioGuide guide = portfolioGuideDao.selectGuideById(guideId);
+            if (guide == null) {
+                return com.example.demo.portfolio.dto.response.GuideProgressResponse.builder()
+                    .success(false)
+                    .message("존재하지 않는 가이드입니다")
+                    .build();
+            }
+            
+            // 가이드 내용 파싱
+            java.util.Map<String, Object> guideContentMap = parseGuideContent(guide.getGuideContent());
+            
+            // 단계별 진행상황 계산
+            List<com.example.demo.portfolio.dto.response.GuideProgressResponse.StepProgress> stepProgressList = 
+                new java.util.ArrayList<>();
+            if (guideContentMap.containsKey("steps")) {
+                @SuppressWarnings("unchecked")
+                List<java.util.Map<String, Object>> steps = 
+                    (List<java.util.Map<String, Object>>) guideContentMap.get("steps");
+                
+                for (java.util.Map<String, Object> step : steps) {
+                    @SuppressWarnings("unchecked")
+                    List<java.util.Map<String, Object>> items = 
+                        (List<java.util.Map<String, Object>>) step.get("items");
+                    
+                    int completedItems = 0;
+                    if (items != null) {
+                        completedItems = (int) items.stream()
+                            .filter(item -> "완료".equals(item.get("status")))
+                            .count();
+                    }
+                    
+                    stepProgressList.add(com.example.demo.portfolio.dto.response.GuideProgressResponse.StepProgress.builder()
+                        .stepNumber((Integer) step.get("stepNumber"))
+                        .stepTitle((String) step.get("stepTitle"))
+                        .progress((Integer) step.getOrDefault("stepProgress", 0))
+                        .completedItems(completedItems)
+                        .totalItems(items != null ? items.size() : 0)
+                        .build());
+                }
+            }
+            
+            log.info("✅ 가이드 내용 조회 완료 - guideId: {}, 진행률: {}%", 
+                guideId, 
+                guide.getCompletionPercentage());
+            
+            return com.example.demo.portfolio.dto.response.GuideProgressResponse.builder()
+                .success(true)
+                .message("가이드 내용 조회 성공")
+                .guideId(guideId)
+                .memberId(guide.getMemberId())
+                .completionPercentage(guide.getCompletionPercentage())
+                .currentStep(guide.getCurrentStep())
+                .totalSteps(guide.getTotalSteps())
+                .guideContent(guideContentMap)
+                .stepProgress(stepProgressList)
+                .lastUpdated(guide.getUpdatedAt() != null ? 
+                    guide.getUpdatedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : null)
+                .build();
+                
+        } catch (Exception e) {
+            log.error("❌ 가이드 내용 조회 중 오류 발생", e);
+            return com.example.demo.portfolio.dto.response.GuideProgressResponse.builder()
+                .success(false)
+                .message("가이드 내용 조회에 실패했습니다")
+                .build();
+        }
+    }
+
+    /**
+     * 🔥 가이드 삭제
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public boolean deleteGuide(Integer guideId) {
+        try {
+            log.info("🗑️ 가이드 삭제 - guideId: {}", guideId);
+            
+            int deletedRows = portfolioGuideDao.deleteGuide(guideId);
+            
+            if (deletedRows > 0) {
+                log.info("✅ 가이드 삭제 성공 - guideId: {}", guideId);
+                return true;
+            } else {
+                log.warn("⚠️ 삭제할 가이드가 없음 - guideId: {}", guideId);
+                return false;
+            }
+            
+        } catch (Exception e) {
+            log.error("❌ 가이드 삭제 중 오류 발생", e);
+            throw new RuntimeException("가이드 삭제에 실패했습니다", e);
+        }
+    }
+
+    // ===== 🔥 Private 유틸리티 메서드들 =====
+
+    /**
+     * 가이드 내용 JSON 파싱
+     */
+    private java.util.Map<String, Object> parseGuideContent(String guideContentJson) {
+        try {
+            if (guideContentJson == null || guideContentJson.trim().isEmpty()) {
+                return new java.util.HashMap<>();
+            }
+            
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> contentMap = objectMapper.readValue(guideContentJson, java.util.Map.class);
+            return contentMap;
+            
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.warn("가이드 내용 JSON 파싱 실패, 빈 맵 반환: {}", e.getMessage());
+            return new java.util.HashMap<>();
+        }
+    }
+
+    /**
+     * 가이드 내용에 새 항목 추가/업데이트
+     */
+    @SuppressWarnings("unchecked")
+    private void updateItemInGuideContent(java.util.Map<String, Object> guideContentMap, 
+            com.example.demo.portfolio.dto.request.GuideItemSaveRequest request) {
+        // steps 배열 가져오기 또는 생성
+        List<java.util.Map<String, Object>> steps = (List<java.util.Map<String, Object>>) 
+            guideContentMap.computeIfAbsent("steps", k -> new java.util.ArrayList<>());
+        
+        // 해당 단계 찾기 또는 생성
+        java.util.Map<String, Object> targetStep = steps.stream()
+            .filter(step -> request.getStepNumber().equals(step.get("stepNumber")))
+            .findFirst()
+            .orElse(null);
+        
+        if (targetStep == null) {
+            targetStep = new java.util.HashMap<>();
+            targetStep.put("stepNumber", request.getStepNumber());
+            targetStep.put("stepTitle", request.getStepTitle());
+            targetStep.put("items", new java.util.ArrayList<>());
+            steps.add(targetStep);
+        }
+        
+        // 항목 배열 가져오기
+        List<java.util.Map<String, Object>> items = (List<java.util.Map<String, Object>>) 
+            targetStep.computeIfAbsent("items", k -> new java.util.ArrayList<>());
+        
+        // 해당 항목 찾기 또는 생성
+        java.util.Map<String, Object> targetItem = items.stream()
+            .filter(item -> request.getItemTitle().equals(item.get("title")))
+            .findFirst()
+            .orElse(null);
+        
+        if (targetItem == null) {
+            targetItem = new java.util.HashMap<>();
+            targetItem.put("title", request.getItemTitle());
+            items.add(targetItem);
+        }
+        
+        // 항목 내용 업데이트
+        targetItem.put("content", request.getItemContent());
+        targetItem.put("status", request.getItemStatus());
+        if (request.getFeedback() != null) {
+            targetItem.put("feedback", request.getFeedback());
+        }
+        
+        // 단계별 진행률 계산 및 업데이트
+        int completedItems = (int) items.stream()
+            .filter(item -> "완료".equals(item.get("status")))
+            .count();
+        int stepProgress = Math.round((float) completedItems / items.size() * 100);
+        targetStep.put("stepProgress", stepProgress);
+    }
+
+    /**
+     * 전체 진행률 계산
+     */
+    @SuppressWarnings("unchecked")
+    private int calculateCompletionPercentage(java.util.Map<String, Object> guideContentMap) {
+        List<java.util.Map<String, Object>> steps = (List<java.util.Map<String, Object>>) 
+            guideContentMap.get("steps");
+        
+        if (steps == null || steps.isEmpty()) {
+            return 0;
+        }
+        
+        int totalItems = 0;
+        int completedItems = 0;
+        
+        for (java.util.Map<String, Object> step : steps) {
+            List<java.util.Map<String, Object>> items = (List<java.util.Map<String, Object>>) step.get("items");
+            if (items != null) {
+                totalItems += items.size();
+                completedItems += (int) items.stream()
+                    .filter(item -> "완료".equals(item.get("status")))
+                    .count();
+            }
+        }
+        
+        return totalItems > 0 ? Math.round((float) completedItems / totalItems * 100) : 0;
+    }
+
+    /**
+     * 단계별 진행상황 계산
+     */
+    private List<com.example.demo.portfolio.dto.response.GuideProgressResponse.StepProgress> calculateStepProgress(
+            List<com.example.demo.portfolio.dto.request.GuideProgressSaveRequest.GuideStepData> steps) {
+        
+        List<com.example.demo.portfolio.dto.response.GuideProgressResponse.StepProgress> stepProgressList = 
+            new java.util.ArrayList<>();
+        
+        for (com.example.demo.portfolio.dto.request.GuideProgressSaveRequest.GuideStepData step : steps) {
+            int completedItems = (int) step.getItems().stream()
+                .filter(item -> "완료".equals(item.getStatus()))
+                .count();
+            
+            stepProgressList.add(com.example.demo.portfolio.dto.response.GuideProgressResponse.StepProgress.builder()
+                .stepNumber(step.getStepNumber())
+                .stepTitle(step.getStepTitle())
+                .progress(step.getStepProgress())
+                .completedItems(completedItems)
+                .totalItems(step.getItems().size())
+                .build());
+        }
+        
+        return stepProgressList;
+    }
+
+    /**
      * AI 피드백을 DB에 저장
      * @throws Exception JSON 변환 실패 또는 DB 저장 실패 시
      */
