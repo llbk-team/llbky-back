@@ -163,8 +163,19 @@
         WHERE guide_id = #{guideId}
     </update>
 
-    <!-- 가이드 진행률 업데이트 -->
+    <!-- 가이드 진행률 업데이트 
     <update id="updateGuideProgress" parameterType="map">
+        UPDATE portfolio_guide 
+        SET 
+            completion_percentage = #{completionPercentage},
+            current_step = #{currentStep},
+            is_completed = #{isCompleted},
+            updated_at = NOW()
+        WHERE guide_id = #{guideId}
+    </update>-->
+
+    <!-- 가이드 진행률만 업데이트 -->
+    <update id="updateGuideProgressOnly" parameterType="map">
         UPDATE portfolio_guide 
         SET 
             completion_percentage = #{completionPercentage},
@@ -174,11 +185,31 @@
         WHERE guide_id = #{guideId}
     </update>
 
-    <!-- 가이드 콘텐츠 업데이트 -->
+    <!-- 🔥 가이드 콘텐츠 업데이트 (Map 파라미터 지원) -->
     <update id="updateGuideContent" parameterType="map">
         UPDATE portfolio_guide 
         SET 
-            guide_content = CAST(#{content} AS JSONB),
+            guide_content = CAST(#{guideContent} AS JSONB),
+            <if test="completionPercentage != null">
+            completion_percentage = #{completionPercentage},
+            </if>
+            <if test="currentStep != null">
+            current_step = #{currentStep},
+            </if>
+            updated_at = NOW()
+        WHERE guide_id = #{guideId}
+    </update>
+    
+    <!-- 🔥 전체 가이드 진행상황 업데이트 (Map 파라미터) -->
+    <update id="updateGuideProgress" parameterType="map">
+        UPDATE portfolio_guide 
+        SET 
+            guide_content = CAST(#{guideContent} AS JSONB),
+            completion_percentage = #{completionPercentage},
+            current_step = #{currentStep},
+            <if test="isCompleted != null">
+            is_completed = #{isCompleted},
+            </if>
             updated_at = NOW()
         WHERE guide_id = #{guideId}
     </update>
@@ -269,5 +300,7 @@
         FROM portfolio_guide 
         WHERE standard_id = #{standardId} AND is_completed = true
     </select>
+
+    
 
 </mapper>
