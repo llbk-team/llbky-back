@@ -55,8 +55,40 @@ public class ResumeService {
   }
 
   // 이력서 수정
-  public int updateResume(Resume resume){
-    return resumeDao.updateResume(resume);
+  public int updateResume(Resume resume) {
+    // 1) 기존 데이터 조회
+    Resume original = resumeDao.selectResumeById(resume.getResumeId());
+    if (original == null) {
+      throw new RuntimeException("이력서를 찾을 수 없습니다.");
+    }
+
+    // 2) 변경된 필드만 반영
+    // 제목
+    if (resume.getTitle() != null) {
+      original.setTitle(resume.getTitle());
+    }
+    // careerInfo
+    if (resume.getCareerInfo() != null) {
+      original.setCareerInfo(resume.getCareerInfo());
+    }
+    // educationInfo
+    if (resume.getEducationInfo() != null) {
+      original.setEducationInfo(resume.getEducationInfo());
+    }
+    // skills
+    if (resume.getSkills() != null) {
+      original.setSkills(resume.getSkills());
+    }
+    // activities
+    if (resume.getActivities() != null) {
+      original.setActivities(resume.getActivities());
+    }
+    // certificates
+    if (resume.getCertificates() != null) {
+      original.setCertificates(resume.getCertificates());
+    }
+    // 3) 병합된 객체로 업데이트
+    return resumeDao.updateResume(original);
   }
 
   // 이력서 삭제

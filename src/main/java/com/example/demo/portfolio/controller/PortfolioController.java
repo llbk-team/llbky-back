@@ -89,6 +89,5 @@ public class PortfolioController {
     portfolioService.deletePortfolio(portfolioId);
     return ResponseEntity.ok("포트폴리오 삭제 완료");
   }
-  
 }
 
