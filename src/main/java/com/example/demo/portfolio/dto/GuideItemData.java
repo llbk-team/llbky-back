@@ -20,5 +20,5 @@ public class GuideItemData {
 
     private String status;//항목 상태 ("미작성", "작성 중", "완료")
 
-    private PortfolioGuideResult feedback;//AI 피드백 (선택사항)
+    private GuideResult feedback;//AI 피드백 (선택사항)
 }

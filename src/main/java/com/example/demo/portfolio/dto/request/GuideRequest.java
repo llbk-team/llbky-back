@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class PortfolioGuideRequest {
+public class GuideRequest {
     /**
      * 가이드 ID
      */

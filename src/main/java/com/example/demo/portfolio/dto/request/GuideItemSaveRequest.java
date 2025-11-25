@@ -1,6 +1,6 @@
 package com.example.demo.portfolio.dto.request;
 
-import com.example.demo.portfolio.dto.PortfolioGuideResult;
+import com.example.demo.portfolio.dto.GuideResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,5 +48,5 @@ public class GuideItemSaveRequest {
     /**
      * AI 피드백 (선택사항 - 피드백을 받은 경우에만)
      */
-    private PortfolioGuideResult feedback;
+    private GuideResult feedback;
 }

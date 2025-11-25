@@ -10,7 +10,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class PortfolioGuideResponse {
+public class GuideResponse {
     private Integer guideId;
     private Integer memberId;
     private Integer standardId;

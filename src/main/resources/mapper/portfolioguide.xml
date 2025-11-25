@@ -10,7 +10,8 @@
         INSERT INTO portfolio_guide(
             member_id, title, standard_id, guide_content, 
             completion_percentage, is_completed, current_step, total_steps,
-            guide_feedback
+            appropriateness_score, progress_percentage, coaching_message,
+            suggestions, examples, next_step_guide
         ) 
         VALUES(
             #{memberId}, #{title}, #{standardId}, 
@@ -23,14 +24,24 @@
                 </otherwise>
             </choose>,
             #{completionPercentage}, #{isCompleted}, #{currentStep}, #{totalSteps},
+            #{appropriatenessScore}, #{progressPercentage}, #{coachingMessage},
             <choose>
-                <when test="guideFeedback != null">
-                    CAST(#{guideFeedback} AS JSONB)
+                <when test="suggestions != null">
+                    CAST(#{suggestions} AS JSONB)
                 </when>
                 <otherwise>
                     NULL
                 </otherwise>
-            </choose>
+            </choose>,
+            <choose>
+                <when test="examples != null">
+                    CAST(#{examples} AS JSONB)
+                </when>
+                <otherwise>
+                    NULL
+                </otherwise>
+            </choose>,
+            #{nextStepGuide}
         )
     </insert>
 
@@ -46,7 +57,12 @@
             is_completed,
             current_step,
             total_steps,
-            guide_feedback,
+            appropriateness_score,
+            progress_percentage,
+            coaching_message,
+            suggestions,
+            examples,
+            next_step_guide,
             created_at,
             updated_at
         FROM portfolio_guide 
@@ -65,7 +81,12 @@
             is_completed,
             current_step,
             total_steps,
-            guide_feedback,
+            appropriateness_score,
+            progress_percentage,
+            coaching_message,
+            suggestions,
+            examples,
+            next_step_guide,
             created_at,
             updated_at
         FROM portfolio_guide 
@@ -102,11 +123,32 @@
         WHERE guide_id = #{guideId}
     </update>
 
-    <!-- AI 가이드 피드백 업데이트 -->
+    <!-- 🔥 AI 가이드 피드백 업데이트 (개별 필드) -->
     <update id="updateGuideFeedback" parameterType="map">
         UPDATE portfolio_guide 
         SET 
-            guide_feedback = CAST(#{feedback} AS JSONB),
+            appropriateness_score = #{appropriatenessScore},
+            progress_percentage = #{progressPercentage},
+            coaching_message = #{coachingMessage},
+            suggestions = 
+            <choose>
+                <when test="suggestions != null">
+                    CAST(#{suggestions} AS JSONB)
+                </when>
+                <otherwise>
+                    NULL
+                </otherwise>
+            </choose>,
+            examples = 
+            <choose>
+                <when test="examples != null">
+                    CAST(#{examples} AS JSONB)
+                </when>
+                <otherwise>
+                    NULL
+                </otherwise>
+            </choose>,
+            next_step_guide = #{nextStepGuide},
             updated_at = NOW()
         WHERE guide_id = #{guideId}
     </update>

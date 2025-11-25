@@ -17,28 +17,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuideProgressSaveRequest {
-    /**
-     * 가이드 ID
-     */
-    private Integer guideId;
+    
+    private Integer guideId;//가이드 ID
 
-    /**
-     * 회원 ID
-     */
-    private Integer memberId;
+    private Integer memberId;//회원 ID
 
-    /**
-     * 전체 진행률 (0-100%)
-     */
-    private Integer completionPercentage;
+    private Integer completionPercentage;//전체 진행률 (0-100%)
 
-    /**
-     * 현재 진행 중인 단계 번호
-     */
-    private Integer currentStep;
+    private Integer currentStep;//현재 진행 중인 단계 번호
 
-    /**
-     * 전체 가이드 내용 (모든 단계와 항목)
-     */
-    private List<GuideStepData> guideContent;
+    private List<GuideStepData> guideContent;//전체 가이드 내용 (모든 단계와 항목)
 }
