@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.portfolio.dto.request.PortfolioCreateRequest;
+import com.example.demo.portfolio.dto.response.PortfolioCreateResponse;
 import com.example.demo.portfolio.dto.response.PortfolioListResponse;
 import com.example.demo.portfolio.entity.Portfolio;
 import com.example.demo.portfolio.entity.PortfolioImage;
@@ -39,12 +40,16 @@ public class PortfolioController {
     request.setTitle(title);
     request.setPdfFile(pdfFile);
 
-    Integer portfolioId = portfolioService.createPortfolio(request); // PDF 저장
+    Integer portfolioId = portfolioService.createPortfolio(request); 
+
+    PortfolioCreateResponse response = new PortfolioCreateResponse();
+    response.setPortfoliId(portfolioId);
 
     try {
       portfolioService.analyzePortfolio(portfolioId); // 포트폴리오 분석
-      String result = portfolioService.generateSummary(portfolioId); // 최종 피드백 생성
-      return ResponseEntity.ok(result);
+      portfolioService.generateSummary(portfolioId); // 최종 피드백 생성
+
+      return ResponseEntity.ok(response);
     } catch (Exception e) {
       return ResponseEntity.status(500).body(e.getMessage());
     }
