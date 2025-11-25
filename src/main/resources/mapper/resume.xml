@@ -55,12 +55,11 @@
             title = #{title}
             </if>,
             <if test= "career_info != null">career_info = CAST(#{careerInfo}AS jsonb)</if>,
-            education_info = CAST(#{educationInfo}AS jsonb),
-            skills = CAST(#{skills}AS jsonb),
-            certificates = CAST(#{certificates}AS jsonb),
-            awards = CAST(#{awards}AS jsonb),
-            activities =CAST( #{activities}AS jsonb),
-            resume_feedback =CAST( #{resumeFeedback}AS jsonb),
+            <if test="education_info != null">education_info = CAST(#{educationInfo}AS jsonb)</if>,
+            <if test="skills != null">skills = CAST(#{skills}AS jsonb)</if>,
+            <if test="certificates != null">certificates = CAST(#{certificates}AS jsonb)</if>,
+            <if test="awards != null">awards = CAST(#{awards}AS jsonb)</if>,
+            <if test="activities != null">activities =CAST( #{activities}AS jsonb)</if>,
             updated_at = NOW()
         WHERE resume_id = #{resumeId}
     </update>
