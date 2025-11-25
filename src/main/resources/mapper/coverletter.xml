@@ -27,7 +27,7 @@
            growth_experience, 
            job_capability, 
            future_plan,
-           cover_feedback, 
+           cover_feedback::text AS cover_feedback, 
            created_at, 
            updated_at
     FROM coverletter
@@ -43,7 +43,7 @@
            growth_experience, 
            job_capability, 
            future_plan,
-           cover_feedback, 
+           cover_feedback::text AS cover_feedback, 
            created_at, 
            updated_at
     FROM coverletter
