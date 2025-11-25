@@ -44,6 +44,7 @@ public class CoverLetterService {
         // 1. 자소서 저장
         // DB 저장 엔티티
         CoverLetter dbCoverLetter = new CoverLetter();
+        dbCoverLetter.setTitle(coverLetter.getTitle()); 
         dbCoverLetter.setMemberId(memberId);
         dbCoverLetter.setSupportMotive(coverLetter.getSupportMotive());
         dbCoverLetter.setGrowthExperience(coverLetter.getGrowthExperience());
