@@ -43,7 +43,7 @@ public class PortfolioController {
     Integer portfolioId = portfolioService.createPortfolio(request); 
 
     PortfolioCreateResponse response = new PortfolioCreateResponse();
-    response.setPortfoliId(portfolioId);
+    response.setPortfolioId(portfolioId);
 
     try {
       portfolioService.analyzePortfolio(portfolioId); // 포트폴리오 분석
