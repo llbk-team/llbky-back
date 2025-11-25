@@ -27,10 +27,12 @@ public interface ResumeDao {
   public List<Resume> searchResumes(@Param("memberId") Integer memberId,
       @Param("keyword") String keyword);//이력서 검색 (제목, 내용)
 
-  // 경력 수정(AI 피드백 반영)
-  public int updateCareerinfo(
-    @Param("resumeId") int resumeId,
-    @Param("careerInfo") String careerInfoJson
-  );
+  public String selectResumeFeedback(int resumeId);
+
+  // // 경력 수정(AI 피드백 반영)
+  // public int updateCareerinfo(
+  //   @Param("resumeId") int resumeId,
+  //   @Param("careerInfo") String careerInfoJson
+  // );
 
 }

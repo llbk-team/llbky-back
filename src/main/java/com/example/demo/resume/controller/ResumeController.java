@@ -19,6 +19,8 @@ import com.example.demo.resume.dto.response.ResumeCoachResponse;
 import com.example.demo.resume.dto.response.ResumeReportResponse;
 import com.example.demo.resume.entity.Resume;
 import com.example.demo.resume.service.ResumeService;
+import org.springframework.web.bind.annotation.PutMapping;
+
 
 @RestController
 @RequestMapping("/resume")
@@ -26,10 +28,17 @@ public class ResumeController {
 
     @Autowired
     private ResumeService resumeService;
-
+    
+    // AI 분석 결과 조회
+    @GetMapping("/report/{resumeId}")
+    public ResponseEntity<ResumeReportResponse> getReport(
+            @PathVariable("resumeId") int resumeId) throws Exception {
+        ResumeReportResponse report = resumeService.getResumeReport(resumeId);
+        return ResponseEntity.ok(report);
+    }
     // 이력서 생성
     @PostMapping("/create")
-    public ResponseEntity<Integer> createResume(@RequestBody Resume resume) {
+    public ResponseEntity<Integer> createResume(@RequestBody Resume resume) throws Exception {
         int newId = resumeService.createResume(resume);
         return ResponseEntity.ok(newId);
     }
@@ -46,9 +55,16 @@ public class ResumeController {
         return ResponseEntity.ok(resumeService.getResumeList(memberId));
     }
 
+    // 이력서 수정
+    @PutMapping("/update")
+    public ResponseEntity<Integer> updateResume(@RequestBody Resume resume) {   
+        int result = resumeService.updateResume(resume);
+        return ResponseEntity.ok(result);
+    }
+
     // 이력서 삭제
     @DeleteMapping("/delete/{resumeId}")
-    public ResponseEntity<Integer> removeResume(@PathVariable("resumeId") int resumeId){
+    public ResponseEntity<Integer> removeResume(@PathVariable("resumeId") int resumeId) {
         return ResponseEntity.ok(resumeService.deleteResume(resumeId));
     }
 
@@ -65,17 +81,16 @@ public class ResumeController {
     // 실시간 코칭
     @PostMapping("/coach")
     public ResponseEntity<ResumeCoachResponse> coach(@RequestBody ResumeCoachRequest request) throws Exception {
-        ResumeCoachResponse response = resumeService.coachResponse(request);   
+        ResumeCoachResponse response = resumeService.coachResponse(request);
         return ResponseEntity.ok(response);
     }
-    
 
     // // AI 피드백 반영
     // @PutMapping("/rewrite/{resumeId}")
     // public ResponseEntity<Integer> applyCareer(
-    //         @PathVariable("resumeId") int resumeId) throws Exception {
+    // @PathVariable("resumeId") int resumeId) throws Exception {
 
-    //     int result = resumeService.applyCareerRewrite(resumeId);
-    //     return ResponseEntity.ok(result);
+    // int result = resumeService.applyCareerRewrite(resumeId);
+    // return ResponseEntity.ok(result);
     // }
 }

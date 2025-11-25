@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.ai.resume.FeedbackResumeAgent;
 import com.example.demo.ai.resume.ResumeCoachAgent;
@@ -12,6 +13,7 @@ import com.example.demo.resume.dto.request.ResumeCoachRequest;
 import com.example.demo.resume.dto.response.ResumeCoachResponse;
 import com.example.demo.resume.dto.response.ResumeReportResponse;
 import com.example.demo.resume.entity.Resume;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,11 +26,21 @@ public class ResumeService {
   private FeedbackResumeAgent resumeAiAgent;
   @Autowired
   private ResumeCoachAgent resumeCoachAgent;
+  @Autowired
+  private ObjectMapper mapper;
 
   // 이력서 작성
-  public int createResume(Resume resume) {
-
+  @Transactional
+  public int createResume(Resume resume) throws Exception {
+    // 이력서 저장
     resumeDao.insertResume(resume);
+
+    // pk 가져오기
+    int newId = resume.getResumeId();
+
+    // AI 자동 분석 실행
+    resumeAiAgent.analyze(resume.getMemberId(), newId);
+
     return resume.getResumeId();
   }
 
@@ -38,12 +50,17 @@ public class ResumeService {
   }
 
   // 이력서 목록 조회
-  public List<Resume> getResumeList(int memberId){
+  public List<Resume> getResumeList(int memberId) {
     return resumeDao.selectResumesByMemberId(memberId);
   }
 
+  // 이력서 수정
+  public int updateResume(Resume resume){
+    return resumeDao.updateResume(resume);
+  }
+
   // 이력서 삭제
-  public int deleteResume(int resumeId){
+  public int deleteResume(int resumeId) {
     return resumeDao.deleteResume(resumeId);
   }
 
@@ -54,59 +71,69 @@ public class ResumeService {
     return aiResult;
   }
 
-  // 실시간 코칭
-  public ResumeCoachResponse coachResponse(ResumeCoachRequest request) throws Exception{
-    return resumeCoachAgent.coach(request);
+  // AI 분석 조회
+  public ResumeReportResponse getResumeReport(int resumeId) throws Exception {
+    Resume resume = resumeDao.selectResumeById(resumeId);
+
+    if (resume == null) {
+      throw new RuntimeException("이력서를 찾을 수 없습니다.");
+    }
+    return mapper.readValue(resume.getResumeFeedback(), ResumeReportResponse.class);
   }
 
+  // 실시간 코칭
+  public ResumeCoachResponse coachResponse(ResumeCoachRequest request) throws Exception {
+    return resumeCoachAgent.coach(request);
+  }
 
   // // AI 피드백 반영(경력)
   // @Transactional
   // public int applyCareerRewrite(int resumeId) throws Exception {
-  //   Resume resume = resumeDao.selectResumeById(resumeId);
-  //   if (resume == null) {
-  //     throw new RuntimeException("이력서를 찾을 수 없습니다.");
-  //   }
+  // Resume resume = resumeDao.selectResumeById(resumeId);
+  // if (resume == null) {
+  // throw new RuntimeException("이력서를 찾을 수 없습니다.");
+  // }
 
-  //   // AI 피드백 JSON -> ResumeReportResponse로 변환
-  //   ResumeReportResponse feedback = mapper.readValue(resume.getResumeFeedback(), ResumeReportResponse.class);
+  // // AI 피드백 JSON -> ResumeReportResponse로 변환
+  // ResumeReportResponse feedback = mapper.readValue(resume.getResumeFeedback(),
+  // ResumeReportResponse.class);
 
-  //   // 해당 제안 가져오기
-  //   List<RewriteSuggestion> suggestions = feedback.getRewriteSuggestions();
-  //   if (suggestions == null || suggestions.isEmpty()) return 0;
+  // // 해당 제안 가져오기
+  // List<RewriteSuggestion> suggestions = feedback.getRewriteSuggestions();
+  // if (suggestions == null || suggestions.isEmpty()) return 0;
 
-  //   // JSON 문자열 -> List<Map> 변환
-  //   List<Map<String, Object>> careerList = mapper.readValue(resume.getCareerInfo(), new TypeReference<>() {});
+  // // JSON 문자열 -> List<Map> 변환
+  // List<Map<String, Object>> careerList =
+  // mapper.readValue(resume.getCareerInfo(), new TypeReference<>() {});
 
+  // int applyCount = 0;
 
-  //   int applyCount = 0;
+  // for(RewriteSuggestion s : suggestions){
+  // String beforeNorm = normalize(s.getBefore());
+  // log.info("=== Checking Suggestion ===");
 
-  //   for(RewriteSuggestion s : suggestions){
-  //     String beforeNorm = normalize(s.getBefore());
-  //     log.info("=== Checking Suggestion ===");
+  // for(Map<String, Object> item : careerList){
+  // Object descObj = item.get("description");
+  // if(descObj == null) continue; // description 없으면 스킵
 
-  //     for(Map<String, Object> item : careerList){
-  //       Object descObj = item.get("description");
-  //       if(descObj == null) continue; // description 없으면 스킵
+  // String descNorm = normalize(descObj.toString());
+  // if (descNorm.equals(beforeNorm)){
+  // // 반영 내용으로 교체
+  // item.put("description", s.getAfter());
+  // applyCount++;
+  // break; // 다음 제안으로 넘어감
+  // }
+  // }
+  // }
 
-  //       String descNorm = normalize(descObj.toString());
-  //       if (descNorm.equals(beforeNorm)){
-  //         // 반영 내용으로 교체
-  //         item.put("description", s.getAfter());
-  //         applyCount++;
-  //         break; // 다음 제안으로 넘어감
-  //       }
-  //     }
-  //   }
+  // // JSON 문자열로 변환
+  // String updateJson = mapper.writeValueAsString(careerList);
+  // resumeDao.updateCareerinfo(resumeId, updateJson);
 
-  //   // JSON 문자열로 변환
-  //   String updateJson = mapper.writeValueAsString(careerList);
-  //   resumeDao.updateCareerinfo(resumeId, updateJson);
-
-  //   return applyCount;
+  // return applyCount;
   // }
 
   // private String normalize(String text){
-  //   return text == null? "": text.replace("\r\n","\n").trim();
+  // return text == null? "": text.replace("\r\n","\n").trim();
   // }
 }
