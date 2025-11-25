@@ -11,10 +11,10 @@
           keyProperty="coverletterId"
   >
     INSERT INTO coverletter
-      (member_id, support_motive, growth_experience, job_capability, future_plan, 
+      (member_id, title, support_motive, growth_experience, job_capability, future_plan, 
       cover_feedback)
     VALUES
-      (#{memberId}, #{supportMotive}, #{growthExperience}, #{jobCapability}, #{futurePlan}, 
+      (#{memberId}, #{title}, #{supportMotive}, #{growthExperience}, #{jobCapability}, #{futurePlan}, 
       CAST(#{coverFeedback} AS JSONB))
   </insert>
 
@@ -22,6 +22,7 @@
   <select id="selectAllCoverLetters" resultType="com.example.demo.coverletter.entity.CoverLetter">
     SELECT coverletter_id, 
            member_id, 
+           title, 
            support_motive, 
            growth_experience, 
            job_capability, 
@@ -37,6 +38,7 @@
   <select id="selectOneCoverLetter" resultType="com.example.demo.coverletter.entity.CoverLetter">
     SELECT coverletter_id, 
            member_id, 
+           title, 
            support_motive, 
            growth_experience, 
            job_capability, 
@@ -52,6 +54,7 @@
   <update id="updateCoverLetter" parameterType="com.example.demo.coverletter.entity.CoverLetter">
     UPDATE coverletter
     SET member_id = #{memberId},
+      title = #{title},
       support_motive = #{supportMotive},
       growth_experience = #{growthExperience}, 
       job_capability = #{jobCapability}, 

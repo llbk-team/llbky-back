@@ -9,6 +9,7 @@ public class CoverLetter {
   private Integer coverletterId;  //자소서 ID
   private Integer memberId; //사용자 ID
 
+  private String title; //자소서 제목
   private String supportMotive; //지원동기
   private String growthExperience;  //성장과정
   private String jobCapability; //직무역량
