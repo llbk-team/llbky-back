@@ -17,7 +17,7 @@ public interface PortfolioDao {
  
   public List<PortfolioListResponse> selectPortfoliosByMemberId(Integer memberId); // 회원별 포트폴리오 목록 조회
 
-  public int updatePortfolioFeedback(@Param("portfolioId") Integer portfolioId, @Param("portfolioFeedback") String protfolioFeedback);
+  public int updatePortfolioFeedback(@Param("portfolioId") Integer portfolioId, @Param("portfolioFeedback") String portfolioFeedback);
   public int updatePortfolioPageCount(@Param("portfolioId") Integer portfolioId, @Param("pageCount") int pageCount);
 
   public int deletePortfolio(Integer portfolioId); //포트폴리오 삭제
