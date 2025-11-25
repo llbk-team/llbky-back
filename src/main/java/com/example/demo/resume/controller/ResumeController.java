@@ -1,11 +1,14 @@
 package com.example.demo.resume.controller;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,10 +34,22 @@ public class ResumeController {
         return ResponseEntity.ok(newId);
     }
 
-    // 이력서 조회
+    // 이력서 상세 조회
     @GetMapping("/{resumeId}")
     public ResponseEntity<Resume> getResume(@PathVariable("resumeId") int resumeId) {
         return ResponseEntity.ok(resumeService.getResume(resumeId));
+    }
+
+    // 이력서 목록 조회
+    @GetMapping("/list/{memberId}")
+    public ResponseEntity<List<Resume>> getResumeList(@PathVariable("memberId") int memberId) {
+        return ResponseEntity.ok(resumeService.getResumeList(memberId));
+    }
+
+    // 이력서 삭제
+    @DeleteMapping("/delete/{resumeId}")
+    public ResponseEntity<Integer> removeResume(@PathVariable("resumeId") int resumeId){
+        return ResponseEntity.ok(resumeService.deleteResume(resumeId));
     }
 
     // AI 분석

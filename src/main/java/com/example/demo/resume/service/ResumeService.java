@@ -1,5 +1,7 @@
 package com.example.demo.resume.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +12,6 @@ import com.example.demo.resume.dto.request.ResumeCoachRequest;
 import com.example.demo.resume.dto.response.ResumeCoachResponse;
 import com.example.demo.resume.dto.response.ResumeReportResponse;
 import com.example.demo.resume.entity.Resume;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,9 +32,19 @@ public class ResumeService {
     return resume.getResumeId();
   }
 
-  // 이력서 조회
+  // 이력서 상세 조회
   public Resume getResume(int resumeId) {
     return resumeDao.selectResumeById(resumeId);
+  }
+
+  // 이력서 목록 조회
+  public List<Resume> getResumeList(int memberId){
+    return resumeDao.selectResumesByMemberId(memberId);
+  }
+
+  // 이력서 삭제
+  public int deleteResume(int resumeId){
+    return resumeDao.deleteResume(resumeId);
   }
 
   // AI 분석
@@ -47,6 +58,7 @@ public class ResumeService {
   public ResumeCoachResponse coachResponse(ResumeCoachRequest request) throws Exception{
     return resumeCoachAgent.coach(request);
   }
+
 
   // // AI 피드백 반영(경력)
   // @Transactional
