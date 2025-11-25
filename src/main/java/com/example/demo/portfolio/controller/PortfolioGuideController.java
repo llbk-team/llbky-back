@@ -1,9 +1,9 @@
 package com.example.demo.portfolio.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,13 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.portfolio.dto.PortfolioGuideResult;
-import com.example.demo.portfolio.dto.request.PortfolioGuideRequest;
+import com.example.demo.portfolio.dto.GuideResult;
+import com.example.demo.portfolio.dto.request.GuideRequest;
 import com.example.demo.portfolio.dto.request.GuideItemSaveRequest;
 import com.example.demo.portfolio.dto.request.GuideProgressSaveRequest;
 import com.example.demo.portfolio.dto.response.GuideProgressResponse;
 import com.example.demo.portfolio.entity.PortfolioGuide;
 import com.example.demo.portfolio.service.PortfolioGuideService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,13 +55,14 @@ public class PortfolioGuideController {
      * }
      */
     @PostMapping("/coaching")
-    public PortfolioGuideResult getRealtimeCoaching(@RequestBody PortfolioGuideRequest request) {
+    public GuideResult getRealtimeCoaching(@RequestBody GuideRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
         log.info("실시간 코칭 요청 - memberId: {}, 입력 필드: {}, 입력 내용: '{}'", 
             request.getMemberId(), 
             request.getInputFieldType(), 
             request.getUserInput() != null ? 
             request.getUserInput().substring(0, Math.min(30, request.getUserInput().length())) : "null");
         
+        // GlobalExceptionHandler에서 예외 처리
         return portfolioGuideService.provideCoaching(request);
     }
 
@@ -99,34 +101,21 @@ public class PortfolioGuideController {
      * }
      */
     @PostMapping("/feedback")
-    public ResponseEntity<PortfolioGuideResult> getRealtimeFeedback(
-            @RequestBody RealtimeFeedbackRequest request) {
+    public GuideResult getRealtimeFeedback(@RequestBody RealtimeFeedbackRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
+        log.info("실시간 피드백 요청 - 필드: {}, 직군: {}, 직무: {}", 
+            request.getInputFieldType(), request.getJobGroup(), request.getJobRole());
         
-        try {
-            log.info("실시간 피드백 요청 - 필드: {}, 직군: {}, 직무: {}", 
-                request.getInputFieldType(), request.getJobGroup(), request.getJobRole());
-            
-            PortfolioGuideRequest fullRequest = PortfolioGuideRequest.builder()
-                .inputFieldType(request.getInputFieldType())
-                .userInput(request.getUserInput())
-                .currentStep(request.getCurrentStep())
-                .jobGroup(request.getJobGroup())
-                .jobRole(request.getJobRole())
-                .careerYears(request.getCareerYears())
-                .build();
-            
-            PortfolioGuideResult response = portfolioGuideService.provideCoaching(fullRequest);
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("피드백 생성 중 오류 발생", e);
-            PortfolioGuideResult errorResponse = PortfolioGuideResult.builder()
-                .success(false)
-                .coachingMessage("피드백 생성 중 오류가 발생했습니다: " + e.getMessage())
-                .build();
-            return ResponseEntity.status(500).body(errorResponse);
-        }
+        GuideRequest fullRequest = GuideRequest.builder()
+            .inputFieldType(request.getInputFieldType())
+            .userInput(request.getUserInput())
+            .currentStep(request.getCurrentStep())
+            .jobGroup(request.getJobGroup())
+            .jobRole(request.getJobRole())
+            .careerYears(request.getCareerYears())
+            .build();
+        
+        // GlobalExceptionHandler에서 예외 처리
+        return portfolioGuideService.provideCoaching(fullRequest);
     }
 
     /**
@@ -146,48 +135,36 @@ public class PortfolioGuideController {
      * }
      */
     @PostMapping("/test-example")
-    public ResponseEntity<PortfolioGuideResult> testExample(
-            @RequestBody SimpleTestRequest request) {
+    public GuideResult testExample(@RequestBody SimpleTestRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
+        log.info("🧪 예시 생성 테스트 - 입력: '{}'", request.getUserInput());
         
-        try {
-            log.info("🧪 예시 생성 테스트 - 입력: '{}'", request.getUserInput());
-            
-            // 기본값으로 요청 구성
-            PortfolioGuideRequest fullRequest = PortfolioGuideRequest.builder()
-                .inputFieldType(request.getInputFieldType() != null ? 
-                    request.getInputFieldType() : "프로젝트 제목")
-                .userInput(request.getUserInput())
-                .currentStep(1)
-                .jobGroup("개발")
-                .jobRole("백엔드")
-                .careerYears(2)
-                .build();
-            
-            PortfolioGuideResult response = portfolioGuideService.provideCoaching(fullRequest);
-            
-            log.info("✅ 예시 생성 완료 - 점수: {}, 예시 개수: {}", 
-                response.getAppropriatenessScore(),
-                response.getExamples() != null ? response.getExamples().size() : 0);
-            
-            // 예시만 출력하는 버전도 추가
-            if (response.getExamples() != null && !response.getExamples().isEmpty()) {
-                log.info("📝 생성된 예시:");
-                for (int i = 0; i < response.getExamples().size(); i++) {
-                    log.info("  예시 {}: {}", i + 1, response.getExamples().get(i));
-                }
+        // 기본값으로 요청 구성
+        GuideRequest fullRequest = GuideRequest.builder()
+            .inputFieldType(request.getInputFieldType() != null ? 
+                request.getInputFieldType() : "프로젝트 제목")
+            .userInput(request.getUserInput())
+            .currentStep(1)
+            .jobGroup("개발")
+            .jobRole("백엔드")
+            .careerYears(2)
+            .build();
+        
+        GuideResult response = portfolioGuideService.provideCoaching(fullRequest);
+        
+        log.info("✅ 예시 생성 완료 - 점수: {}, 예시 개수: {}", 
+            response.getAppropriatenessScore(),
+            response.getExamples() != null ? response.getExamples().size() : 0);
+        
+        // 예시만 출력하는 버전도 추가
+        if (response.getExamples() != null && !response.getExamples().isEmpty()) {
+            log.info("📝 생성된 예시:");
+            for (int i = 0; i < response.getExamples().size(); i++) {
+                log.info("  예시 {}: {}", i + 1, response.getExamples().get(i));
             }
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("예시 생성 테스트 중 오류 발생", e);
-            return ResponseEntity.status(500).body(
-                PortfolioGuideResult.builder()
-                    .success(false)
-                    .coachingMessage("오류: " + e.getMessage())
-                    .build()
-            );
         }
+        
+        // GlobalExceptionHandler에서 예외 처리
+        return response;
     }
 
 
@@ -214,32 +191,20 @@ public class PortfolioGuideController {
      * }
      */
     @PostMapping("/save-item")
-    public ResponseEntity<GuideProgressResponse> saveGuideItem(
-            @RequestBody GuideItemSaveRequest request) {
+    public GuideProgressResponse saveGuideItem(@RequestBody GuideItemSaveRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
+        log.info("💾 개별 항목 저장 요청 - guideId: {}, 단계: {}, 항목: '{}'", 
+            request.getGuideId(), 
+            request.getStepNumber(), 
+            request.getItemTitle());
         
-        try {
-            log.info("💾 개별 항목 저장 요청 - guideId: {}, 단계: {}, 항목: '{}'", 
-                request.getGuideId(), 
-                request.getStepNumber(), 
-                request.getItemTitle());
-            
-            GuideProgressResponse response = portfolioGuideService.saveGuideItem(request);
-            
-            log.info("✅ 개별 항목 저장 성공 - guideId: {}, 진행률: {}%", 
-                response.getGuideId(), 
-                response.getCompletionPercentage());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("❌ 개별 항목 저장 중 오류 발생", e);
-            return ResponseEntity.status(500).body(
-                GuideProgressResponse.builder()
-                    .success(false)
-                    .message("항목 저장 중 오류가 발생했습니다: " + e.getMessage())
-                    .build()
-            );
-        }
+        GuideProgressResponse response = portfolioGuideService.saveGuideItem(request);
+        
+        log.info("✅ 개별 항목 저장 성공 - guideId: {}, 진행률: {}%", 
+            response.getGuideId(), 
+            response.getCompletionPercentage());
+        
+        // GlobalExceptionHandler에서 예외 처리
+        return response;
     }
 
     /**
@@ -272,32 +237,21 @@ public class PortfolioGuideController {
      * }
      */
     @PutMapping("/save-progress")
-    public ResponseEntity<GuideProgressResponse> saveGuideProgress(
-            @RequestBody GuideProgressSaveRequest request) {
+    public GuideProgressResponse saveGuideProgress(
+            @RequestBody GuideProgressSaveRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
         
-        try {
-            log.info("💾 전체 가이드 저장 요청 - guideId: {}, 진행률: {}%, 현재 단계: {}", 
-                request.getGuideId(), 
-                request.getCompletionPercentage(),
-                request.getCurrentStep());
-            
-            GuideProgressResponse response = portfolioGuideService.saveGuideProgress(request);
-            
-            log.info("✅ 전체 가이드 저장 성공 - guideId: {}, 최종 진행률: {}%", 
-                response.getGuideId(), 
-                response.getCompletionPercentage());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("❌ 전체 가이드 저장 중 오류 발생", e);
-            return ResponseEntity.status(500).body(
-                GuideProgressResponse.builder()
-                    .success(false)
-                    .message("가이드 저장 중 오류가 발생했습니다: " + e.getMessage())
-                    .build()
-            );
-        }
+        log.info("💾 전체 가이드 저장 요청 - guideId: {}, 진행률: {}%, 현재 단계: {}", 
+            request.getGuideId(), 
+            request.getCompletionPercentage(),
+            request.getCurrentStep());
+        
+        GuideProgressResponse response = portfolioGuideService.saveGuideProgress(request);
+        
+        log.info("✅ 전체 가이드 저장 성공 - guideId: {}, 최종 진행률: {}%", 
+            response.getGuideId(), 
+            response.getCompletionPercentage());
+        
+        return response;
     }
 
     /**
@@ -307,26 +261,16 @@ public class PortfolioGuideController {
      * GET http://localhost:8081/api/portfolio-guide/{guideId}/content
      */
     @GetMapping("/{guideId}/content")
-    public ResponseEntity<GuideProgressResponse> getGuideContent(@PathVariable Integer guideId) {
-        try {
-            log.info("📖 가이드 내용 조회 요청 - guideId: {}", guideId);
-            
-            GuideProgressResponse response = portfolioGuideService.getGuideContent(guideId);
-            
-            if (response == null || !response.isSuccess()) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            log.info("✅ 가이드 내용 조회 성공 - guideId: {}, 진행률: {}%", 
-                guideId, 
-                response.getCompletionPercentage());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("❌ 가이드 내용 조회 중 오류 발생", e);
-            return ResponseEntity.status(500).build();
-        }
+    public GuideProgressResponse getGuideContent(@PathVariable Integer guideId) throws JsonProcessingException{
+        log.info("📖 가이드 내용 조회 요청 - guideId: {}", guideId);
+        
+        GuideProgressResponse response = portfolioGuideService.getGuideContent(guideId);
+        
+        log.info("✅ 가이드 내용 조회 성공 - guideId: {}, 진행률: {}%", 
+            guideId, 
+            response.getCompletionPercentage());
+        
+        return response;
     }
 
 
@@ -336,20 +280,15 @@ public class PortfolioGuideController {
      * 가이드 조회 (단일)
      */
     @GetMapping("/{guideId}")
-    public ResponseEntity<PortfolioGuide> getGuide(@PathVariable Integer guideId) {
-        try {
-            log.info("가이드 조회 요청 - guideId: {}", guideId);
-            PortfolioGuide guide = portfolioGuideService.getGuideById(guideId);
-            
-            if (guide == null) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            return ResponseEntity.ok(guide);
-        } catch (Exception e) {
-            log.error("가이드 조회 중 오류 발생", e);
-            return ResponseEntity.status(500).build();
+    public PortfolioGuide getGuide(@PathVariable Integer guideId) {
+        log.info("가이드 조회 요청 - guideId: {}", guideId);
+        PortfolioGuide guide = portfolioGuideService.getGuideById(guideId);
+        
+        if (guide == null) {
+            throw new NoSuchElementException("존재하지 않는 가이드입니다: " + guideId);
         }
+        
+        return guide;
     }
 
     /**
@@ -357,15 +296,10 @@ public class PortfolioGuideController {
      * GET http://localhost:8081/api/portfolio-guide/member/{memberId}
      */
     @GetMapping("/member/{memberId}")
-    public ResponseEntity<List<PortfolioGuide>> getGuidesByMember(@PathVariable Integer memberId) {
-        try {
-            log.info("회원별 가이드 목록 조회 - memberId: {}", memberId);
-            List<PortfolioGuide> guides = portfolioGuideService.getGuidesByMemberId(memberId);
-            return ResponseEntity.ok(guides);
-        } catch (Exception e) {
-            log.error("가이드 목록 조회 중 오류 발생", e);
-            return ResponseEntity.status(500).build();
-        }
+    public List<PortfolioGuide> getGuidesByMember(@PathVariable Integer memberId) {
+        log.info("회원별 가이드 목록 조회 - memberId: {}", memberId);
+        List<PortfolioGuide> guides = portfolioGuideService.getGuidesByMemberId(memberId);
+        return guides;
     }
 
     /**
@@ -373,20 +307,11 @@ public class PortfolioGuideController {
      * GET http://localhost:8081/api/portfolio-guide/{guideId}/feedback
      */
     @GetMapping("/{guideId}/feedback")
-    public ResponseEntity<PortfolioGuideResult> getGuideFeedback(@PathVariable Integer guideId) {
-        try {
-            log.info("가이드 피드백 조회 요청 - guideId: {}", guideId);
-            PortfolioGuideResult feedback = portfolioGuideService.getGuideFeedback(guideId);
-            
-            if (feedback == null) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            return ResponseEntity.ok(feedback);
-        } catch (Exception e) {
-            log.error("피드백 조회 중 오류 발생", e);
-            return ResponseEntity.status(500).build();
-        }
+    public GuideResult getGuideFeedback(@PathVariable Integer guideId) throws com.fasterxml.jackson.core.JsonProcessingException {
+        log.info("가이드 피드백 조회 요청 - guideId: {}", guideId);
+        GuideResult feedback = portfolioGuideService.getGuideFeedback(guideId);
+        
+        return feedback;
     }
 
 
