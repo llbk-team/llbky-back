@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
 import com.example.demo.portfolio.dao.PortfolioStandardDao;
-import com.example.demo.portfolio.dto.PortfolioGuideResult;
-import com.example.demo.portfolio.dto.request.PortfolioGuideRequest;
+import com.example.demo.portfolio.dto.GuideResult;
+import com.example.demo.portfolio.dto.request.GuideRequest;
 import com.example.demo.portfolio.entity.PortfolioStandard;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,7 @@ public class PortfolioGuideAgent {
      * @param request 코칭 요청 정보
      * @return 코칭 결과
      */
-    public PortfolioGuideResult evaluate(PortfolioGuideRequest request) {
+    public GuideResult evaluate(GuideRequest request) {
         // 1. 회원 정보 자동 조회
         Member member = null;
         if (request.getMemberId() != null) {
@@ -84,14 +84,14 @@ public class PortfolioGuideAgent {
     /**
      * AI 코칭 생성 
      */
-    private PortfolioGuideResult generateCoaching(
-            PortfolioGuideRequest request, 
+    private GuideResult generateCoaching(
+            GuideRequest request, 
             List<PortfolioStandard> standards, 
             Member member) throws Exception {
         
         // 1. Bean 객체 -> JSON 출력 변환기 생성
-        BeanOutputConverter<PortfolioGuideResult> converter = 
-            new BeanOutputConverter<>(PortfolioGuideResult.class);
+        BeanOutputConverter<GuideResult> converter = 
+            new BeanOutputConverter<>(GuideResult.class);
         
         // DTO 구조 제공 -> JSON 출력 포맷 지정
         String format = converter.getFormat();
@@ -128,13 +128,7 @@ public class PortfolioGuideAgent {
 
             다음 내용을 반드시 포함하여 피드백을 제공하세요:
 
-            1. **appropriatenessScore (적절성 점수)**: 1-100점으로 현재 입력 내용의 품질 평가
-               - 50점 미만: 내용이 매우 부족하거나 방향이 잘못됨
-               - 50-70점: 기본적인 내용은 있으나 보완 필요
-               - 70-85점: 좋은 내용이지만 일부 개선 여지 있음
-               - 85-100점: 매우 우수한 내용
-
-            2. **coachingMessage (코칭 메시지)**: 
+            1. **coachingMessage (코칭 메시지)**: 
                - 현재 작성 내용의 강점을 먼저 칭찬 (1-2문장)
                - 부족한 부분 또는 개선이 필요한 이유 설명 (2-3문장)
                - 격려와 함께 마무리
@@ -187,7 +181,7 @@ public class PortfolioGuideAgent {
             .content();
 
         // 6. JSON -> DTO 변환
-        PortfolioGuideResult result = converter.convert(json);
+        GuideResult result = converter.convert(json);
 
         return result != null ? result : createDefaultResult();
     }
@@ -196,7 +190,7 @@ public class PortfolioGuideAgent {
      * 직무별 표준 가이드라인 조회
      */
     private List<PortfolioStandard> loadStandards(
-            PortfolioGuideRequest request, Member member) {
+            GuideRequest request, Member member) {
         // 직군 결정
         String jobGroup = "개발자"; // 기본값
         if (request.getJobGroup() != null) {
@@ -262,29 +256,29 @@ public class PortfolioGuideAgent {
 
     // =============== 헬퍼 메서드 ===============
 
-    private String extractJobGroup(PortfolioGuideRequest request, Member member) {
+    private String extractJobGroup(GuideRequest request, Member member) {
         if (request.getJobGroup() != null) return request.getJobGroup();
         if (member != null && member.getJobGroup() != null) 
             return member.getJobGroup();
         return "개발자";
     }
 
-    private String extractJobRole(PortfolioGuideRequest request, Member member) {
+    private String extractJobRole(GuideRequest request, Member member) {
         if (request.getJobRole() != null) return request.getJobRole();
         if (member != null && member.getJobRole() != null) 
             return member.getJobRole();
         return "일반";
     }
 
-    private Integer extractCareerYears(PortfolioGuideRequest request, Member member) {
+    private Integer extractCareerYears(GuideRequest request, Member member) {
         if (request.getCareerYears() != null) return request.getCareerYears();
         if (member != null && member.getCareerYears() != null) 
             return member.getCareerYears();
         return 1;
     }
 
-    private PortfolioGuideResult createDefaultResult() {
-        return PortfolioGuideResult.builder()
+    private GuideResult createDefaultResult() {
+        return GuideResult.builder()
                 .success(true)
                 .coachingMessage("입력해주신 내용을 확인했습니다. 계속 작성해주세요.")
                 .appropriatenessScore(5)
