@@ -52,14 +52,31 @@
         UPDATE resume 
         SET
             <if test="title != null">
-            title = #{title}
-            </if>,
-            <if test= "career_info != null">career_info = CAST(#{careerInfo}AS jsonb)</if>,
-            <if test="education_info != null">education_info = CAST(#{educationInfo}AS jsonb)</if>,
-            <if test="skills != null">skills = CAST(#{skills}AS jsonb)</if>,
-            <if test="certificates != null">certificates = CAST(#{certificates}AS jsonb)</if>,
-            <if test="awards != null">awards = CAST(#{awards}AS jsonb)</if>,
-            <if test="activities != null">activities =CAST( #{activities}AS jsonb)</if>,
+                title = #{title},
+            </if>
+            <if test="careerInfo != null">
+                career_info = CAST(#{careerInfo} AS jsonb),
+            </if>
+
+            <if test="educationInfo != null">
+                education_info = CAST(#{educationInfo} AS jsonb),
+            </if>
+
+            <if test="skills != null">
+                skills = CAST(#{skills} AS jsonb),
+            </if>
+
+            <if test="certificates != null">
+                certificates = CAST(#{certificates} AS jsonb),
+            </if>
+
+            <if test="awards != null">
+                awards = CAST(#{awards} AS jsonb),
+            </if>
+
+            <if test="activities != null">
+                activities = CAST(#{activities} AS jsonb),
+            </if>
             updated_at = NOW()
         WHERE resume_id = #{resumeId}
     </update>
