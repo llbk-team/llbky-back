@@ -45,17 +45,12 @@ public class KeywordExtractionAgent {
             
             추출 규칙:
             1. 5개 이내의 핵심 키워드만 추출
-            2. type 분류:
-               - 직무: 특정 직무/직책 관련 (백엔드, PM, 데이터분석가 등)
-               - 기술: 기술스택/프레임워크 (Spring, React, AI 등)
-               - 산업: 산업 분야 (핀테크, 이커머스, 헬스케어 등)  
-               - 기타: 위 카테고리 외
-            3. importanceScore: 0.0~100.0 (중요도)
+            
             
             JSON 배열로만 응답:
             [
-              {"keyword": "AI", "type": "기술", "importanceScore": 95.5},
-              {"keyword": "백엔드", "type": "직무", "importanceScore": 88.0}
+              {"keyword": "AI"},
+              {"keyword": "백엔드"}
             ]
         """;
         
@@ -90,10 +85,7 @@ public class KeywordExtractionAgent {
         if (!keywords.isEmpty()) {
             log.debug("추출된 키워드:");
             for (NewsKeywordResponse keyword : keywords) {
-                log.debug("  - {}: {} (중요도: {})", 
-                    keyword.getKeyword(), 
-                    keyword.getType(), 
-                    keyword.getImportanceScore());
+                log.debug("  - {}", keyword.getKeyword());
             }
         }
         
