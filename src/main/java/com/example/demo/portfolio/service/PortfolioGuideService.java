@@ -68,42 +68,27 @@ public class PortfolioGuideService {
   //-------------메인 코칭 메서드
   public GuideResult provideCoaching(GuideRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
     LocalDateTime startTime= LocalDateTime.now();
-
-    log.info("📋 포트폴리오 가이드 코칭 시작 - guideId: {}, memberId: {}, 단계: {}, 필드: {}, 입력: '{}'", 
-        request.getGuideId(), 
-        request.getMemberId(),
-        request.getCurrentStep(), 
-        request.getInputFieldType(),
-        request.getUserInput() != null ? request.getUserInput().substring(0, Math.min(30, request.getUserInput().length())) : "null");
-    
+   
     // PortfolioGuideAgent가 DTO로 직접 반환
     GuideResult result = portfolioGuideAgent.evaluate(request);
-    log.debug("AI 코칭 결과 생성 완료 - 점수: {}, 진행률: {}%", 
-        result.getAppropriatenessScore(), result.getProgressPercentage());
+   
 
     // 처리 시간 기록
     Duration duration = Duration.between(startTime, LocalDateTime.now());
-    log.debug("처리 시간: {}ms", duration.toMillis());
-
+   
     // 가이드 ID 확보 (없으면 자동 생성)
     Integer guideId = request.getGuideId();
     if (guideId == null && request.getMemberId() != null) {
-        log.info("🆕 guideId가 없어서 새 가이드 자동 생성 - memberId: {}", request.getMemberId());
+       
         PortfolioGuide newGuide = getOrCreateGuide(request);
         guideId = newGuide.getGuideId();
-        log.info("✅ 새 가이드 생성 완료 - guideId: {}", guideId);
+        
     }
 
     // AI 피드백 저장
     if (guideId != null) {
-        log.info("💾 피드백 저장 시도 - guideId: {}", guideId);
-        saveFeedbackToDatabase(guideId, result);
-    } else {
-        log.warn("⚠️ guideId와 memberId가 모두 null이어서 피드백 저장 스킵");
-    }
-
-    log.info("✅ 코칭 완료 - guideId: {}, 점수: {}, 처리시간: {}ms", 
-        request.getGuideId(), result.getAppropriatenessScore(), duration.toMillis());
+      saveFeedbackToDatabase(guideId, result);
+    } 
     return result;
     
   }
@@ -112,7 +97,7 @@ public class PortfolioGuideService {
      * 가이드 ID로 가이드 조회
      */
     public PortfolioGuide getGuideById(Integer guideId) {
-        log.info("가이드 조회 - guideId: {}", guideId);
+       
         return portfolioGuideDao.selectGuideById(guideId);
     }
 
@@ -120,7 +105,7 @@ public class PortfolioGuideService {
      * 회원별 가이드 목록 조회
      */
     public List<PortfolioGuide> getGuidesByMemberId(Integer memberId) {
-        log.info("회원별 가이드 목록 조회 - memberId: {}", memberId);
+    
         return portfolioGuideDao.selectGuidesByMemberId(memberId);
     }
 
@@ -128,20 +113,19 @@ public class PortfolioGuideService {
      * 🔥 저장된 피드백 조회 (JSONB → GuideResult 변환)
      */
     public GuideResult getGuideFeedback(Integer guideId) throws com.fasterxml.jackson.core.JsonProcessingException {
-        log.info("가이드 피드백 조회 - guideId: {}", guideId);
         
         // DB에서 가이드 조회
         PortfolioGuide guide = portfolioGuideDao.selectGuideById(guideId);
         
         if (guide == null) {
-            log.warn("가이드를 찾을 수 없음 - guideId: {}", guideId);
+          
             throw new NoSuchElementException("존재하지 않는 가이드입니다: " + guideId);
         }
         
         // JSONB 문자열을 GuideResult 객체로 변환
         String feedbackJson = guide.getGuideFeedback();
         if (feedbackJson == null || feedbackJson.trim().isEmpty()) {
-            log.warn("저장된 피드백이 없음 - guideId: {}", guideId);
+        
             throw new NoSuchElementException("저장된 피드백이 없습니다: " + guideId);
         }
         
@@ -149,9 +133,7 @@ public class PortfolioGuideService {
             feedbackJson, 
             GuideResult.class
         );
-        
-        log.info("피드백 조회 성공 - guideId: {}, 점수: {}", 
-            guideId, feedback.getAppropriatenessScore());
+       
         
         return feedback;
     }
@@ -167,10 +149,7 @@ public class PortfolioGuideService {
     @Transactional
     public GuideProgressResponse saveGuideItem(
             GuideItemSaveRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
-        log.info("💾 개별 항목 저장 시작 - guideId: {}, 단계: {}, 항목: {}", 
-            request.getGuideId(), 
-            request.getStepNumber(), 
-            request.getItemTitle());
+     
         
         // 1. 기존 가이드 조회
         PortfolioGuide existingGuide = portfolioGuideDao.selectGuideById(request.getGuideId());
@@ -224,10 +203,7 @@ public class PortfolioGuideService {
     @Transactional
     public GuideProgressResponse saveGuideProgress(
             GuideProgressSaveRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
-        log.info("💾 전체 가이드 저장 시작 - guideId: {}, 진행률: {}%", 
-            request.getGuideId(), 
-            request.getCompletionPercentage());
-        
+             
         // 1. 가이드 내용을 JSONB 형식으로 구성
         java.util.Map<String, Object> guideContentMap = new java.util.HashMap<>();
         guideContentMap.put("steps", request.getGuideContent());
@@ -250,9 +226,6 @@ public class PortfolioGuideService {
             throw new IllegalStateException("가이드 진행상황 업데이트에 실패했습니다");
         }
         
-        log.info("✅ 전체 가이드 저장 완료 - guideId: {}, 최종 진행률: {}%", 
-            request.getGuideId(), 
-            request.getCompletionPercentage());
         
         GuideProgressResponse response = new GuideProgressResponse();
         response.setSuccess(true);
@@ -273,8 +246,7 @@ public class PortfolioGuideService {
      * 사용자가 페이지를 다시 열었을 때 이전에 작성한 내용들을 복원
      */
     public GuideProgressResponse getGuideContent(Integer guideId) throws com.fasterxml.jackson.core.JsonProcessingException {
-        log.info("📖 가이드 내용 조회 - guideId: {}", guideId);
-        
+                
         PortfolioGuide guide = portfolioGuideDao.selectGuideById(guideId);
         if (guide == null) {
             throw new NoSuchElementException("존재하지 않는 가이드입니다: " + guideId);
@@ -282,11 +254,7 @@ public class PortfolioGuideService {
         
         // JSON → DTO 변환
         GuideContentData guideContent = parseGuideContent(guide.getGuideContent());
-        
-        log.info("✅ 가이드 내용 조회 완료 - guideId: {}, 진행률: {}%", 
-            guideId, 
-            guide.getCompletionPercentage());
-        
+                     
         GuideProgressResponse response = new GuideProgressResponse();
         response.setSuccess(true);
         response.setMessage("가이드 내용 조회 성공");

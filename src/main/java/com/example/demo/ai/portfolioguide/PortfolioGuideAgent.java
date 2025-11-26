@@ -35,10 +35,10 @@ public class PortfolioGuideAgent {
             PortfolioStandardDao portfolioStandardDao) {
         this.chatClient = chatClientBuilder
             .defaultSystem("""
-                당신은 포트폴리오 작성을 도와주는 친근하고 전문적인 AI 코치입니다.
+                당신은 포트폴리오 작성을 도와주는 전문적인 AI 코치입니다.
 
                 다음 원칙을 따라 답변해주세요:
-                1. 친근하고 격려하는 톤으로 대화하세요
+                1. 전문적이고 냉정한 톤으로 대화하세요
                 2. 구체적이고 실행 가능한 조언을 제공하세요  
                 3. 사용자의 경력 수준에 맞는 적절한 피드백을 주세요
                 4. 항상 JSON 형식으로 구조화된 응답을 제공하세요
@@ -61,22 +61,18 @@ public class PortfolioGuideAgent {
         Member member = null;
         if (request.getMemberId() != null) {
             member = memberDao.findById(request.getMemberId());
-            log.debug("회원 정보 조회 완료 - ID: {}, 직군: {}, 직무: {}", 
-                request.getMemberId(), 
-                member != null ? member.getJobGroup() : "null",
-                member != null ? member.getJobRole() : "null");
+            
         }
 
         // 2. 직무별 표준 가이드라인 자동 조회
         List<PortfolioStandard> jobStandards = loadStandards(request, member);
-        log.debug("표준 가이드라인 조회 완료 - 개수: {}", 
-            jobStandards != null ? jobStandards.size() : 0);
+        
 
         // 3. LLM 프롬프트 생성 및 호출
         try {
             return generateCoaching(request, jobStandards, member);
         } catch (Exception e) {
-            log.error("AI 코칭 생성 중 오류 발생", e);
+            
             return createDefaultResult();
         }
     }
@@ -214,13 +210,8 @@ public class PortfolioGuideAgent {
         // 없으면 전체 가이드라인 사용
         if (standards == null || standards.isEmpty()) {
             standards = portfolioStandardDao.selectAllStandards();
-            log.info("직무별 가이드라인 없음 - 기본 가이드 사용 (직군: {}, 직무: {})", 
-                jobGroup, jobRole);
-        } else {
-            log.info("직무별 가이드라인 조회 성공 (직군: {}, 직무: {}, 개수: {})", 
-                jobGroup, jobRole, standards.size());
-        }
-        
+         
+        } 
         return standards;
     }
 
