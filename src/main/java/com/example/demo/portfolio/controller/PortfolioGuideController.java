@@ -111,12 +111,9 @@ public class PortfolioGuideController {
 
     //    🔥 NEW: 전체 가이드 진행상황 저장 API
     //사용자가 "진행상황 저장" 버튼을 클릭했을 때 모든 내용을 저장
-      
-     
-     
     @PutMapping("/save-progress")
     public GuideProgressResponse saveGuideProgress(
-            @RequestBody GuideProgressSaveRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
+            @RequestBody GuideProgressSaveRequest request) throws JsonProcessingException {
 
         GuideProgressResponse response = portfolioGuideService.saveGuideProgress(request);
 
