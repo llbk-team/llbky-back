@@ -16,10 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.portfolio.dto.request.PortfolioCreateRequest;
 import com.example.demo.portfolio.dto.response.PortfolioCreateResponse;
 import com.example.demo.portfolio.dto.response.PortfolioListResponse;
+import com.example.demo.portfolio.dto.response.PortfolioPageFeedbackResponse;
+import com.example.demo.portfolio.dto.response.PortfolioSummaryResponse;
 import com.example.demo.portfolio.entity.Portfolio;
 import com.example.demo.portfolio.entity.PortfolioImage;
 import com.example.demo.portfolio.service.PortfolioService;
-
 
 @RestController
 @RequestMapping("/portfolio")
@@ -31,30 +32,36 @@ public class PortfolioController {
   // PDF 업로드
   @PostMapping("/create")
   public ResponseEntity<?> createPortfolio(
-      @RequestParam("memberId") Integer memberId, 
-      @RequestParam("title") String title, 
-      @RequestParam("pdfFile") MultipartFile pdfFile) throws Exception {
+      @RequestParam("memberId") Integer memberId,
+      @RequestParam("title") String title,
+      @RequestParam("pdfFile") MultipartFile pdfFile) {
 
     PortfolioCreateRequest request = new PortfolioCreateRequest();
     request.setMemberId(memberId);
     request.setTitle(title);
     request.setPdfFile(pdfFile);
 
-    Integer portfolioId = portfolioService.createPortfolio(request); 
-
-    PortfolioCreateResponse response = new PortfolioCreateResponse();
-    response.setPortfolioId(portfolioId);
-
     try {
+      Integer portfolioId = portfolioService.createPortfolio(request);
+
+      List<PortfolioPageFeedbackResponse> pages = portfolioService.analyzePortfolio(portfolioId);
+      PortfolioSummaryResponse summary = portfolioService.generateSummary(portfolioId);
+
+      // 하나의 DTO로 리턴
+      PortfolioCreateResponse response = new PortfolioCreateResponse();
+      response.setPortfolioId(portfolioId);
+      response.setPages(pages);
+      response.setSummary(summary);
+
       portfolioService.analyzePortfolio(portfolioId); // 포트폴리오 분석
       portfolioService.generateSummary(portfolioId); // 최종 피드백 생성
 
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.status(500).body(e.getMessage());
+      return ResponseEntity.status(500).body(e.toString());
     }
   }
-  
+
   // PDF 조회
   @GetMapping("/pdf/{portfolioId}")
   public ResponseEntity<byte[]> getPdf(@PathVariable("portfolioId") Integer portfolioId) {
@@ -73,13 +80,13 @@ public class PortfolioController {
   @GetMapping("/{portfolioId}")
   public ResponseEntity<Portfolio> getPortfolio(@PathVariable("portfolioId") Integer portfolioId) {
     Portfolio portfolio = portfolioService.getPortfolioDetail(portfolioId);
-      return ResponseEntity.ok(portfolio);
+    return ResponseEntity.ok(portfolio);
   }
-  
+
   // 포트폴리오 상세 피드백 조회
   @GetMapping("/detail/{portfolioId}")
   public ResponseEntity<List<PortfolioImage>> getPortfolioImage(@PathVariable("portfolioId") Integer portfolioId) {
-     List<PortfolioImage> response = portfolioService.getPageFeedback(portfolioId);
+    List<PortfolioImage> response = portfolioService.getPageFeedback(portfolioId);
     return ResponseEntity.ok(response);
   }
 
@@ -90,4 +97,3 @@ public class PortfolioController {
     return ResponseEntity.ok("포트폴리오 삭제 완료");
   }
 }
-

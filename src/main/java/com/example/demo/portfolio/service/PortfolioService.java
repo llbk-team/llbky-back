@@ -13,6 +13,8 @@ import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.dao.PortfolioImageDao;
 import com.example.demo.portfolio.dto.request.PortfolioCreateRequest;
 import com.example.demo.portfolio.dto.response.PortfolioListResponse;
+import com.example.demo.portfolio.dto.response.PortfolioPageFeedbackResponse;
+import com.example.demo.portfolio.dto.response.PortfolioSummaryResponse;
 import com.example.demo.portfolio.entity.Portfolio;
 import com.example.demo.portfolio.entity.PortfolioImage;
 
@@ -50,13 +52,13 @@ public class PortfolioService {
   }
 
   // 페이지별로 분석하는 에이전트 호출
-  public List<String> analyzePortfolio(Integer portfolioId) throws Exception {
+  public List<PortfolioPageFeedbackResponse> analyzePortfolio(Integer portfolioId) throws Exception {
     Portfolio portfolio = portfolioDao.selectPortfolioById(portfolioId);
     return portfolioPageAnalysisService.analyzePortfolio(portfolio.getPdfFile(), portfolioId, portfolio.getMemberId());
   }
 
   // 최종 피드백 생성
-  public String generateSummary(Integer portfolioId) {
+  public PortfolioSummaryResponse  generateSummary(Integer portfolioId) throws Exception {
     Portfolio portfolio = portfolioDao.selectPortfolioById(portfolioId);
     return portfolioSummaryAnalysisService.generateSummary(portfolioId, portfolio.getMemberId());
   }
