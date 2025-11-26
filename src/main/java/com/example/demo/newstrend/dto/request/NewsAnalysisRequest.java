@@ -8,4 +8,5 @@ public class NewsAnalysisRequest {
     private String content;
     private String sourceUrl;
     private String sourceName;
+    private Integer memberId;
 }
