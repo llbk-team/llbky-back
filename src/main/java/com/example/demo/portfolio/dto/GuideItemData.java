@@ -1,17 +1,11 @@
 package com.example.demo.portfolio.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * 가이드 항목 데이터
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class GuideItemData {
    
     private String title;//항목 제목

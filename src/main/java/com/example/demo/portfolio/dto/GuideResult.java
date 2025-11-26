@@ -13,6 +13,7 @@ import lombok.Data;
  * 이 객체는 두 가지 용도로 사용됨:
  * 1. 실시간 코칭 API 응답
  * 2. guide_feedback(JSONB) 필드에 저장
+ * agent에서 builder 패턴 사용해서 @Builder 사용함
  */
 
 @Data

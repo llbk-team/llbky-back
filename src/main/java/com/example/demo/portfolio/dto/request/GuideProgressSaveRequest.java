@@ -13,9 +13,6 @@ import java.util.List;
  * 사용자가 "진행상황 저장" 버튼을 클릭했을 때 모든 내용을 저장
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class GuideProgressSaveRequest {
     
     private Integer guideId;//가이드 ID

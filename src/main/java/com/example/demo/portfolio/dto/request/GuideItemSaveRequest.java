@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
  * 사용자가 특정 항목을 완료했을 때 해당 내용을 가이드에 저장
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class GuideItemSaveRequest {
     /**
      * 가이드 ID
