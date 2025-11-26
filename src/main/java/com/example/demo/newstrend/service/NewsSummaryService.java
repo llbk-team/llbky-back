@@ -52,6 +52,16 @@ public class NewsSummaryService {
     }
     
     /**
+     * URL 중복 체크
+     * @param sourceUrl 체크할 뉴스 URL
+     * @return 중복 여부
+     */
+    public boolean existsByUrl(String sourceUrl) {
+        NewsSummary existing = newsSummaryDao.selectNewsSummaryBySourceUrl(sourceUrl);
+        return existing != null;
+    }
+    
+    /**
      * 특정 회원의 최신 뉴스 조회
      * @param memberId 회원 ID
      * @param limit 조회 개수
