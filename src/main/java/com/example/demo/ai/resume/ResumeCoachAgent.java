@@ -14,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ResumeCoachAgent {
   private ChatClient chatClient;
 
-  public ResumeCoachAgent(ChatClient.Builder chatClientBuilder){
+  public ResumeCoachAgent(ChatClient.Builder chatClientBuilder) {
     this.chatClient = chatClientBuilder.build();
   }
 
-  public ResumeCoachResponse coach(ResumeCoachRequest request){
+  public ResumeCoachResponse coach(ResumeCoachRequest request) {
     // 출력 변환기 생성
     BeanOutputConverter<ResumeCoachResponse> converter = new BeanOutputConverter<>(ResumeCoachResponse.class);
 
@@ -35,6 +35,14 @@ public class ResumeCoachAgent {
         - summary / strengths/ improvements는 짧고 명확하게
         - improvedText는 사용자의 문장을 자연스럽고 전문적으로 수정한 버전으로 작성
         - 한국어로 작성하세요.
+
+        부적절한 입력 처리 규칙:
+          만약 사용자 입력이 다음 중 하나라도 해당하면 “평가 불가”로 처리해야 합니다:
+          - 의미 없는 단어 나열 (예: asdf, ㄱㄱㄱ, random text 등)
+          - 문장 구조가 없는 단편적 단어
+          - 욕설, 비속어, 공격적 표현
+          - 자소서 항목으로 볼 수 없는 내용
+          - 항목 전체가 비어 있거나 공란인 경우
         """;
 
     String prompt = """
@@ -46,10 +54,9 @@ public class ResumeCoachAgent {
         아래 JSON format에 맞게 출력하세요:
         %s
         """.formatted(
-          request.getSection(),
-          request.getContent(),
-          format
-        );
+        request.getSection(),
+        request.getContent(),
+        format);
 
     String json = chatClient.prompt()
         .system(systemPrompt)
