@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class NewsAIService {
     
+    private final WebScrapingService webScrapingService;
     private final NewsAnalysisAgent analysisAgent;
     private final KeywordExtractionAgent keywordAgent;
     private final BiasNeutralizationAgent neutralizationAgent;
@@ -46,12 +47,22 @@ public class NewsAIService {
     @Transactional
     public NewsAnalysisResponse analyzeAndSaveNews(NewsAnalysisRequest request) throws Exception {
         log.info("뉴스 분석 및 저장 시작 - 제목: {}", request.getTitle());
+
+        String fullContent = request.getContent();
+
+        if(fullContent.length()<200){
+            log.info("짧은 content 감지, 웹 스크래핑 시도: {}", request.getSourceUrl());
+            String scrapedContent= webScrapingService.extractNewsContent(request.getSourceUrl());
+            if(scrapedContent!=null && scrapedContent.length()>fullContent.length()){
+                fullContent=scrapedContent;
+            }
+        }
         
         // 1. 뉴스 분석 (요약, 감정, 신뢰도, 편향, 카테고리)
         log.debug("Step 1: 뉴스 분석 Agent 호출");
         NewsSummaryResponse analysis = analysisAgent.analyzeNews(
             request.getTitle(), 
-            request.getContent()
+            fullContent  // ✅ 웹 스크래핑된 원문 사용
         );
         log.info("뉴스 분석 완료 - 감정: {}, 신뢰도: {}, 편향: {}", 
             analysis.getSentiment(), 
@@ -78,7 +89,7 @@ public class NewsAIService {
         // 4. Entity 생성 및 저장
         log.debug("Step 4: 뉴스 엔티티 생성 및 저장");
         NewsSummary entity = new NewsSummary();
-        entity.setMemberId(1); // TODO: 실제 회원 ID로 변경 (SecurityContext에서 가져오기)
+        entity.setMemberId(1); // TODO: SecurityContext에서 가져오거나 NewsAnalysisRequest에서 받기
         entity.setTitle(request.getTitle());
         entity.setSourceName(request.getSourceName());
         entity.setSourceUrl(request.getSourceUrl());
