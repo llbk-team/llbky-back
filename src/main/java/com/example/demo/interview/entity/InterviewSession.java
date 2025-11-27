@@ -1,6 +1,7 @@
 package com.example.demo.interview.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Data;
 
@@ -11,6 +12,7 @@ public class InterviewSession {
 
   private String interviewType;  //면접 유형
   private String targetCompany; //희망 기업
+  private List<String> keyowrds; //선택한 키워드
 
   private String documentFileName;  //서류 파일 이름
   private String documentFileType;  //서류 파일 타입

@@ -11,6 +11,8 @@ public class QuestionRequest {
   private String type;  //면접 유형(종합/직무)
   private String targetCompany; //희망 기업
   private List<String> keywords;  //선택된 키워드들
-  private List<String> documents; //선택된 서류들
-
+  
+  private String documentFileName;  //서류 파일 이름
+  private String documentFileType;  //서류 파일 타입
+  private byte[] documentFileData;  //서류 바이너리 데이터
 }
