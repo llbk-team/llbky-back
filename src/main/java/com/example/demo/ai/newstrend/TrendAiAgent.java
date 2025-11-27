@@ -14,6 +14,7 @@ import com.example.demo.member.dto.Member;
 import com.example.demo.newstrend.dao.TrendInsightDao;
 import com.example.demo.newstrend.dto.request.TrendAnalyzeRequest;
 import com.example.demo.newstrend.dto.response.TrendAnalyzeResponse;
+import com.example.demo.newstrend.entity.TrendInsight;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
@@ -84,11 +85,11 @@ public class TrendAiAgent {
             ],
             "marketInsight": [],
             "finalSummary": ""
-            }
           }
+        }
         """;
 
-    // .user는 String만 받아 Map을 문자열로 변경
+    // .user는 String만 받아 Map을 JSON 문자열로 변경
     String userPayload = mapper.writeValueAsString(
         Map.of("targetRole", targetRole, "startDate", startDate.toString(), "endDate", endDate.toString()));
 
@@ -107,9 +108,14 @@ public class TrendAiAgent {
     String insightJson = mapper.writeValueAsString(response.getInsightJson());
 
     // DB저장
-    trendInsightDao.insertTrendInsight(
-      member, startDate,endDate,trendJson,insightJson
-    );
+    TrendInsight trend = new TrendInsight();
+    trend.setMemberId(member.getMemberId());
+    trend.setStartDate(startDate);
+    trend.setEndDate(endDate);
+    trend.setTrendJson(trendJson);
+    trend.setInsightJson(insightJson);
+    trendInsightDao.insertTrendInsight(trend);
+
     return response;
 
   }
