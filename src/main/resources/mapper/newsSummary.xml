@@ -7,7 +7,9 @@
 
     <!-- 뉴스 저장 -->
     <insert id="insertNewsSummary" 
-      parameterType="NewsSummary">
+      parameterType="NewsSummary" 
+      useGeneratedKeys="true" 
+      keyProperty="summaryId">
         insert into news_summary (
             member_id,
             source_name,
