@@ -7,7 +7,9 @@
 
   <!-- LLM 생성 결과 저장 -->
   <insert id="insertTrendInsight"
-          parameterType="TrendInsight">
+          parameterType="TrendInsight"
+          useGeneratedKeys="true"
+          keyProperty="trendId">
     INSERT INTO trend_insight(
       member_id,
       start_date,
