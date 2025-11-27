@@ -3,6 +3,8 @@ package com.example.demo.interview.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,33 +30,35 @@ private InterviewService interviewService;
 @Autowired
 private InterviewAnswerDao interviewAnswerDao;
 
-  @PostMapping("/ai-questions")
-  public ResponseEntity<List<QuestionResponse>> createQuestion(
-      @RequestParam("memberId") Integer memberId,
-      @RequestParam("type") String type,
-      @RequestParam("targetCompany") String targetCompany,
-      @RequestParam(value = "keywords", required = false) List<String> keywords,
-      @RequestParam(value = "file", required = false) MultipartFile file) throws Exception {
+    @PostMapping("/ai-questions")
+    public ResponseEntity<List<QuestionResponse>> createQuestion(
+        @RequestParam("memberId") Integer memberId,
+        @RequestParam("type") String type,
+        @RequestParam("targetCompany") String targetCompany,
+        @RequestParam(value = "keywords", required = false) List<String> keywords,
+        @RequestParam(value = "file", required = false) MultipartFile file
+    ) throws Exception {
 
-    List<QuestionResponse> result = interviewService.createAiQuestion(memberId, type, targetCompany, keywords, file);
-    return ResponseEntity.ok(result);
-  }
+        List<QuestionResponse> result = interviewService.createAiQuestion(memberId, type, targetCompany, keywords, file);
+        return ResponseEntity.ok(result);
+    }   
 
-  @PostMapping("/session-save")
-  public ResponseEntity<List<SaveSessionResponse>> saveSession(
+    @PostMapping("/session-save")
+    public ResponseEntity<List<SaveSessionResponse>> saveSession(
         @RequestParam Integer memberId,
         @RequestParam String type,
         @RequestParam String targetCompany,
         @RequestParam(required = false) List<String> keywords,
         @RequestParam(required = false) List<String> aiQuestions,
         @RequestParam(required = false) List<String> customQuestions,
-        @RequestParam(required = false) MultipartFile file) throws Exception {
+        @RequestParam(required = false) MultipartFile file
+    ) throws Exception {
 
-    List<SaveSessionResponse> response = interviewService.saveSessionAndQuestion(memberId, type, targetCompany, keywords, file, aiQuestions, customQuestions);
-    return ResponseEntity.ok(response);
-  }
+        List<SaveSessionResponse> response = interviewService.saveSessionAndQuestion(memberId, type, targetCompany, keywords, file, aiQuestions, customQuestions);
+        return ResponseEntity.ok(response);
+    }
 
-  // 답변 제출============================================================================================================================================
+    // 답변 제출============================================================================================================================================
     @PostMapping(
         value = "/submit-answer",
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE
