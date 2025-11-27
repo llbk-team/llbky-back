@@ -9,6 +9,7 @@
           parameterType="com.example.demo.interview.entity.InterviewSession"
           useGeneratedKeys="true"
           keyProperty="sessionId"
+          keyColumn="session_id"
   >
     INSERT INTO interview_session
       (member_id, interview_type, target_company, document_file_name, document_file_type, document_file_data,

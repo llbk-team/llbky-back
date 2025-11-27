@@ -16,7 +16,6 @@ import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.service.NaverNewsService;
 import com.example.demo.newstrend.service.NewsAIService;
 import com.example.demo.newstrend.service.NewsCollectorService;
-import com.example.demo.newstrend.service.NewsService;
 import com.example.demo.newstrend.service.NewsSummaryService;
 
 import lombok.extern.slf4j.Slf4j;
