@@ -41,7 +41,7 @@ public class PortfolioGuideController {
     // 실시간 포트폴리오 코칭 API
 
     @PostMapping("/coaching")
-    public GuideResult getRealtimeCoaching(@RequestBody GuideRequest request) throws JsonProcessingException {
+    public GuideResult getRealtimeCoaching(@RequestBody GuideRequest request) throws Exception {
 
         return portfolioGuideService.provideCoaching(request);
     }
@@ -49,7 +49,7 @@ public class PortfolioGuideController {
     // 피드백 회원 정보 포함
     @PostMapping("/feedback")
     public GuideResult getRealtimeFeedback(@RequestBody RealtimeFeedbackRequest request)
-            throws com.fasterxml.jackson.core.JsonProcessingException {
+            throws Exception {
 
     //             Member member = memberService.getMemberId(request.getMemberId());
     //             if (member == null) {
@@ -73,7 +73,7 @@ public class PortfolioGuideController {
 
     @PostMapping("/test-example")
     public GuideResult testExample(@RequestBody SimpleTestRequest request)
-            throws com.fasterxml.jackson.core.JsonProcessingException {
+            throws Exception {
 
          // 🔥 수정: 프론트에서 받은 값 사용, 없으면 기본값
     GuideRequest fullRequest = GuideRequest.builder()

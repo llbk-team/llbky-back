@@ -66,7 +66,7 @@ public class PortfolioGuideService {
 
 
   //-------------메인 코칭 메서드
-  public GuideResult provideCoaching(GuideRequest request) throws com.fasterxml.jackson.core.JsonProcessingException {
+  public GuideResult provideCoaching(GuideRequest request) throws Exception{
     LocalDateTime startTime= LocalDateTime.now();
    
     // PortfolioGuideAgent가 DTO로 직접 반환
