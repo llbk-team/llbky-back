@@ -120,7 +120,7 @@ public class InterviewService {
         // 세션 저장
         interviewSessionDao.insertInterviewSession(session);
         Integer sessionId = session.getSessionId();
-        log.info("sessionId : ", sessionId);
+        log.info("sessionId : {}", sessionId);
 
         // AI 질문과 사용자 질문 합치기
         List<String> finalQuestions = new ArrayList<>();

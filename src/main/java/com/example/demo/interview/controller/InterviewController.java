@@ -61,8 +61,8 @@ public class InterviewController {
     
 
     // 세션별 질문 조회==============================================================================================================================
-    @GetMapping("/detail/{sessionId}")
-    public ResponseEntity<List<TotalQuestionResponse>> getSessionDetail(@PathVariable("sessionId") Integer sessionId) {
+    @GetMapping("/questions")
+    public ResponseEntity<List<TotalQuestionResponse>> getSessionDetail(@RequestParam("sessionId") Integer sessionId) {
         List<TotalQuestionResponse> response = interviewService.getSessionDetail(sessionId);
         return ResponseEntity.ok(response);
     }
@@ -116,8 +116,8 @@ public class InterviewController {
     
 
     // 면접 질문 기반 답변 조회===============================================================================================================
-    @GetMapping("/answers-by-question")
-    public ResponseEntity<InterviewAnswer> getAnswersByQuestionId(@RequestParam("questionId") int questionId) {
+    @GetMapping("/answer-by-question")
+    public ResponseEntity<InterviewAnswer> getAnswerByQuestionId(@RequestParam("questionId") int questionId) {
         return ResponseEntity.ok(interviewService.getInterviewAnswersByQuestionId(questionId));
     }
 
