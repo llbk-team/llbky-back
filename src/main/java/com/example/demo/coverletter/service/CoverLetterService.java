@@ -42,25 +42,19 @@ public class CoverLetterService {
     public CoverLetterCreateResponse createCoverLetter(CoverLetter coverLetter, int memberId) throws Exception {
 
         // 1. 자소서 저장
-        // DB 저장 엔티티
-        CoverLetter dbCoverLetter = new CoverLetter();
-        dbCoverLetter.setTitle(coverLetter.getTitle()); 
-        dbCoverLetter.setMemberId(memberId);
-        dbCoverLetter.setSupportMotive(coverLetter.getSupportMotive());
-        dbCoverLetter.setGrowthExperience(coverLetter.getGrowthExperience());
-        dbCoverLetter.setJobCapability(coverLetter.getJobCapability());
-        dbCoverLetter.setFuturePlan(coverLetter.getFuturePlan());
+
+        coverLetter.setMemberId(memberId);
 
         // insert
-        coverLetterDao.insertCoverLetter(dbCoverLetter);
+        coverLetterDao.insertCoverLetter(coverLetter);
 
         // 2. 피드백 생성
         // AI Agent 호출
-        CoverLetterFinalFeedback finalFeedback = finalFeedbackAgent.execute(dbCoverLetter.getCoverletterId());
+        CoverLetterFinalFeedback finalFeedback = finalFeedbackAgent.execute(coverLetter.getCoverletterId());
 
         // 응답 dto 반환
         CoverLetterCreateResponse response = new CoverLetterCreateResponse();
-        response.setCoverletterId(dbCoverLetter.getCoverletterId());
+        response.setCoverletterId(coverLetter.getCoverletterId());
         response.setFinalFeedback(finalFeedback);
 
         return response;
