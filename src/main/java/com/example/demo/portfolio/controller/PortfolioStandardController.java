@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * - 프론트엔드에서 평가 기준 정보를 조회하는 API 제공
  */
 @RestController
-@RequestMapping("/api/portfolio-standard")
+@RequestMapping("/portfolio-standard")
 @RequiredArgsConstructor
 @Slf4j
 public class PortfolioStandardController {
@@ -31,7 +31,7 @@ public class PortfolioStandardController {
 
     /**
      * 모든 평가 기준 조회
-     * GET /api/portfolio-standard
+     * GET /portfolio-standard
      */
     @GetMapping
     public ResponseEntity<List<PortfolioStandard>> getAllStandards() {
@@ -42,7 +42,7 @@ public class PortfolioStandardController {
 
     /**
      * 특정 평가 기준 조회 (ID로)
-     * GET /api/portfolio-standard/{standardId}
+     * GET /portfolio-standard/{standardId}
      */
     @GetMapping("/{standardId}")
     public ResponseEntity<PortfolioStandard> getStandardById(@PathVariable int standardId) {
@@ -58,7 +58,7 @@ public class PortfolioStandardController {
 
     /**
      * 직군 + 직무로 평가 기준 조회
-     * GET /api/portfolio-standard/by-job?jobGroup=백엔드&jobRole=백엔드 
+     * GET /portfolio-standard/by-job?jobGroup=백엔드&jobRole=백엔드 
      */
     @GetMapping("/by-job")
     public ResponseEntity<List<PortfolioStandard>> getStandardsByJob(
@@ -72,7 +72,7 @@ public class PortfolioStandardController {
 
     /**
      * 직군으로만 평가 기준 조회
-     * GET /api/portfolio-standard/by-group?jobGroup=백엔드
+     * GET /portfolio-standard/by-group?jobGroup=백엔드
      */
     @GetMapping("/by-group")
     public ResponseEntity<List<PortfolioStandard>> getStandardsByJobGroup(
@@ -85,7 +85,7 @@ public class PortfolioStandardController {
 
     /**
      * 평가 기준명으로 조회
-     * GET /api/portfolio-standard/by-name?name=프로젝트 개요
+     * GET /portfolio-standard/by-name?name=프로젝트 개요
      */
     @GetMapping("/by-name")
     public ResponseEntity<PortfolioStandard> getStandardByName(@RequestParam String name) {
@@ -102,7 +102,7 @@ public class PortfolioStandardController {
 
     /**
      * 최소 가중치 이상의 평가 기준 조회
-     * GET /api/portfolio-standard/by-weight?minWeight=15
+     * GET /portfolio-standard/by-weight?minWeight=15
      */
     @GetMapping("/by-weight")
     public ResponseEntity<List<PortfolioStandard>> getStandardsByMinWeight(
@@ -115,7 +115,7 @@ public class PortfolioStandardController {
 
     /**
      * 평가 기준 총 개수 조회
-     * GET /api/portfolio-standard/count
+     * GET /portfolio-standard/count
      */
     @GetMapping("/count")
     public ResponseEntity<Integer> getStandardsCount() {

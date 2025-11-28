@@ -13,6 +13,7 @@ import com.example.demo.newstrend.service.TrendService;
 
 
 
+
 @RestController
 @RequestMapping("/trend")
 public class TrendController {

@@ -55,36 +55,16 @@ public class PortfolioGuideAgent {
                 - 항목 전체가 비어 있거나 공란인 경우
                 """)
             .build();
-        this.memberDao = memberDao;
-        this.portfolioStandardDao = portfolioStandardDao;
-    }
-
-    /**
-     * 포트폴리오 가이드 코칭 평가 수행
-     * @param request 코칭 요청 정보
-     * @return 코칭 결과
-     */
-    public GuideResult evaluate(GuideRequest request) throws Exception{
-        // 1. 회원 정보 조회
-        Member member = memberDao.findById(request.getMemberId());
-       
-        // 2. 직무별 표준 가이드라인 자동 조회
-        List<PortfolioStandard> jobStandards = loadStandards(member);
-        
-        // 3. LLM 프롬프트 생성 및 호출
-        return generateCoaching(request, jobStandards, member);
        
     }
 
-    /**
-     * AI 코칭 생성 
-     */
-    private GuideResult generateCoaching(
-            GuideRequest request, 
-            List<PortfolioStandard> standards, 
-            Member member) throws Exception {
-        
-        // 1. Bean 객체 -> JSON 출력 변환기 생성
+    /*
+        순수 AI 평가 메서드    
+    */
+    public GuideResult evaluate(GuideRequest request,
+        Member member,
+        List<PortfolioStandard> standards ) throws Exception{
+
         BeanOutputConverter<GuideResult> converter = 
             new BeanOutputConverter<>(GuideResult.class);
         
@@ -179,25 +159,11 @@ public class PortfolioGuideAgent {
         GuideResult result = converter.convert(json);
 
         return result ;
+       
     }
 
-    /**
-     * 직무별 표준 가이드라인 조회
-     */
-    private List<PortfolioStandard> loadStandards(Member member) {
-        // 직무별 가이드라인 조회
-        List<PortfolioStandard> standards = 
-            portfolioStandardDao.selectStandardsByJobInfo(
-                member.getJobGroup(), 
-                member.getJobRole()
-            );
-        
-        // 없으면 전체 가이드라인 사용
-        if (standards == null || standards.isEmpty()) {
-            standards = portfolioStandardDao.selectAllStandards();
-        } 
-        return standards;
-    }
+    
+
 
     /**
      * 표준 가이드라인 텍스트 구성
@@ -225,6 +191,15 @@ public class PortfolioGuideAgent {
                 sb.append(standard.getPromptTemplate());
                 sb.append("\n\n");
             }
+
+             // PortfolioStandard의 evaluationItems 활용
+            if (standard.getEvaluationItems() != null) {
+                sb.append("**평가 항목:**\n");
+                sb.append(standard.getEvaluationItems());
+                sb.append("\n\n");
+            }
+
+
         }
         return sb.toString();
     }

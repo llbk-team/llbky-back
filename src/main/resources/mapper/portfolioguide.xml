@@ -57,12 +57,7 @@
             is_completed,
             current_step,
             total_steps,
-            appropriateness_score,
-            progress_percentage,
-            coaching_message,
-            suggestions,
-            examples,
-            next_step_guide,
+            guide_feedback,
             created_at,
             updated_at
         FROM portfolio_guide 
@@ -81,12 +76,7 @@
             is_completed,
             current_step,
             total_steps,
-            appropriateness_score,
-            progress_percentage,
-            coaching_message,
-            suggestions,
-            examples,
-            next_step_guide,
+            guide_feedback,
             created_at,
             updated_at
         FROM portfolio_guide 
@@ -127,28 +117,7 @@
     <update id="updateGuideFeedback" parameterType="map">
         UPDATE portfolio_guide 
         SET 
-            appropriateness_score = #{appropriatenessScore},
-            progress_percentage = #{progressPercentage},
-            coaching_message = #{coachingMessage},
-            suggestions = 
-            <choose>
-                <when test="suggestions != null">
-                    CAST(#{suggestions} AS JSONB)
-                </when>
-                <otherwise>
-                    NULL
-                </otherwise>
-            </choose>,
-            examples = 
-            <choose>
-                <when test="examples != null">
-                    CAST(#{examples} AS JSONB)
-                </when>
-                <otherwise>
-                    NULL
-                </otherwise>
-            </choose>,
-            next_step_guide = #{nextStepGuide},
+            guide_feedback = CAST(#{guideFeedback} AS JSONB),
             updated_at = NOW()
         WHERE guide_id = #{guideId}
     </update>

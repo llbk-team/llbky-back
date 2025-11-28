@@ -16,9 +16,6 @@ import com.example.demo.portfolio.dto.GuideStepData;
  * 저장/조회 결과를 프론트엔드에 반환
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class GuideProgressResponse {
    
     //===== 응답 상태 =====
@@ -37,8 +34,15 @@ public class GuideProgressResponse {
     private Integer totalSteps;            // 전체 단계 수
     
     private List<GuideStepData> guideContent;//전체 가이드 내용 (단계별 데이터)
-    
-   
+
+    //===== AI 피드백 정보 =====
+    private String coachingMessage;              // AI 코칭 메시지
+    private Integer appropriatenessScore;        // 입력 내용 적절성 점수 (1-10)
+    private List<String> suggestions;            // 개선 제안사항
+    private List<String> examples;               // 예시 문장/내용
+    private String nextStepGuide;                // 다음 단계 가이드
+    private String errorMessage;                 // 오류 메시지 (있는 경우)
+
     //===== 시간 정보 =====
     private LocalDateTime lastUpdated;  // 마지막 업데이트 시간
     
@@ -46,9 +50,6 @@ public class GuideProgressResponse {
      * 단계별 진행상황 요약 정보
      */
     @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class StepProgress {
         private Integer stepNumber;      // 단계 번호
         private String stepTitle;        // 단계 제목
