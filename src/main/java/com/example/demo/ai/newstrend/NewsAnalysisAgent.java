@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NewsAnalysisAgent {
     
-    private final ChatClient chatClient;
+    private  ChatClient chatClient;
     
     public NewsAnalysisAgent(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder.build();

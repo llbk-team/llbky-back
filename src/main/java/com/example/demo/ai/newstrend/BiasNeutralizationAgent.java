@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BiasNeutralizationAgent {
     
-    private final ChatClient chatClient;
+    private  ChatClient chatClient;
     
     public BiasNeutralizationAgent(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder.build();
