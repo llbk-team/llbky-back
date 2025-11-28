@@ -217,24 +217,47 @@ public class InterviewService {
 
         // 변환할 파일
         byte[] sttBytes = null;
+        String fileName = null;
+
         if (videoAudio != null && !videoAudio.isEmpty()) {
+            log.info("=== [STT INPUT - videoAudio] ===");
+            log.info("Content-Type: {}", videoAudio.getContentType());
+            log.info("Filename: {}", videoAudio.getOriginalFilename());
+            log.info("Size (bytes): {}", videoAudio.getSize());
+            
             sttBytes = videoAudio.getBytes();   //영상 오디오 파일
+            fileName = videoAudio.getOriginalFilename();
+            
         } else if (audio != null && !audio.isEmpty()) {
+            log.info("=== [STT INPUT - audio] ===");
+            log.info("Content-Type: {}", audio.getContentType());
+            log.info("Filename: {}", audio.getOriginalFilename());
+            log.info("Size (bytes): {}", audio.getSize());
+
             sttBytes = audio.getBytes();    // 순수 음성 파일
+            fileName = audio.getOriginalFilename();
+
         } else {
+            log.warn("=== [STT INPUT] No audio/videoAudio file received ===");
+
             sttBytes = null;
         }
 
         // 변환된 텍스트
         String answerText = "음성 입력이 감지되지 않았습니다.";
-        if (sttBytes != null) {
-            String fileName = (videoAudio != null && !videoAudio.isEmpty())
-                    ? "video_audio.wav"
-                    : "audio.wav";
-
-            answerText = sttAgent.sttSave(answerId, fileName, sttBytes);
+        if (videoAudio != null && !videoAudio.isEmpty()) {
+            answerText = sttAgent.sttSave(
+                answerId,
+                videoAudio.getOriginalFilename(),
+                videoAudio.getBytes()
+            );
+        } else if (audio != null && !audio.isEmpty()) {
+            answerText = sttAgent.sttSave(
+                answerId,
+                audio.getOriginalFilename(), 
+                audio.getBytes()
+            );
         }
-
         // 3. VisualAnalysis Agent 호출 - 이미지 프레임 분석 리스트 얻기
         List<String> visualFeedback = visualAnalysisAgent.analyzeFrames(frames);
 

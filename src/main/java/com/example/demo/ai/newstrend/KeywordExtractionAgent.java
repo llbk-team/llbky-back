@@ -22,8 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KeywordExtractionAgent {
     
-    private final ChatClient chatClient;
-    private final ObjectMapper objectMapper;
+    private  ChatClient chatClient;
+    private  ObjectMapper objectMapper;
     
     public KeywordExtractionAgent(ChatClient.Builder chatClientBuilder, ObjectMapper objectMapper) {
         this.chatClient = chatClientBuilder.build();

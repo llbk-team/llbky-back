@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.demo.interview.dao.InterviewAnswerDao;
 import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
 import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
@@ -25,13 +24,10 @@ import com.example.demo.interview.service.InterviewService;
 @RestController
 @RequestMapping("/interview")
 public class InterviewController {
- // Service
-@Autowired
-private InterviewService interviewService;
 
-// DAO
-@Autowired
-private InterviewAnswerDao interviewAnswerDao;
+    // Service
+    @Autowired
+    private InterviewService interviewService;
 
     // AI 질문 생성============================================================================================================================================
     @PostMapping("/ai-questions")
@@ -85,6 +81,21 @@ private InterviewAnswerDao interviewAnswerDao;
     ) throws Exception {
 
         return ResponseEntity.ok(interviewService.createInterviewAnswer(questionId, audio, video));        
+    }
+    
+    // 답변 다시 제출============================================================================================================================================
+    @PostMapping(
+        value = "/re-submit-answer",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Integer> reSubmitAnswer(
+        @RequestParam("answerId") int answerId,
+        @RequestParam(value = "audio", required = false) MultipartFile audio,
+        @RequestParam(value = "video", required = false) MultipartFile video,
+        @RequestParam(value = "frames", required = false) List<MultipartFile> frames
+    ) throws Exception {
+
+        return ResponseEntity.ok(interviewService.modifyInterviewAnswer(answerId, audio, video));        
     }
     
     // 답변별 AI 피드백 생성===================================================================================================================

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -93,23 +94,6 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map); // 400
 	}
 
-	// JSON 처리 예외 처리
-	@ExceptionHandler(JsonProcessingException.class)
-	public ResponseEntity<Map<String, Object>> handleJsonProcessingException(JsonProcessingException e) {
-		Map<String, Object> map = new HashMap<>();
-		map.put("message", e.getMessage() != null ? e.getMessage() : "JSON 데이터 처리 중 오류가 발생했습니다");
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map); // 400
 
-	}
-
-	// 입출력 예외 처리
-	@ExceptionHandler(IOException.class)
-	public ResponseEntity<Map<String, Object>> handleIOException(IOException e) {
-		Map<String, Object> map = new HashMap<>();
-		map.put("message", e.getMessage() != null ? e.getMessage() : "데이터를 입력 받지 못했습니다");
-
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map); // 400
-
-	}
 }

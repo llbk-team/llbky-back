@@ -25,9 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PortfolioGuideAgent {
 
-    private final ChatClient chatClient;
-    private final MemberDao memberDao;
-    private final PortfolioStandardDao portfolioStandardDao;
+    private  ChatClient chatClient;
+    private  MemberDao memberDao;
+    private  PortfolioStandardDao portfolioStandardDao;
 
     public PortfolioGuideAgent(
             ChatClient.Builder chatClientBuilder,
@@ -53,10 +53,6 @@ public class PortfolioGuideAgent {
                 - 욕설, 비속어, 공격적 표현
                 - 자소서 항목으로 볼 수 없는 내용
                 - 항목 전체가 비어 있거나 공란인 경우
-
-
-
-
                 """)
             .build();
         this.memberDao = memberDao;
@@ -68,25 +64,16 @@ public class PortfolioGuideAgent {
      * @param request 코칭 요청 정보
      * @return 코칭 결과
      */
-    public GuideResult evaluate(GuideRequest request) {
-        // 1. 회원 정보 자동 조회
-        Member member = null;
-        if (request.getMemberId() != null) {
-            member = memberDao.findById(request.getMemberId());
-            
-        }
-
+    public GuideResult evaluate(GuideRequest request) throws Exception{
+        // 1. 회원 정보 조회
+        Member member = memberDao.findById(request.getMemberId());
+       
         // 2. 직무별 표준 가이드라인 자동 조회
-        List<PortfolioStandard> jobStandards = loadStandards(request, member);
+        List<PortfolioStandard> jobStandards = loadStandards(member);
         
-
         // 3. LLM 프롬프트 생성 및 호출
-        try {
-            return generateCoaching(request, jobStandards, member);
-        } catch (Exception e) {
-            
-            return createDefaultResult();
-        }
+        return generateCoaching(request, jobStandards, member);
+       
     }
 
     /**
@@ -104,10 +91,10 @@ public class PortfolioGuideAgent {
         // DTO 구조 제공 -> JSON 출력 포맷 지정
         String format = converter.getFormat();
 
-        // 2. 회원 정보 추출
-        String jobGroup = extractJobGroup(request, member);
-        String jobRole = extractJobRole(request, member);
-        Integer careerYears = extractCareerYears(request, member);
+        // 2. 회원 정보 추출 (Member에서만)
+        String jobGroup = member.getJobGroup();
+        String jobRole = member.getJobRole();
+        Integer careerYears = member.getCareerYears();
         
         // 3. 표준 가이드라인 구성
         String standardsGuidelines = buildStandardsGuidelines(standards);
@@ -191,38 +178,23 @@ public class PortfolioGuideAgent {
         // 6. JSON -> DTO 변환
         GuideResult result = converter.convert(json);
 
-        return result != null ? result : createDefaultResult();
+        return result ;
     }
 
     /**
      * 직무별 표준 가이드라인 조회
      */
-    private List<PortfolioStandard> loadStandards(
-            GuideRequest request, Member member) {
-        // 직군 결정
-        String jobGroup = "개발자"; // 기본값
-        if (request.getJobGroup() != null) {
-            jobGroup = request.getJobGroup();
-        } else if (member != null && member.getJobGroup() != null) {
-            jobGroup = member.getJobGroup();
-        }
-
-        // 직무 결정
-        String jobRole = "일반"; // 기본값
-        if (request.getJobRole() != null) {
-            jobRole = request.getJobRole();
-        } else if (member != null && member.getJobRole() != null) {
-            jobRole = member.getJobRole();
-        }
-
+    private List<PortfolioStandard> loadStandards(Member member) {
         // 직무별 가이드라인 조회
         List<PortfolioStandard> standards = 
-            portfolioStandardDao.selectStandardsByJobInfo(jobGroup, jobRole);
+            portfolioStandardDao.selectStandardsByJobInfo(
+                member.getJobGroup(), 
+                member.getJobRole()
+            );
         
         // 없으면 전체 가이드라인 사용
         if (standards == null || standards.isEmpty()) {
             standards = portfolioStandardDao.selectAllStandards();
-         
         } 
         return standards;
     }
@@ -257,35 +229,6 @@ public class PortfolioGuideAgent {
         return sb.toString();
     }
 
-    // =============== 헬퍼 메서드 ===============
 
-    private String extractJobGroup(GuideRequest request, Member member) {
-        if (request.getJobGroup() != null) return request.getJobGroup();
-        if (member != null && member.getJobGroup() != null) 
-            return member.getJobGroup();
-        return "개발자";
-    }
 
-    private String extractJobRole(GuideRequest request, Member member) {
-        if (request.getJobRole() != null) return request.getJobRole();
-        if (member != null && member.getJobRole() != null) 
-            return member.getJobRole();
-        return "일반";
-    }
-
-    private Integer extractCareerYears(GuideRequest request, Member member) {
-        if (request.getCareerYears() != null) return request.getCareerYears();
-        if (member != null && member.getCareerYears() != null) 
-            return member.getCareerYears();
-        return 1;
-    }
-
-    private GuideResult createDefaultResult() {
-        return GuideResult.builder()
-                .success(true)
-                .coachingMessage("입력해주신 내용을 확인했습니다. 계속 작성해주세요.")
-                .appropriatenessScore(5)
-                .progressPercentage(10)
-                .build();
-    }
 }
