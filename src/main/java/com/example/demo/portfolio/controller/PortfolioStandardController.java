@@ -39,6 +39,7 @@ public class PortfolioStandardController {
         List<PortfolioStandard> standards = portfolioStandardService.getAllStandards();
         return ResponseEntity.ok(standards);
     }
+    
 
     /**
      * 특정 평가 기준 조회 (ID로)

@@ -107,7 +107,9 @@ public class PortfolioGuideService {
      * 가이드 ID로 조회
      */
     public PortfolioGuide getGuideById(Integer guideId) {
-        log.info("가이드 조회 - guideId: {}", guideId);
+
+        
+
         return portfolioGuideDao.selectGuideById(guideId);
     }
 
@@ -115,7 +117,7 @@ public class PortfolioGuideService {
      * 회원별 가이드 목록 조회
      */
     public List<PortfolioGuide> getGuidesByMemberId(Integer memberId) {
-        log.info("회원별 가이드 목록 조회 - memberId: {}", memberId);
+        
         return portfolioGuideDao.selectGuidesByMemberId(memberId);
     }
 
@@ -123,7 +125,7 @@ public class PortfolioGuideService {
      * ⭐ 수정: 저장된 피드백 조회 (JSONB → GuideResult 변환)
      */
     public GuideResult getGuideFeedback(Integer guideId) throws com.fasterxml.jackson.core.JsonProcessingException {
-        log.info("가이드 피드백 조회 - guideId: {}", guideId);
+        
         
         PortfolioGuide guide = portfolioGuideDao.selectGuideById(guideId);
         if (guide == null) {

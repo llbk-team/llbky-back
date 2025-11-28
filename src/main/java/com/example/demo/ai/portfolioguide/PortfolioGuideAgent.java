@@ -26,9 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioGuideAgent {
 
     private  ChatClient chatClient;
-    private  MemberDao memberDao;
-    private  PortfolioStandardDao portfolioStandardDao;
-
+    
     public PortfolioGuideAgent(
             ChatClient.Builder chatClientBuilder,
             MemberDao memberDao,
@@ -170,6 +168,7 @@ public class PortfolioGuideAgent {
      */
     private String buildStandardsGuidelines(List<PortfolioStandard> standards) {
         if (standards == null || standards.isEmpty()) {
+
             return """
                 ## 일반 평가 지침
                 

@@ -1,15 +1,11 @@
 package com.example.demo.portfolio.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import com.example.demo.portfolio.dto.GuideStepData;
+
+import lombok.Data;
 
 /**
  * 가이드 진행상황 응답 DTO
@@ -46,6 +42,7 @@ public class GuideProgressResponse {
     //===== 시간 정보 =====
     private LocalDateTime lastUpdated;  // 마지막 업데이트 시간
     
+
     /**
      * 단계별 진행상황 요약 정보
      */

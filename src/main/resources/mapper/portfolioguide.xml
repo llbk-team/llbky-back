@@ -106,6 +106,7 @@
             guide_content = CAST(#{guideContent} AS JSONB),
             completion_percentage = #{completionPercentage},
             current_step = #{currentStep},
+            
             <if test="isCompleted != null">
             is_completed = #{isCompleted},
             </if>
@@ -119,6 +120,7 @@
         SET 
             guide_feedback = CAST(#{guideFeedback} AS JSONB),
             updated_at = NOW()
+
         WHERE guide_id = #{guideId}
     </update>
 
