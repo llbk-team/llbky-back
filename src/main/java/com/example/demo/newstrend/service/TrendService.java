@@ -45,7 +45,7 @@ public class TrendService {
 
     // 오늘 분석 데이터가 있으면 DB값 반환
     if (latest != null && latest.getCreatedAt() != null && latest.getCreatedAt().toLocalDate().isEqual(today)){
-      return entityToResponse(latest);
+      return entityToResponse(latest); 
     }
 
     // 오늘 데이터 없을시 분석
