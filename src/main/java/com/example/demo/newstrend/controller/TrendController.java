@@ -33,7 +33,7 @@ public class TrendController {
   
   @GetMapping("/today")
   public TrendAnalyzeResponse getTodayTrend(@RequestParam("memberId") Integer memberId) throws Exception {
-    return trendService.getAnalyzeToday(memberId);
+    return trendService.getAnalyzeToday(memberId); 
   }
   
   
