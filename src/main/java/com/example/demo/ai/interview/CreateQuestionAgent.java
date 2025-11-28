@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.demo.interview.dao.InterviewQuestionDao;
 import com.example.demo.interview.dto.request.QuestionRequest;
-import com.example.demo.interview.dto.response.QuestionResponse;
+import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.entity.InterviewQuestion;
 
 // 면접 질문 생성 에이전트
@@ -31,7 +31,7 @@ public class CreateQuestionAgent {
     this.chatClient = chatClientBuilder.build();
   }
 
-  public List<QuestionResponse> createQuestion(QuestionRequest request) throws Exception {
+  public List<AiQuestionResponse> createQuestion(QuestionRequest request) throws Exception {
 
     // PDF에서 텍스트 추출
     String documentText = "";
@@ -40,7 +40,7 @@ public class CreateQuestionAgent {
     }
 
     // JSON 변환
-    BeanOutputConverter<QuestionResponse[]> converter = new BeanOutputConverter<>(QuestionResponse[].class);
+    BeanOutputConverter<AiQuestionResponse[]> converter = new BeanOutputConverter<>(AiQuestionResponse[].class);
     String format = converter.getFormat();
 
     // System prompt
@@ -84,10 +84,10 @@ public class CreateQuestionAgent {
         .content();
 
     // JSON -> DTO 배열
-    QuestionResponse[] arr = converter.convert(responseJson);
+    AiQuestionResponse[] arr = converter.convert(responseJson);
 
     // 배열 -> List
-    List<QuestionResponse> list = Arrays.asList(arr);
+    List<AiQuestionResponse> list = Arrays.asList(arr);
 
     // // DB 저장
     // for (QuestionResponse q : list) {

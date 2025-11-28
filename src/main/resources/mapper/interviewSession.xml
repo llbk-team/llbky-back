@@ -17,6 +17,7 @@
     VALUES
       (#{memberId}, #{interviewType}, #{targetCompany}, #{documentFileName}, #{documentFileType}, #{documentFileData}, 
       CAST(#{reportFeedback} AS JSONB))
+    RETURNING session_id
   </insert>
 
   <!-- 면접 세션 종료 시 종합 피드백 생성 -->

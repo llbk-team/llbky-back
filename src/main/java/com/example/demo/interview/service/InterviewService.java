@@ -17,8 +17,9 @@ import com.example.demo.interview.dao.InterviewQuestionDao;
 import com.example.demo.interview.dao.InterviewSessionDao;
 import com.example.demo.interview.dto.request.QuestionRequest;
 import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
-import com.example.demo.interview.dto.response.QuestionResponse;
+import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
+import com.example.demo.interview.dto.response.TotalQuestionResponse;
 import com.example.demo.interview.entity.InterviewAnswer;
 import com.example.demo.interview.entity.InterviewQuestion;
 import com.example.demo.interview.entity.InterviewSession;
@@ -57,16 +58,30 @@ public class InterviewService {
     
     // 면접 목록 조회
     
-    
-    // 면접 리포트 상세보기
+
+    // 면접 세션 질문 조회
+    public List<TotalQuestionResponse> getSessionDetail(Integer sessionId) {
+        // 질문 목록 조회
+        List<InterviewQuestion> question = interviewQuestionDao.selectInterviewQuestionsBySessionId(sessionId);
+
+        List<TotalQuestionResponse> result = new ArrayList<>();
+        for (InterviewQuestion q : question) {
+            TotalQuestionResponse dto = new TotalQuestionResponse();
+            dto.setQuestionId(q.getQuestionId());
+            dto.setQuestionText(q.getQuestionText());
+            result.add(dto);
+        }
+        
+        return result;
+    }
     
 
     /*====================
       면접 질문 관련 메소드
     =====================*/
 
-    // AI 면접 질문 생성 ---------------------------------------------------------------------------------------------------------------
-    public List<QuestionResponse> createAiQuestion(Integer memberId, String type, String targetCompany, List<String> keywords, MultipartFile file) throws Exception {
+    // AI 면접 질문 생성 ===========================================================================
+    public List<AiQuestionResponse> createAiQuestion(Integer memberId, String type, String targetCompany, List<String> keywords, MultipartFile file) throws Exception {
 
         QuestionRequest request = new QuestionRequest();
         request.setMemberId(memberId);
@@ -81,23 +96,13 @@ public class InterviewService {
         }
 
         // Agent 호출
-        List<QuestionResponse> questionList = createQuestionAgent.createQuestion(request);
+        List<AiQuestionResponse> questionList = createQuestionAgent.createQuestion(request);
 
         return questionList;
     }
 
-  // // 사용자의 면접 질문 생성 ---------------------------------------------------------------------------------------------------------------
-  // public InterviewQuestion createUserQuestion(Integer SessionId, String question) {
-  //   InterviewQuestion interviewQuestion = new InterviewQuestion();
-  //   interviewQuestion.setSessionId(SessionId);
-  //   interviewQuestion.setQuestionText(question);
-  //   interviewQuestionDao.insertCustomQuestion(interviewQuestion);
 
-  //   return interviewQuestion;
-  // }
-
-
-    // DB에 면접 질문 저장 ---------------------------------------------------------------------------------------------------------------
+    // DB에 면접 질문 저장 ===========================================================================
     public List<SaveSessionResponse> saveSessionAndQuestion(Integer memberId, String type, String targetCompany, List<String> keywords, MultipartFile file, 
                                         List<String> aiQuestions, List<String> customQuestions) throws Exception { 
 
@@ -106,9 +111,11 @@ public class InterviewService {
         session.setInterviewType(type);
         session.setTargetCompany(targetCompany);
         session.setKeyowrds(keywords);
-        session.setDocumentFileName(file.getOriginalFilename());
-        session.setDocumentFileType(file.getContentType());
-        session.setDocumentFileData(file.getBytes());
+        if (file != null) {
+            session.setDocumentFileName(file.getOriginalFilename());
+            session.setDocumentFileType(file.getContentType());
+            session.setDocumentFileData(file.getBytes());
+        }
 
         // 세션 저장
         interviewSessionDao.insertInterviewSession(session);

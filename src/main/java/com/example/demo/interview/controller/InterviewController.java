@@ -3,9 +3,11 @@ package com.example.demo.interview.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jms.JmsProperties.Listener.Session;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,8 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.interview.dao.InterviewAnswerDao;
 import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
-import com.example.demo.interview.dto.response.QuestionResponse;
+import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
+import com.example.demo.interview.dto.response.TotalQuestionResponse;
 import com.example.demo.interview.entity.InterviewAnswer;
 import com.example.demo.interview.service.InterviewService;
 
@@ -30,8 +33,9 @@ private InterviewService interviewService;
 @Autowired
 private InterviewAnswerDao interviewAnswerDao;
 
+    // AI 질문 생성============================================================================================================================================
     @PostMapping("/ai-questions")
-    public ResponseEntity<List<QuestionResponse>> createQuestion(
+    public ResponseEntity<List<AiQuestionResponse>> createQuestion(
         @RequestParam("memberId") Integer memberId,
         @RequestParam("type") String type,
         @RequestParam("targetCompany") String targetCompany,
@@ -39,10 +43,11 @@ private InterviewAnswerDao interviewAnswerDao;
         @RequestParam(value = "file", required = false) MultipartFile file
     ) throws Exception {
 
-        List<QuestionResponse> result = interviewService.createAiQuestion(memberId, type, targetCompany, keywords, file);
+        List<AiQuestionResponse> result = interviewService.createAiQuestion(memberId, type, targetCompany, keywords, file);
         return ResponseEntity.ok(result);
     }   
 
+    // 세션 저장============================================================================================================================================
     @PostMapping("/session-save")
     public ResponseEntity<List<SaveSessionResponse>> saveSession(
         @RequestParam Integer memberId,
@@ -57,6 +62,15 @@ private InterviewAnswerDao interviewAnswerDao;
         List<SaveSessionResponse> response = interviewService.saveSessionAndQuestion(memberId, type, targetCompany, keywords, file, aiQuestions, customQuestions);
         return ResponseEntity.ok(response);
     }
+    
+
+    // 세션별 질문 조회==============================================================================================================================
+    @GetMapping("/detail/{sessionId}")
+    public ResponseEntity<List<TotalQuestionResponse>> getSessionDetail(@PathVariable("sessionId") Integer sessionId) {
+        List<TotalQuestionResponse> response = interviewService.getSessionDetail(sessionId);
+        return ResponseEntity.ok(response);
+    }
+    
 
     // 답변 제출============================================================================================================================================
     @PostMapping(

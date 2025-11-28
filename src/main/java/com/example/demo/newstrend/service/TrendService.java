@@ -5,6 +5,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TrendService {
-  @Autowired
-  private TrendService trendService;
+  // @Autowired
+  // private TrendService trendService;
 }
