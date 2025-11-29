@@ -8,21 +8,20 @@ import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.example.demo.interview.dao.InterviewQuestionDao;
 import com.example.demo.interview.dto.request.QuestionRequest;
 import com.example.demo.interview.dto.response.AiQuestionResponse;
-import com.example.demo.interview.entity.InterviewQuestion;
+import com.example.demo.member.dao.MemberDao;
+import com.example.demo.member.dto.Member;
 
 // 면접 질문 생성 에이전트
 @Component
 public class CreateQuestionAgent {
 
   @Autowired
-  private InterviewQuestionDao interviewQuestionDao;
-
-  // AI 응답 DTO → JSON 문자열로 직렬화하기 위한 ObjectMapper
-  @Autowired
   private PdfReader pdfReader;
+
+  @Autowired
+  private MemberDao memberDao;
 
   // ChatClient
   private ChatClient chatClient;
@@ -32,6 +31,14 @@ public class CreateQuestionAgent {
   }
 
   public List<AiQuestionResponse> createQuestion(QuestionRequest request) throws Exception {
+
+    Member member = memberDao.findById(request.getMemberId());
+    String jobGroup = member.getJobGroup();
+    String jobRole = member.getJobRole();
+
+    String keywords = (request.getKeywords() == null || request.getKeywords().isEmpty())
+        ? ""
+        : String.join(", ", request.getKeywords());
 
     // PDF에서 텍스트 추출
     String documentText = "";
@@ -45,36 +52,38 @@ public class CreateQuestionAgent {
 
     // System prompt
     String system = """
-        당신은 면접관입니다.
-        제공된 내용을 기반으로 실제 면접에서 사용할 질문을 생성합니다.
-        서류가 첨부되었다면 서류 내용도 포함해서 질문을 생성합니다.
+        당신은 실제 기업의 면접관입니다.
+        면접 유형에 따라 종합 면접과 직무 면접 질문을 생성하세요.
+        종합 면접일 경우 인성 면접 위주로 생성하세요.
 
-        출력 규칙:
-        - 출력은 반드시 JSON 배열이어야 합니다.
-        - 키워드가 없으면 keyword 질문은 생성하지 않습니다.
-        - JSON 이외의 텍스트 출력 금지.
+        반드시 다음 규칙을 지키세요:
 
-        JSON 출력 형식:
+        1) 최종 출력은 JSON 배열이어야 한다.
+        2) JSON 배열의 길이는 반드시 정확히 5개여야 한다.
+        3) 각 항목은 { "aiQuestion": "내용" } 형식이어야 한다.
+        4) JSON 외의 텍스트는 절대 출력하지 않는다.
+        5) 입력 정보가 부족하더라도 반드시 일반적인 인성 또는 직무 기반 질문을 생성하여 5개를 채워야 한다.
+
+        출력 형식:
         %s
         """.formatted(format);
 
     // User prompt
     String prompt = """
-        다음 정보를 기반으로 면접 질문을 생성하세요.
-        [면접 유형]
-        %s
+        다음 정보를 기반으로 5개의 면접 질문을 생성하세요.
 
-        [지원 기업명]
-        %s
+        [사용자의 직무] %s
+        [사용자의 직군] %s
+        [면접 유형] %s
+        [지원 기업명] %s
+        [선택된 키워드] %s
+        [서류 내용] %s
+        면접 유형이 "종합"이면 인성/가치관/경험 중심 질문만 생성합니다.
+        면접 유형이 "직무"이면 기술 기반 질문만 생성합니다.
 
-        [선택된 키워드]
-        %s
-
-        =============
-        [서류 내용]
-        %s
-        =============
-        """.formatted(request.getType(), request.getTargetCompany(), request.getKeywords(), documentText);
+        ※ 만약 일부 정보가 비어 있어도, 반드시 5개의 질문을 생성하세요.
+        """
+        .formatted(jobGroup, jobRole, request.getType(), request.getTargetCompany(), keywords, documentText);
 
     // LLM 호출
     String responseJson = chatClient.prompt()
@@ -83,21 +92,13 @@ public class CreateQuestionAgent {
         .call()
         .content();
 
+
     // JSON -> DTO 배열
     AiQuestionResponse[] arr = converter.convert(responseJson);
 
     // 배열 -> List
     List<AiQuestionResponse> list = Arrays.asList(arr);
 
-    // // DB 저장
-    // for (QuestionResponse q : list) {
-    //   InterviewQuestion question = new InterviewQuestion();
-    //   question.setSessionId(sessionId);
-    //   question.setQuestionText(q.getAiQuestion());
-    //   interviewQuestionDao.insertInterviewQuestion(question);
-    // }
-
-    // 질문 리스트 반환
     return list;
   }
 }

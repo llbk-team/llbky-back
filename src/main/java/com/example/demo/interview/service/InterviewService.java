@@ -3,12 +3,17 @@ package com.example.demo.interview.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.ai.interview.AnswerFeedbackAgent;
+import com.example.demo.ai.interview.CompanySearchAgent;
 import com.example.demo.ai.interview.CreateQuestionAgent;
 import com.example.demo.ai.interview.STTAgent;
 import com.example.demo.ai.interview.VisualAnalysisAgent;
@@ -16,8 +21,8 @@ import com.example.demo.interview.dao.InterviewAnswerDao;
 import com.example.demo.interview.dao.InterviewQuestionDao;
 import com.example.demo.interview.dao.InterviewSessionDao;
 import com.example.demo.interview.dto.request.QuestionRequest;
-import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
 import com.example.demo.interview.dto.response.AiQuestionResponse;
+import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
 import com.example.demo.interview.dto.response.TotalQuestionResponse;
 import com.example.demo.interview.entity.InterviewAnswer;
@@ -46,6 +51,21 @@ public class InterviewService {
     private VisualAnalysisAgent visualAnalysisAgent;
     @Autowired
     private AnswerFeedbackAgent answerFeedbackAgent;
+    @Autowired
+    private CompanySearchAgent companySearchAgent;
+
+    @Value("${naver.api.client-id}")
+    private String clientId;
+    @Value("${naver.api.client-secret}")
+    private String clientSecret;
+
+    private WebClient webClient;
+
+    public InterviewService(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder
+            .baseUrl("https://openapi.naver.com/v1/search")
+            .build();
+    }
 
     /*====================
       면접 세션 관련 메소드
@@ -81,7 +101,7 @@ public class InterviewService {
     =====================*/
 
     // AI 면접 질문 생성 ===========================================================================
-    public List<AiQuestionResponse> createAiQuestion(Integer memberId, String type, String targetCompany, List<String> keywords, MultipartFile file) throws Exception {
+    public List<AiQuestionResponse> createAiQuestion(Integer memberId, String type, String targetCompany, List<String> keywords, MultipartFile documentFile) throws Exception {
 
         QuestionRequest request = new QuestionRequest();
         request.setMemberId(memberId);
@@ -89,16 +109,21 @@ public class InterviewService {
         request.setTargetCompany(targetCompany);
         request.setKeywords(keywords);
 
-        if (file != null && !file.isEmpty()) {
-            request.setDocumentFileData(file.getBytes());
-            request.setDocumentFileName(file.getOriginalFilename());
-            request.setDocumentFileType(file.getContentType());
+        if (documentFile != null && !documentFile.isEmpty()) {
+            request.setDocumentFileData(documentFile.getBytes());
+            request.setDocumentFileName(documentFile.getOriginalFilename());
+            request.setDocumentFileType(documentFile.getContentType());
         }
 
         // Agent 호출
         List<AiQuestionResponse> questionList = createQuestionAgent.createQuestion(request);
 
         return questionList;
+    }
+
+    // 기업 검색=====================================================================================
+    public List<String> searchCompany(String query) {
+        return companySearchAgent.searchCompanyNames(query);
     }
 
 

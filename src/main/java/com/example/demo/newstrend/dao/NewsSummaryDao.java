@@ -1,5 +1,6 @@
 package com.example.demo.newstrend.dao;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -21,6 +22,12 @@ public interface NewsSummaryDao {
   // 특정 멤버의 뉴스 조회
   public List<NewsSummary> selectLatestNewsByMemberId(
     @Param("memberId") int memberId,
+    @Param("limit") int limit);
+
+  // 특정 멤버의 특정 날짜 뉴스 조회
+  public List<NewsSummary> selectNewsByMemberAndDate(
+    @Param("memberId") int memberId,
+    @Param("date") LocalDate date,
     @Param("limit") int limit);
 
   // 뉴스 삭제

@@ -94,6 +94,34 @@
         limit #{limit}
     </select>
 
+    <!-- 특정 멤버의 특정 시간 뉴스 조회 -->
+    <select id="selectNewsByMemberAndDate" resultType="NewsSummary">
+      select
+        summary_id,
+        member_id,
+        title,
+        source_name,
+        source_url,
+        published_at,
+        summary_text,
+        detail_summary,
+        analysis_json,
+        keywords_json,
+        created_at,
+        updated_at
+      from
+        news_summary
+      where
+       member_id = #{memberId}
+      AND 
+        DATE(created_at) = #{date}
+      ORDER BY created_at DESC
+      LIMIT #{limit}
+
+    </select>
+
+
+
     <!-- 뉴스 삭제 -->
     <delete id="deleteNewsSummary">
         delete from news_summary

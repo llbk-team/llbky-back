@@ -1,8 +1,11 @@
 package com.example.demo.newstrend.controller;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,10 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
-import com.example.demo.newstrend.service.NaverNewsService;
 import com.example.demo.newstrend.service.NewsAIService;
 import com.example.demo.newstrend.service.NewsCollectorService;
 import com.example.demo.newstrend.service.NewsSummaryService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
  * - 저장된 뉴스 조회  
  */
 @RestController
-@RequestMapping("/news")
+@RequestMapping("/trend/news")
 @Slf4j
 public class NewsController {
     
@@ -34,10 +37,6 @@ public class NewsController {
   private  NewsAIService newsAIService;
   @Autowired
   private  NewsSummaryService newsSummaryService;
-  @Autowired
-  private  NaverNewsService naverNewsService;
-  // @Autowired
-  // private  NewsService newsApiService;
   @Autowired
   private  NewsCollectorService newsCollectorService;
     
@@ -53,7 +52,7 @@ public class NewsController {
     public String searchNews(@RequestParam String keyword) {
         log.info("네이버 뉴스 검색 요청 - 키워드: {}", keyword);
         
-        String naverResult = naverNewsService.getNaverNews(keyword);
+        String naverResult = newsCollectorService.getNaverNews(keyword);
         
         log.info("네이버 뉴스 검색 완료 - 키워드: {}", keyword);
         
@@ -105,13 +104,15 @@ public class NewsController {
     @GetMapping("/member/{memberId}")
     public List<NewsAnalysisResponse> getMemberNews(
             @PathVariable int memberId,
+            LocalDate date,
             @RequestParam(defaultValue = "10") int limit) 
-            throws com.fasterxml.jackson.core.JsonProcessingException {
+            throws JsonProcessingException {
         
         log.info("회원별 뉴스 조회 요청 - memberId: {}, limit: {}", memberId, limit);
         
-        List<NewsAnalysisResponse> news = newsSummaryService.getLatestNewsByMember(
+        List<NewsAnalysisResponse> news = newsSummaryService.getNewsByMemberAndDate(
             memberId, 
+            date,
             limit
         );
         
@@ -135,20 +136,26 @@ public class NewsController {
      * @return 수집 결과 메시지
      */
     @PostMapping("/collect")
-    public String collectNews(@RequestBody CollectNewsRequest request) throws Exception {
-        log.info("뉴스 수집 요청 - keywords: {}, memberId: {}", 
-            request.getKeywords(), 
-            request.getMemberId());
+    public ResponseEntity<?> collectNews(@RequestBody CollectNewsRequest request) throws Exception {
+        log.info("뉴스 수집 요청: keywords={}, memberId={}", request.getKeywords(), request.getMemberId());
+
+        
         
         int analyzed = newsCollectorService.collectAndAnalyzeNews(
             request.getKeywords(), 
             request.getMemberId()
         );
         
-        String message = String.format("뉴스 수집 완료: %d건 분석됨", analyzed);
-        log.info(message);
+        // String message = String.format("뉴스 수집 완료: %d건 분석됨", analyzed);
+        // log.info(message);
+        // return message;
+
+         return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "뉴스 수집 완료",
+                "analyzed", analyzed
+            ));
         
-        return message;
     }
     
     /**

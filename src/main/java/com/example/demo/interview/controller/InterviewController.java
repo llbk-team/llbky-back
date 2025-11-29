@@ -3,7 +3,6 @@ package com.example.demo.interview.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jms.JmsProperties.Listener.Session;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
 import com.example.demo.interview.dto.response.AiQuestionResponse;
+import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
 import com.example.demo.interview.dto.response.TotalQuestionResponse;
 import com.example.demo.interview.entity.InterviewAnswer;
@@ -36,12 +35,19 @@ public class InterviewController {
         @RequestParam("type") String type,
         @RequestParam("targetCompany") String targetCompany,
         @RequestParam(value = "keywords", required = false) List<String> keywords,
-        @RequestParam(value = "file", required = false) MultipartFile file
+        @RequestParam(value = "documentFile", required = false) MultipartFile documentFile
     ) throws Exception {
 
-        List<AiQuestionResponse> result = interviewService.createAiQuestion(memberId, type, targetCompany, keywords, file);
+        List<AiQuestionResponse> result = interviewService.createAiQuestion(memberId, type, targetCompany, keywords, documentFile);
         return ResponseEntity.ok(result);
     }   
+
+    // 기업 검색============================================================================================================================================
+    @GetMapping("/search")
+    public ResponseEntity<List<String>> searchCompany(@RequestParam("query") String query) {
+        return ResponseEntity.ok(interviewService.searchCompany(query));
+    }
+    
 
     // 세션 저장============================================================================================================================================
     @PostMapping("/session-save")
