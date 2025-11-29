@@ -14,6 +14,7 @@ import org.springframework.util.MimeType;
 import org.springframework.web.multipart.MultipartFile;
 
 // 영상(이미지 프레임) 분석 에이전트
+
 @Component
 public class VisualAnalysisAgent {
 

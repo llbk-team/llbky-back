@@ -10,6 +10,8 @@ import com.example.demo.coverletter.dto.response.CoverLetterFinalFeedback;
 import com.example.demo.coverletter.entity.CoverLetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+// 자소서 최종 피드백 생성하고 저장하는 에이전트
+
 @Component
 public class FinalFeedbackAgent {
     

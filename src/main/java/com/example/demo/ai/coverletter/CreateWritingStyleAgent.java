@@ -9,6 +9,8 @@ import com.example.demo.coverletter.dao.CoverLetterDao;
 import com.example.demo.coverletter.dto.response.WritingStyle;
 import com.example.demo.coverletter.entity.CoverLetter;
 
+// 자소서 문체 버전 생성하는 에이전트
+
 @Component
 public class CreateWritingStyleAgent {
     

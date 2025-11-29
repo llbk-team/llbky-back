@@ -14,6 +14,7 @@ import com.example.demo.interview.entity.InterviewAnswer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 // 면접 진행 에이전트 (답변별 피드백 생성)
+
 @Component
 public class AnswerFeedbackAgent {
 

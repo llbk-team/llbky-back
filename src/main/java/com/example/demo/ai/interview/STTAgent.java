@@ -15,6 +15,7 @@ import com.example.demo.interview.dao.InterviewAnswerDao;
 import lombok.extern.slf4j.Slf4j;
 
 // 음성 분석 에이전트
+
 @Component
 @Slf4j
 public class STTAgent {

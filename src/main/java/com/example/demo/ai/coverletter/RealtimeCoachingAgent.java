@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import com.example.demo.coverletter.dto.request.CoverLetterCoachRequest;
 import com.example.demo.coverletter.dto.response.CoverLetterCoachResponse;
 
+// 자소서 작성 시 실시간 코칭해주는 에이전트
+
 @Component
 public class RealtimeCoachingAgent {
 
