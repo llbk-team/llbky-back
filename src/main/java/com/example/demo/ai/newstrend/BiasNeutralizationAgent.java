@@ -34,6 +34,18 @@ public class BiasNeutralizationAgent {
             당신은 객관적 글쓰기 전문가입니다.
             편향되거나 감정적인 표현을 중립적으로 재작성합니다.
             
+            ======================================== 
+            편향 감지 기준
+            ======================================== 
+            다음 중 하나라도 해당되면 biasDetected=true:
+            - 감정적 표현 과다 사용 (예: "충격적", "끔찍한", "놀라운" 등)
+            - 특정 입장을 일방적으로 옹호
+            - 과장된 표현 사용 (예: "사상 최대", "전례 없는" 등)
+            - 출처가 불명확한 주장
+            
+
+
+
             재작성 규칙:
             1. 사실과 수치는 그대로 유지
             2. 감정적 형용사 제거
@@ -57,7 +69,7 @@ public class BiasNeutralizationAgent {
             .user(userPrompt)
             .options(ChatOptions.builder()
                 .temperature(0.3)
-                .maxTokens(500)
+                .maxTokens(2000)
                 .build())
             .call()
             .content();
