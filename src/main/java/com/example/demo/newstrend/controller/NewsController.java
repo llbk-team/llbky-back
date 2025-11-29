@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
-import com.example.demo.newstrend.service.NaverNewsService;
 import com.example.demo.newstrend.service.NewsAIService;
 import com.example.demo.newstrend.service.NewsCollectorService;
 import com.example.demo.newstrend.service.NewsSummaryService;
@@ -34,8 +33,7 @@ public class NewsController {
   private  NewsAIService newsAIService;
   @Autowired
   private  NewsSummaryService newsSummaryService;
-  @Autowired
-  private  NaverNewsService naverNewsService;
+
   // @Autowired
   // private  NewsService newsApiService;
   @Autowired
@@ -53,7 +51,7 @@ public class NewsController {
     public String searchNews(@RequestParam String keyword) {
         log.info("네이버 뉴스 검색 요청 - 키워드: {}", keyword);
         
-        String naverResult = naverNewsService.getNaverNews(keyword);
+        String naverResult = newsCollectorService.getNaverNews(keyword);
         
         log.info("네이버 뉴스 검색 완료 - 키워드: {}", keyword);
         
