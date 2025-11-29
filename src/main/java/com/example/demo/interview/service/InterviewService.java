@@ -173,7 +173,9 @@ public class InterviewService {
             answer.setVideoFileData(video.getBytes());
         }
 
-        return interviewAnswerDao.insertInterviewAnswer(answer);
+        interviewAnswerDao.insertInterviewAnswer(answer);
+
+        return answer.getAnswerId();
     }
 
     // 답변 다시 제출===================================================================================
