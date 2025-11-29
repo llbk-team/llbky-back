@@ -27,12 +27,13 @@ public class TrendController {
     return trendService.getLatestTrend(memberId);
   }
 
-  // 트렌드 분석 실행 + 저장(test용)
+  // 트렌드 분석 실행 + 저장
   @PostMapping("/analyze")
   public TrendAnalyzeResponse runTrendAnalysis(@RequestParam("memberId") Integer memberId) throws Exception {
     return trendService.analyzeTrend(memberId);
   }
   
+  // 오늘 데이터 없으면 자동 분석 -> 있으면 DB 반환
   @GetMapping("/today")
   public TrendAnalyzeResponse getTodayTrend(@RequestParam("memberId") Integer memberId) throws Exception {
     return trendService.getAnalyzeToday(memberId); 
