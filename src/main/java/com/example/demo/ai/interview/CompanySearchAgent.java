@@ -22,20 +22,24 @@ public class CompanySearchAgent {
   private ChatClient chatClient;
   private WebClient webClient;
 
-  public CompanySearchAgent(ChatClient.Builder chatClientBuilder) {
+  public CompanySearchAgent(ChatClient.Builder chatClientBuilder,
+                            WebClient.Builder webClientBuilder
+  ) {
     this.chatClient = chatClientBuilder.build();
-  }
-
-  public CompanySearchAgent(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder
-                .baseUrl("https://openapi.naver.com/v1/search")
+    this.webClient = webClientBuilder
+                .baseUrl("https://openapi.naver.com")
                 .build();
+  }
+  
+  public List<String> searchCompanyNames(String query) {
+
+    if (query == null || query.isBlank()) {
+        return new ArrayList<>();
     }
 
-  public List<String> searchCompanyNames(String query) {
     String response = webClient.get()
       .uri(uriBuilder -> uriBuilder
-        .path("/webkr.json")
+        .path("/v1/search/webkr.json")
         .queryParam("query", query)
         .queryParam("display", 10)
         .queryParam("sort", "date")
@@ -60,11 +64,16 @@ public class CompanySearchAgent {
     }
 
     String system = """
-        당신은 기업명 필터링 전문가입니다.
-        아래 제목 리스트에서 '기업명처럼 보이는 단어'만 뽑아서 JSON 배열로 반환하세요.
+        당신은 JSON만 출력하는 시스템입니다.
 
-        반드시 기업명만 남기고 다른 단어는 제외하세요.
-        예시: ["네이버", "카카오", "삼성전자"]
+아래 리스트를 기반으로 '기업명처럼 보이는 단어'만 추출하여
+반드시 JSON 배열 형식 ONLY로 출력하세요.
+
+절대 문장, 설명, 객체, 키:값 구조를 포함하지 마세요.
+절대 따옴표가 빠진 문자열을 넣지 마세요.
+
+반드시 이런 형식이어야 함:
+["네이버", "카카오", "삼성전자"]
         """;
     
     String prompt = String.join("\n", titles);
