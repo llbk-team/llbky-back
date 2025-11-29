@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.ai.newstrend.NewsFilteringAgent;
+import com.example.demo.member.dao.MemberDao;
+import com.example.demo.member.dto.Member;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 
@@ -28,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
-
 public class NewsCollectorService {
 
     private WebClient webClient;
@@ -38,6 +39,9 @@ public class NewsCollectorService {
 
     @Autowired
     private NewsSummaryDao newsSummaryDao;
+
+    @Autowired
+    private MemberDao memberDao;
 
     @Autowired
     private NewsFilteringAgent filteringAgent;
@@ -53,9 +57,10 @@ public class NewsCollectorService {
                 .baseUrl("https://openapi.naver.com/v1/search")
                 .build();
     }
-
+   
     // 기본 검색 키워드 목록
-    private static final List<String> DEFAULT_KEYWORDS = Arrays.asList(
+    private  static List<String> DEFAULT_KEYWORDS = Arrays.asList(
+           
             "AI 개발자",
             "백엔드 채용",
             "프론트엔드 개발자",
@@ -92,6 +97,38 @@ public class NewsCollectorService {
 
         return result;
     }
+    //사용자 맞춤 키워드 
+    private List<String> basicKeywords(List<String> inputKeywords, Integer memberId){
+        List<String> keywords= new ArrayList<>();
+        //입력된 키워드 있으면 추가
+        if(inputKeywords!=null && !inputKeywords.isEmpty()){
+            keywords.addAll(inputKeywords);
+        }
+        //사용자 직무/ 직군 기반 키워드 추가
+        if(memberId!=null){
+            Member member = memberDao.findById(memberId);
+
+            if(member.getJobGroup()!=null){
+                keywords.add(member.getJobGroup()+" 채용");
+            }
+            if(member.getJobRole()!=null){
+                keywords.add(member.getJobRole()+" 취업");
+            }
+        }
+        //유저 직군 직무로 부터 만든 키워드 없으면 기본 키워드사용
+        if(keywords.isEmpty()){
+            keywords.addAll(DEFAULT_KEYWORDS);
+        }
+
+        return keywords.stream().distinct().toList(); //중복 제거
+
+    }
+
+
+
+
+
+
     /**
      * 키워드 기반 뉴스 수집 및 분석
      * 
@@ -103,9 +140,7 @@ public class NewsCollectorService {
     public int collectAndAnalyzeNews(List<String> keywords, Integer memberId) throws Exception {
         log.info("뉴스 수집 시작 - 키워드: {}, memberId: {}", keywords, memberId);
 
-        if (keywords == null || keywords.isEmpty()) {
-            keywords = DEFAULT_KEYWORDS;
-        }
+        List<String> firstKeywords = basicKeywords(keywords, memberId);
 
         int totalAnalyzed = 0;
         int duplicateCount = 0;
@@ -116,7 +151,7 @@ public class NewsCollectorService {
         Map<String, NewsAnalysisRequest> uniqueNewsMap = new HashMap<>();
 
         // 1. 각 키워드별로 뉴스 수집
-        for (String keyword : keywords) {
+        for (String keyword : firstKeywords) {
             log.debug("키워드 '{}' 검색 시작", keyword);
             try {
                 // 1-1. 네이버 뉴스 수집
@@ -128,7 +163,7 @@ public class NewsCollectorService {
                 for (NewsAnalysisRequest news : naverNews) {
                     if (!uniqueNewsMap.containsKey(news.getSourceUrl())) {
                         
-                        boolean isRelevant = filteringAgent.isRelevant(news.getTitle(), news.getContent(), keywords);
+                        boolean isRelevant = filteringAgent.isRelevant(news.getTitle(), news.getContent(), firstKeywords);
 
                         if(isRelevant){
                             uniqueNewsMap.put(news.getSourceUrl(), news);
@@ -147,6 +182,8 @@ public class NewsCollectorService {
                 errorCount++;
             }
         }
+
+    
 
         // 2. 수집된 뉴스 분석 및 저장
         for (NewsAnalysisRequest newsRequest : uniqueNewsMap.values()) {
