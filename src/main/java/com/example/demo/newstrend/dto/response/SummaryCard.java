@@ -8,6 +8,4 @@ public class SummaryCard {
   private double avgInterest; // 평균 관심도
   private String interestChange; // 관심도 변화율
   private int keywordCount; // 분석 키워드 수
-  private int marketActivity; // 시장 활기 (%)
-
 }
