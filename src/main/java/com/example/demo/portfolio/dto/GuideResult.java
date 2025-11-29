@@ -34,10 +34,6 @@ public class GuideResult {
    
     private String nextStepGuide;//다음 단계 가이드:현재 항목 완성 후 다음에 작성할 내용 안내
     
-    // private Long processingTimeMs;//처리 시간 (밀리초)
-    
-    //  private LocalDateTime coachingAt;//코칭 생성 시간
- 
     private String errorMessage;//오류 메시지
     
 }

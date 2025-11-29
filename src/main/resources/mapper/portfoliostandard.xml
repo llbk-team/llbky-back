@@ -16,6 +16,7 @@
             weight_percentage,
             job_group,
             job_role,
+            
             created_at,
             updated_at,
             evaluation_items,

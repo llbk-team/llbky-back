@@ -1,8 +1,11 @@
 package com.example.demo.newstrend.service;
 
+import java.rmi.registry.LocateRegistry;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.scheduling.quartz.LocalDataSourceJobStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,10 +14,14 @@ import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
 import com.example.demo.newstrend.dto.response.NewsSummaryResponse;
 import com.example.demo.newstrend.entity.NewsSummary;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+
+//중복 체크, 분석 응답 파싱용
 
 @Service
 @Slf4j
@@ -23,6 +30,7 @@ public class NewsSummaryService {
     
     private final NewsSummaryDao newsSummaryDao;
     private final ObjectMapper objectMapper;
+    private final NewsCollectorService newsCollectorService;
     
     /**
      * 뉴스 저장
@@ -50,7 +58,37 @@ public class NewsSummaryService {
         
         return newsSummary;
     }
+    //1.오늘 날짜 뉴스 조회 없으면 자동수집
+    @Transactional
+    public List<NewsAnalysisResponse> getTodayNewsByMember(int memberId, int limit) throws Exception{
+        LocalDate today= LocalDate.now();
+        List<NewsSummary> todayNews = newsSummaryDao.selectNewsByMemberAndDate(memberId ,today, limit);
     
+         // 2. 오늘 데이터가 있으면 DB값 반환
+        if(todayNews!=null && !todayNews.isEmpty()){
+           log.info("오늘 뉴스 데이터 존재 -{}건 반환",todayNews.size());
+           List<NewsAnalysisResponse> responses= new ArrayList<>();
+           for (NewsSummary summary : todayNews) {
+                responses.add(convertToResponse(summary));
+            }
+            return responses;
+        }
+        // 3. 오늘 데이터 없으면 자동 수집
+        log.info("오늘 뉴스 데이터 없음-자동 수집 시작");
+        int analyzed= newsCollectorService.collectAndAnalyzeNews(null,memberId);
+        log.info("자동 수집 완료 - {}건 분석됨", analyzed);
+        todayNews= newsSummaryDao.selectNewsByMemberAndDate(memberId, today, limit);
+        
+         // 4. 수집 후 다시 조회
+        todayNews = newsSummaryDao.selectNewsByMemberAndDate(memberId, today, limit);
+        List<NewsAnalysisResponse> responses = new ArrayList<>();
+        for (NewsSummary summary : todayNews) {
+            responses.add(convertToResponse(summary));
+        }
+        return responses;
+    
+    }
+
     /**
      * URL 중복 체크
      * @param sourceUrl 체크할 뉴스 URL
@@ -83,6 +121,34 @@ public class NewsSummaryService {
         
         return responses;
     }
+
+    /**
+     * 특정 회원의 특정 날짜 뉴스 조회
+     * @param memberId 회원 ID
+     * @param date YYYY-MM-DD 형식의 날짜 문자열
+     * @param limit 조회 개수
+     * @return 뉴스 분석 결과 리스트
+     * @throws com.fasterxml.jackson.core.JsonProcessingException JSON 파싱 실패 시
+     */
+    public List<NewsAnalysisResponse> getNewsByMemberAndDate(int memberId, LocalDate date, int limit)
+            throws com.fasterxml.jackson.core.JsonProcessingException {
+        
+        log.info("회원별 날짜 뉴스 조회 - memberId: {}, date: {}, limit: {}", memberId, date, limit);
+
+        List<NewsSummary> summaries = newsSummaryDao.selectNewsByMemberAndDate(memberId, date, limit);
+        log.info("조회된 뉴스 수: {}", summaries != null ? summaries.size() : 0);
+
+        List<NewsAnalysisResponse> responses = new ArrayList<>();
+        if (summaries != null) {
+            for (NewsSummary summary : summaries) {
+                NewsAnalysisResponse response = convertToResponse(summary);
+                responses.add(response);
+            }
+        }
+
+        return responses;
+    }
+
     
     /**
      * ✅ Entity -> Response 변환 (analysisMap 없이 DTO 직접 변환)

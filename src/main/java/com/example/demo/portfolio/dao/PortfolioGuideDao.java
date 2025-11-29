@@ -63,17 +63,10 @@ public interface PortfolioGuideDao {
     public int updateGuideProgress(java.util.Map<String, Object> params);
     
     /**
-     * 🔥 AI 가이드 피드백 업데이트 (개별 필드)
+     * 🔥 AI 가이드 피드백 업데이트 (JSONB 저장)
+     * @param params - guideId, guideFeedback 포함
      */
-    public int updateGuideFeedback(
-        @Param("guideId") Integer guideId,
-        @Param("appropriatenessScore") Integer appropriatenessScore,
-        @Param("progressPercentage") Integer progressPercentage,
-        @Param("coachingMessage") String coachingMessage,
-        @Param("suggestions") String suggestions,
-        @Param("examples") String examples,
-        @Param("nextStepGuide") String nextStepGuide
-    );
+    public int updateGuideFeedback(java.util.Map<String, Object> params);
 
      /**
      * 🔥 가이드 콘텐츠 및 진행상황 업데이트 (Map 파라미터)
