@@ -29,10 +29,4 @@ public interface ResumeDao {
 
   public String selectResumeFeedback(int resumeId);
 
-  // // 경력 수정(AI 피드백 반영)
-  // public int updateCareerinfo(
-  //   @Param("resumeId") int resumeId,
-  //   @Param("careerInfo") String careerInfoJson
-  // );
-
 }

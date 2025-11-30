@@ -8,7 +8,9 @@ import com.example.demo.resume.dto.request.ResumeCoachRequest;
 import com.example.demo.resume.dto.response.ResumeCoachResponse;
 
 import lombok.extern.slf4j.Slf4j;
-
+/*
+  이력서 실시간 코칭
+*/
 @Component
 @Slf4j
 public class ResumeCoachAgent {

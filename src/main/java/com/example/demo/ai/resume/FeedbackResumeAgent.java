@@ -15,6 +15,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
+/*
+    이력서 종합 피드백하는 에이전트
+*/
 @Component
 @Slf4j
 public class FeedbackResumeAgent {
@@ -127,35 +130,5 @@ public class FeedbackResumeAgent {
 
         return result;
     }
-
-    // 첨삭 제안 삭제해서 이제 안해도 됨
-    // // String -> JSON 파싱
-    // private ResumeReportRequest parseResumeToRequest(Resume resume) throws
-    // Exception {
-    // ResumeReportRequest req = new ResumeReportRequest();
-
-    // try {
-    // req.setEducation(mapper.readValue(resume.getEducationInfo(),
-    // new TypeReference<List<Map<String, Object>>>() {
-    // }));
-
-    // req.setCareer(mapper.readValue(resume.getCareerInfo(),
-    // new TypeReference<List<Map<String, Object>>>() {
-    // }));
-
-    // req.setSkills(mapper.readValue(resume.getSkills(),
-    // new TypeReference<List<String>>() {
-    // }));
-
-    // req.setCertificates(mapper.readValue(resume.getCertificates(),
-    // new TypeReference<List<Map<String, Object>>>() {
-    // }));
-
-    // } catch (Exception e) {
-    // throw new RuntimeException("JSON 파싱 실패", e);
-    // }
-
-    // return req;
-    // }
 
 }

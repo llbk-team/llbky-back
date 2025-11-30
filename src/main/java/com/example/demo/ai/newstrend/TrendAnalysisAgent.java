@@ -1,7 +1,5 @@
 package com.example.demo.ai.newstrend;
 
-import java.time.LocalDate;
-
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,7 +9,6 @@ import com.example.demo.member.dao.MemberDao;
 import com.example.demo.newstrend.dao.TrendInsightDao;
 import com.example.demo.newstrend.dto.response.TrendAnalyzeResponse;
 import com.example.demo.newstrend.dto.response.TrendDataContext;
-import com.example.demo.newstrend.entity.TrendInsight;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +24,6 @@ public class TrendAnalysisAgent {
   private ChatClient chatClient;
   @Autowired
   private ObjectMapper mapper;
-  @Autowired
-  private TrendInsightDao trendInsightDao;
 
   public TrendAnalysisAgent(ChatClient.Builder chatClientBuilder, TrendInsightDao trendInsightDao, MemberDao memberDao,
       WebClient.Builder webClientBuilder) {
@@ -111,7 +106,7 @@ public class TrendAnalysisAgent {
         }
 
         ==================================================
-        ■ ⛔ 계산 규칙 (절대 변경 금지)
+        ■ 계산 규칙 (절대 변경 금지)
         ==================================================
 
         ★ TrendGraph.counts 계산식
