@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.example.demo.ai.interview.AnswerFeedbackAgent;
 import com.example.demo.ai.interview.CompanySearchAgent;
 import com.example.demo.ai.interview.CreateQuestionAgent;
+import com.example.demo.ai.interview.InterviewFeedbackAgent;
 import com.example.demo.ai.interview.STTAgent;
 import com.example.demo.ai.interview.VisualAnalysisAgent;
 import com.example.demo.interview.dao.InterviewAnswerDao;
@@ -23,11 +24,15 @@ import com.example.demo.interview.dao.InterviewSessionDao;
 import com.example.demo.interview.dto.request.QuestionRequest;
 import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
+import com.example.demo.interview.dto.response.InterviewQAResponse;
+import com.example.demo.interview.dto.response.InterviewReportResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
+import com.example.demo.interview.dto.response.SessionFeedbackResponse;
 import com.example.demo.interview.dto.response.TotalQuestionResponse;
 import com.example.demo.interview.entity.InterviewAnswer;
 import com.example.demo.interview.entity.InterviewQuestion;
 import com.example.demo.interview.entity.InterviewSession;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,6 +58,12 @@ public class InterviewService {
     private AnswerFeedbackAgent answerFeedbackAgent;
     @Autowired
     private CompanySearchAgent companySearchAgent;
+    @Autowired
+    private InterviewFeedbackAgent interviewFeedbackAgent;
+
+    // ObjectMapper
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${naver.api.client-id}")
     private String clientId;
@@ -70,16 +81,74 @@ public class InterviewService {
     /*====================
       면접 세션 관련 메소드
     =====================*/
-    // 면접 세션 생성
     
+    // 면접 세션 종료 & 종합 피드백 생성====================================================================================
+    public SessionFeedbackResponse createInterviewFeedback(int sessionId) throws Exception {
+        // AI Agent 호출
+        return interviewFeedbackAgent.execute(sessionId);
+    }
     
-    // 면접 세션 종료 & 종합 피드백 생성
-    
-    
-    // 면접 목록 조회
+    // 면접 목록 조회=====================================================================================================
+    public List<InterviewSession> getInterviewSessions(int memberId) {
+        return interviewSessionDao.selectAllInterviewSessions(memberId);
+    }
+
+    // 면접 상세 조회 (리포트 상세보기)=====================================================================================
+    public InterviewReportResponse getInterviewReport(int sessionId) throws Exception {
+        
+        // 1) 세션 정보 조회
+        InterviewSession session = interviewSessionDao.selectOneInterviewSession(sessionId);
+        if (session == null) {
+            throw new RuntimeException("Interview session not found");
+        }
+
+        // 2) 종합 피드백 불러오기
+        SessionFeedbackResponse finalFeedback = null;
+
+        if (session.getReportFeedback() != null) {
+            finalFeedback = objectMapper.readValue(
+                session.getReportFeedback(),
+                SessionFeedbackResponse.class
+            );
+        }
+
+        // 3) 질문 + 답변 조회
+        List<InterviewQuestion> questions = interviewQuestionDao.selectInterviewQuestionsBySessionId(sessionId);
+        List<InterviewQAResponse> qaList = new ArrayList<>();
+
+        for (InterviewQuestion q : questions) {
+            InterviewAnswer answer = interviewAnswerDao.selectInterviewAnswerByQuestionId(q.getQuestionId());
+
+            InterviewQAResponse qaResponse = new InterviewQAResponse();
+            qaResponse.setQuestionId(q.getQuestionId());
+            qaResponse.setQuestionText(q.getQuestionText());
+            
+            if (answer != null) {
+                qaResponse.setAnswerId(answer.getAnswerId());
+                qaResponse.setAnswerText(answer.getAnswerText());
+                qaResponse.setAnswerFeedback(answer.getAnswerFeedback());
+                qaResponse.setAudioFileName(answer.getAudioFileName());
+                qaResponse.setAudioFileType(answer.getAudioFileType());
+                qaResponse.setAudioFileData(answer.getAudioFileData());
+                qaResponse.setVideoFileName(answer.getVideoFileName());
+                qaResponse.setVideoFileType(answer.getVideoFileType());
+                qaResponse.setVideoFileData(answer.getVideoFileData());
+            }
+
+            qaList.add(qaResponse);
+
+        }
+
+        InterviewReportResponse response = new InterviewReportResponse();
+        response.setSessionInfo(session);
+        response.setFinalFeedback(finalFeedback);
+        response.setQaList(qaList);
+
+        return response;
+    }
     
 
-    // 면접 세션 질문 조회
+    // 면접 세션 질문 조회=================================================================================================
     public List<TotalQuestionResponse> getSessionDetail(Integer sessionId) {
         // 질문 목록 조회
         List<InterviewQuestion> question = interviewQuestionDao.selectInterviewQuestionsBySessionId(sessionId);
@@ -135,7 +204,6 @@ public class InterviewService {
         session.setMemberId(memberId);
         session.setInterviewType(type);
         session.setTargetCompany(targetCompany);
-        session.setKeyowrds(keywords);
         if (file != null) {
             session.setDocumentFileName(file.getOriginalFilename());
             session.setDocumentFileType(file.getContentType());
