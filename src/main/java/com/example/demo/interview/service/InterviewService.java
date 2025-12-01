@@ -241,6 +241,11 @@ public class InterviewService {
 
     }
 
+    // 사용자별 질문 목록 조회========================================================================================================
+    public List<InterviewQuestion> getAllQuestionsByMemberId(int memberId) {
+        return interviewQuestionDao.selectAllInterviewQuestions(memberId);
+    }
+
     /*====================
       면접 답변 관련 메소드
     =====================*/
