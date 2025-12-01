@@ -12,5 +12,3 @@ public class InsightJson {
   private String finalSummary; // 전체 요약
   private List<WordCloudItem> wordCloud; // 단어 중요도
 }
-
-
