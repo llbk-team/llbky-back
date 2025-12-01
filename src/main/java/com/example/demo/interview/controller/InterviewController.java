@@ -19,6 +19,7 @@ import com.example.demo.interview.dto.response.SaveSessionResponse;
 import com.example.demo.interview.dto.response.SessionFeedbackResponse;
 import com.example.demo.interview.dto.response.TotalQuestionResponse;
 import com.example.demo.interview.entity.InterviewAnswer;
+import com.example.demo.interview.entity.InterviewQuestion;
 import com.example.demo.interview.entity.InterviewSession;
 import com.example.demo.interview.service.InterviewService;
 
@@ -96,6 +97,13 @@ public class InterviewController {
         List<TotalQuestionResponse> response = interviewService.getSessionDetail(sessionId);
         return ResponseEntity.ok(response);
     }
+
+    // 사용자별 질문 조회====================================================================================================================================
+    @GetMapping("/all-questions")
+    public ResponseEntity<List<InterviewQuestion>> getAllQuestions(@RequestParam("memberId") int memberId) {
+        return ResponseEntity.ok(interviewService.getAllQuestionsByMemberId(memberId));
+    }
+    
     
 
     // 답변 제출============================================================================================================================================

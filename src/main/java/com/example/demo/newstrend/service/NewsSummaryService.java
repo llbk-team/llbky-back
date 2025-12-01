@@ -1,11 +1,9 @@
 package com.example.demo.newstrend.service;
 
-import java.rmi.registry.LocateRegistry;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.scheduling.quartz.LocalDataSourceJobStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
 //중복 체크, 분석 응답 파싱용
 
 @Service
@@ -30,8 +27,7 @@ public class NewsSummaryService {
     
     private final NewsSummaryDao newsSummaryDao;
     private final ObjectMapper objectMapper;
-    private final NewsCollectorService newsCollectorService;
-    
+   
     /**
      * 뉴스 저장
      * @param newsSummary 저장할 뉴스 엔티티
@@ -58,6 +54,7 @@ public class NewsSummaryService {
         
         return newsSummary;
     }
+
     //1.오늘 날짜 뉴스 조회 없으면 자동수집
     @Transactional
     public List<NewsAnalysisResponse> getTodayNewsByMember(int memberId, int limit) throws Exception{
@@ -73,32 +70,17 @@ public class NewsSummaryService {
             }
             return responses;
         }
-        // 3. 오늘 데이터 없으면 자동 수집
-        log.info("오늘 뉴스 데이터 없음-자동 수집 시작");
-        int analyzed= newsCollectorService.collectAndAnalyzeNews(null,memberId);
-        log.info("자동 수집 완료 - {}건 분석됨", analyzed);
-        todayNews= newsSummaryDao.selectNewsByMemberAndDate(memberId, today, limit);
-        
-         // 4. 수집 후 다시 조회
-        todayNews = newsSummaryDao.selectNewsByMemberAndDate(memberId, today, limit);
-        List<NewsAnalysisResponse> responses = new ArrayList<>();
-        for (NewsSummary summary : todayNews) {
-            responses.add(convertToResponse(summary));
-        }
-        return responses;
-    
+        //데이터 없을때 빈값만 리턴함
+          List<NewsAnalysisResponse> responses= new ArrayList<>();
+          return responses;
+       
     }
 
-    /**
-     * URL 중복 체크
-     * @param sourceUrl 체크할 뉴스 URL
-     * @return 중복 여부
-     */
     public boolean existsByUrl(String sourceUrl) {
-        NewsSummary existing = newsSummaryDao.selectNewsSummaryBySourceUrl(sourceUrl);
-        return existing != null;
+        return newsSummaryDao.selectNewsSummaryBySourceUrl(sourceUrl) != null;
     }
     
+
     /**
      * 특정 회원의 최신 뉴스 조회
      * @param memberId 회원 ID
@@ -148,34 +130,65 @@ public class NewsSummaryService {
 
         return responses;
     }
+    //summaryId로 단일 뉴스 조회 (상세보기용)
+    
+    public NewsAnalysisResponse getNewsBySummaryId(int summaryId) 
+                throws com.fasterxml.jackson.core.JsonProcessingException {
+            log.info("단일 뉴스 조회 - summaryId: {}", summaryId);
+            
+            NewsSummary summary = newsSummaryDao.selectNewsSummaryById(summaryId);
+            
+            if (summary == null) {
+                log.warn("존재하지 않는 뉴스 - summaryId: {}", summaryId);
+                return null;
+            }
+            
+            NewsAnalysisResponse response = convertToResponse(summary);
+            log.info("단일 뉴스 조회 완료 - summaryId: {}", summaryId);
+            
+            return response;
+        }
+
 
     
     /**
-     * ✅ Entity -> Response 변환 (analysisMap 없이 DTO 직접 변환)
+     * ✅ Entity -> Response 변환 (analysisMap 없이 DTO 직접 변환) - 버그 수정
      * @param summary 뉴스 엔티티
      * @return 뉴스 분석 응답 DTO
      * @throws com.fasterxml.jackson.core.JsonProcessingException JSON 파싱 실패 시
+     * 
      */
     private NewsAnalysisResponse convertToResponse(NewsSummary summary) 
             throws com.fasterxml.jackson.core.JsonProcessingException {
+
+        // 기본값 설정
+        NewsSummaryResponse defaultAnalysis = new NewsSummaryResponse();
+        defaultAnalysis.setSentiment("중립");
+        defaultAnalysis.setTrustScore(50);
+        defaultAnalysis.setBiasDetected(false);
+        defaultAnalysis.setBiasType("없음");
+        defaultAnalysis.setCategory("일반");        
+        
         log.debug("Response 변환 시작 - summaryId: {}", summary.getSummaryId());
         
-        // ✅ JSONB에서 DTO로 직접 변환 (analysisMap 사용 안함)
-        NewsSummaryResponse analysisData = objectMapper.readValue(
-            summary.getAnalysisJson(), 
-            NewsSummaryResponse.class
-        );
+        // ✅ 분석 데이터 변환
+        NewsSummaryResponse analysisData;
+        if(summary.getAnalysisJson() != null && !summary.getAnalysisJson().trim().isEmpty()) {
+            analysisData = objectMapper.readValue(summary.getAnalysisJson(), NewsSummaryResponse.class);
+        } else {
+            analysisData = defaultAnalysis;
+        }
+       
+        // ✅ 키워드 데이터 변환 (별도 변수 사용)
+        List<NewsKeywordResponse> keywords = new ArrayList<>();
+        if(summary.getKeywordsJson() != null && !summary.getKeywordsJson().trim().isEmpty()) {
+            keywords = objectMapper.readValue(
+                summary.getKeywordsJson(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, NewsKeywordResponse.class)
+            );
+        }
         
-        // ✅ 키워드도 NewsKeywordResponse 리스트로 직접 변환
-        List<NewsKeywordResponse> keywords = objectMapper.readValue(
-            summary.getKeywordsJson(),
-            objectMapper.getTypeFactory().constructCollectionType(
-                List.class, 
-                NewsKeywordResponse.class
-            )
-        );
-        
-        // ✅ Response 객체 생성 - 간단하게 직접 설정
+        // ✅ Response 객체 생성
         NewsAnalysisResponse response = new NewsAnalysisResponse();
         
         // 기본 정보
@@ -187,14 +200,14 @@ public class NewsSummaryService {
         response.setSummaryText(summary.getSummaryText());
         response.setDetailSummary(summary.getDetailSummary());
         
-        // ✅ 분석 결과 - NewsSummaryResponse에서 직접 가져오기
+        // ✅ 분석 결과
         response.setSentiment(analysisData.getSentiment());
         response.setTrustScore(analysisData.getTrustScore());
         response.setBiasDetected(analysisData.getBiasDetected());
         response.setBiasType(analysisData.getBiasType());
         response.setCategory(analysisData.getCategory());
         
-        // ✅ 키워드 - NewsKeywordResponse 리스트 그대로 사용
+        // ✅ 키워드
         response.setKeywords(keywords);
         
         response.setCreatedAt(summary.getCreatedAt());

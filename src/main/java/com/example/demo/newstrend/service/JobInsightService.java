@@ -1,0 +1,38 @@
+package com.example.demo.newstrend.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.ai.newstrend.JobRelatedInsightAgent;
+import com.example.demo.newstrend.dao.JobInsightDao;
+import com.example.demo.newstrend.dto.response.JobInsightListResponse;
+import com.example.demo.newstrend.entity.JobInsight;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@Slf4j
+public class JobInsightService {
+  @Autowired
+  private JobRelatedInsightAgent jobRelatedInsightAgent;
+  @Autowired
+  private JobInsightDao jobInsightDao;
+  @Autowired
+  private ObjectMapper mapper;
+
+  public JobInsight createJobInsight(int memberId) throws Exception {
+    // 직무 인사이트 카드 생성하는 에이전트 호출
+    JobInsightListResponse cards = jobRelatedInsightAgent.relatedJobs(memberId);
+
+    // DB 저장
+    JobInsight entity = new JobInsight();
+    entity.setMemberId(memberId);
+    entity.setAnalysisJson("{}"); // 아직 미구현
+    entity.setRelatedJobsJson(mapper.writeValueAsString(cards));
+
+    jobInsightDao.insertJobInsight(entity);
+
+    return entity;
+  }
+}

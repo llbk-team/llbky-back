@@ -26,12 +26,13 @@
 
   <!-- 면접 질문 목록 조회 -->
   <select id="selectAllInterviewQuestions" resultType="com.example.demo.interview.entity.InterviewQuestion">
-    SELECT question_id, 
-           session_id, 
-           question_text, 
-           created_at
+    SELECT q.question_id, 
+           q.session_id, 
+           q.question_text, 
+           q.created_at
     FROM interview_question q
-    JOIN interview_session s ON q.session_id = s.session_id
+    JOIN interview_session s 
+      ON q.session_id = s.session_id
     WHERE s.member_id = #{memberId}
     ORDER BY q.created_at DESC
   </select>
