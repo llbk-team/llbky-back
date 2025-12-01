@@ -6,9 +6,9 @@ import lombok.Data;
 
 @Data
 // 학습 플랜 생성 응답 - 주차별
-public class LearningWeekResponse {
+public class AiCreateWeekResponse {
   private String title;
   private String goal;
   private String learningWeekSummary;
-  private List<LearningDayResponse> days;
+  private List<AiCreateDayResponse> days;
 }

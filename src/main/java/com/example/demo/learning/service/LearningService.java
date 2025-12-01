@@ -5,7 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.ai.learning.CreateRoadmapAgent;
 import com.example.demo.learning.dao.LearningDao;
+import com.example.demo.learning.dto.request.RoadmapRequest;
+import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.entity.Learning;
 
 @Service
@@ -14,9 +17,19 @@ public class LearningService {
     @Autowired
     private LearningDao learningDao;
 
+    @Autowired
+    private CreateRoadmapAgent createRoadmapAgent;
+
     // 학습 로드맵 생성
-    public int createLearning(Learning learning) {
-        return learningDao.insert(learning);
+    public AiCreateRoadmapResponse createLearning(Integer memberId, String jobRole, List<String> purposes, List<String> skills, int studyHours) {
+        RoadmapRequest request = new RoadmapRequest();
+        request.setMemberId(memberId);
+        request.setJobRole(jobRole);
+        request.setPurposes(purposes);
+        request.setSkills(skills);
+        request.setStudyHours(studyHours);
+        
+        return createRoadmapAgent.generateRoadmap(request);
     }
 
     // 학습 ID로 상세 조회
