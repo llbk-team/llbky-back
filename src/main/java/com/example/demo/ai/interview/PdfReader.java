@@ -4,6 +4,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Component;
 
+// PDF 파일의 텍스트 읽기
 @Component
 public class PdfReader {
 
