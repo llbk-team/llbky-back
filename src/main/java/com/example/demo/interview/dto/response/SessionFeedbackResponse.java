@@ -2,7 +2,7 @@ package com.example.demo.interview.dto.response;
 
 import lombok.Data;
 
-// AI 종합 피드백 구조
+// 면접 종료 후 AI 종합 피드백 구조
 @Data
 public class SessionFeedbackResponse {
   private int languageScore;  //언어 점수

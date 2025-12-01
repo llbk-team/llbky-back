@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,10 +14,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
+import com.example.demo.interview.dto.response.InterviewReportResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
+import com.example.demo.interview.dto.response.SessionFeedbackResponse;
 import com.example.demo.interview.dto.response.TotalQuestionResponse;
 import com.example.demo.interview.entity.InterviewAnswer;
+import com.example.demo.interview.entity.InterviewSession;
 import com.example.demo.interview.service.InterviewService;
+
 
 @RestController
 @RequestMapping("/interview")
@@ -27,6 +30,27 @@ public class InterviewController {
     // Service
     @Autowired
     private InterviewService interviewService;
+
+    // 면접 세션 종료 & 종합 피드백 생성========================================================================================================================
+    @PostMapping("/final-feedback")
+    public ResponseEntity<SessionFeedbackResponse> createInterviewFinalFeedback(@RequestParam("sessionId") int sessionId) throws Exception {
+        return ResponseEntity.ok(interviewService.createInterviewFeedback(sessionId));
+    }
+    
+
+    // 면접 목록 조회==========================================================================================================================================
+    @GetMapping("/list")
+    public ResponseEntity<List<InterviewSession>> getInterviewList(@RequestParam("memberId") int memberId) {
+        List<InterviewSession> list = interviewService.getInterviewSessions(memberId);
+        return ResponseEntity.ok(list);
+    }
+
+    // 면접 상세 조회 (리포트 상세보기)==========================================================================================================================
+    @GetMapping("/report")
+    public ResponseEntity<InterviewReportResponse> getInterviewDetail(@RequestParam("sessionId") int sessionId) throws Exception {
+        return ResponseEntity.ok(interviewService.getInterviewReport(sessionId));
+    }
+    
 
     // AI 질문 생성============================================================================================================================================
     @PostMapping("/ai-questions")
@@ -82,8 +106,7 @@ public class InterviewController {
     public ResponseEntity<Integer> submitAnswer(
         @RequestParam("questionId") int questionId,
         @RequestParam(value = "audio", required = false) MultipartFile audio,
-        @RequestParam(value = "video", required = false) MultipartFile video,
-        @RequestParam(value = "frames", required = false) List<MultipartFile> frames
+        @RequestParam(value = "video", required = false) MultipartFile video
     ) throws Exception {
 
         return ResponseEntity.ok(interviewService.createInterviewAnswer(questionId, audio, video));        
@@ -97,8 +120,7 @@ public class InterviewController {
     public ResponseEntity<Integer> reSubmitAnswer(
         @RequestParam("answerId") int answerId,
         @RequestParam(value = "audio", required = false) MultipartFile audio,
-        @RequestParam(value = "video", required = false) MultipartFile video,
-        @RequestParam(value = "frames", required = false) List<MultipartFile> frames
+        @RequestParam(value = "video", required = false) MultipartFile video
     ) throws Exception {
 
         return ResponseEntity.ok(interviewService.modifyInterviewAnswer(answerId, audio, video));        
