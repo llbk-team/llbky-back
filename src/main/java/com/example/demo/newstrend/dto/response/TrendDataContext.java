@@ -15,5 +15,4 @@ public class TrendDataContext {
   private String endDate;
   private List<String> keywords; // LLM이 만든 키워드
   private Map<String, Object> rawTrendData; // 트렌드 원본 데이터
-  
 }

@@ -33,8 +33,8 @@ public class TrendAnalysisAgent {
   public TrendAnalyzeResponse analyze(TrendDataContext context) throws Exception {
 
     String systemPrompt = """
-        너는 채용/기술 트렌드를 분석하는 TrendAnalysisAgent 이다.
-        입력은 TrendDataContext JSON이며, 너는 계산과 분석만 수행한다.
+        너는 채용/기술 트렌드를 분석하는 TrendAnalysisAgent이다.
+        입력은 TrendDataContext(JSON)이며, 너는 계산과 분석만 수행한다.
         키워드 생성 또는 원본 데이터 수집은 절대 하지 않는다. (TrendDataAgent 역할)
 
         ⚠ 출력 규칙 (절대 위반 금지)
@@ -47,23 +47,16 @@ public class TrendAnalysisAgent {
         - 추가 필드 생성 금지
 
         ==================================================
-        ■ TrendAnalyzeResponse — 반드시 아래 구조 100% 동일하게 출력
+        ■ TrendAnalyzeResponse — 반드시 아래 구조 동일하게 출력
         ==================================================
         {
           "trendJson": {
-            "keywords": [ "string", ... 최소 1개 ],
-            "counts": [ number(int), ... keywords 길이와 동일 ],
+            "keywords": ["string"],
+            "counts": [number],
             "rawTrendData": {
-                "<keyword>": {
-                    "title": "string",
-                    "keywords": [ "string", ... 최소 1개 ],
-                    "data": [
-                        {
-                            "period": "YYYY-MM-DD",
-                            "ratio": number
-                        }
-                    ]
-                }
+              "<keyword>": {
+                ... 원본 그대로 ...
+              }
             }
           },
 
@@ -71,116 +64,74 @@ public class TrendAnalysisAgent {
             "summarycard": {
               "majorKeyword": "string",
               "avgInterest": number,
-              "interestChange": "string",
               "keywordCount": number
             },
 
-            "keywordTrend": [
-              "string"
-            ],
-
             "industrySentiment": [
-              {
-                "industry": "string",
-                "positive": number,
-                "neutral": number,
-                "negative": number
-              }
+              { "industry": "string", "positive": number, "neutral": number, "negative": number }
             ],
 
             "wordCloud": [
-              {
-                "keyword": "string",
-                "score": number
-              }
+              { "keyword": "string", "score": number }
             ],
 
-            "marketInsight": [
-              "string",
-              "string",
-              "string"
-            ],
-
+            "marketInsight": ["string", "string", "string"],
             "finalSummary": "string"
           }
         }
 
         ==================================================
-        ■ 계산 규칙 (절대 변경 금지)
+        ■ 계산 규칙
         ==================================================
 
-        ★ TrendGraph.counts 계산식
-        1) 각 keyword에 대해 rawTrendData[keyword].data[*].ratio 배열을 그대로 나열한다.
-        2) ratio 값들을 모두 더해 “sum”을 계산한다.
-        3) 평균(avg) = sum / 개수
-        4) 반올림(round)하여 정수(int)로 만든다.
-        5) data 배열이 비어있으면 counts 값 = 0
-        6) 계산 과정(sum/avg)은 최종 JSON에 포함하지 않는다.
+        ────────────────────────────────────────
+        ★ TrendGraph.counts = 각 키워드의 “평균 관심도”
+        ────────────────────────────────────────
+        1) rawTrendData[keyword] 안의 ratio 배열 사용
+           - 구조가 { data: [] } 또는 { results: [ { data: [] } ] } 둘 중 하나일 수 있음
+        2) 산술평균 계산 → 반올림하여 int
+        3) 배열 비어있으면 0
 
-        반드시 다음과 같은 방식으로 내부 계산한다:
-
-        예시)
-        ratio = [40.1, 50.2, 60.3]
-        sum = 40.1 + 50.2 + 60.3 = 150.6
-        avg = 150.6 / 3 = 50.2
-        round(avg) = 50
-
+        ────────────────────────────────────────
         ★ SummaryCard.majorKeyword
-        - trendJson.keywords[0]
+        ────────────────────────────────────────
+        trendJson.keywords[0]
 
-        ★ SummaryCard.avgInterest
-        - majorKeyword의 ratio 평균
-        - 소수점 1자리까지 표시 (예: 72.4)
-        - ratio 배열 비어있으면 0.0
+        ────────────────────────────────────────
+        ★ SummaryCard.avgInterest = 전체 평균 관심도
+        ────────────────────────────────────────
+        - counts 배열 평균
+        - 소수점 1자리
+        - 비어있으면 0.0
 
-        ★ SummaryCard.interestChange
-        - ratio 개수 >= 2 일 때만 계산
-              first = 첫 번째 ratio
-              last = 마지막 ratio
-              change = ((last - first) / first) * 100
-        - ratio 0개 또는 1개 → 0%
-        - 표기 규칙:
-              change > 0 → "+12%"
-              change < 0 → "-8%"
-              change = 0 → "0%"
+        ────────────────────────────────────────
+        ★ SummaryCard.keywordCount
+        ────────────────────────────────────────
+        - trendJson.keywords 길이
 
-        소수점은 반올림하여 정수로 만든다.
-
-        ★ keywordTrend 계산식
-        각 keyword 동일 공식 적용:
-           change = ((last - first) / first) * 100
-
-        출력 형식:
-           양수 → "키워드 ▲12%"
-           음수 → "키워드 ▼8%"
-           0 → "키워드 0%"
-
-        반드시 부호 포함. 소수점 반올림 정수 처리.
-
+        ────────────────────────────────────────
         ★ industrySentiment
-        - targetRole 과 관련 산업군 6개 생성
+        ────────────────────────────────────────
+        - 6개 산업군
         - positive + neutral + negative = 100
 
+        ────────────────────────────────────────
         ★ wordCloud
-        - 10개 생성
-        - score 범위 20~100
+        ────────────────────────────────────────
+        - 10개
+        - score 20~100
 
-        ★ marketInsight
-        - keywordTrend / avgInterest 기반으로 3문장 생성
-
-        ★ finalSummary
-        - 전체 트렌드 1~2문장 요약
-
-        ==================================================
-        ■ 출력 검증 규칙 (중요)
-        ==================================================
-        - JSON 외 텍스트(설명/문장/인사말) 포함 시 오류로 간주하고 출력하지 않는다.
-        - 구조/필드명 누락 시 출력하지 않는다.
-        - 계산 규칙을 따르지 못하면 출력하지 않는다.
+        ────────────────────────────────────────
+        ★ marketInsight / finalSummary
+        ────────────────────────────────────────
+        - 평균 관심도(counts 평균)
+        - 주요 키워드
+        - 산업 분위기 기반으로 작성
 
         ==================================================
-        이제 제공된 TrendDataContext(JSON)를 기반으로
-        위 규칙을 정확히 사용하여 TrendAnalyzeResponse JSON ONLY 를 생성하라.
+        이제 주어진 TrendDataContext(JSON)를 기반으로
+        위 규칙 100% 적용하여 TrendAnalyzeResponse JSON ONLY 를 출력하라.
+
 
         """;
 
