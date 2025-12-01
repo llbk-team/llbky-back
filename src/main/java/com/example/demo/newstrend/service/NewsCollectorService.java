@@ -4,8 +4,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -181,6 +183,61 @@ public class NewsCollectorService {
                 uniqueNewsMap.size() + filteredCount, filteredCount, collectedNews.size(), errorCount);
 
         return collectedNews;
+    }
+
+    /**
+     * 키워드 리스트로 네이버 뉴스 검색 (단순 검색, 저장 안함)
+     * 
+     * @param keywords 검색할 키워드 리스트
+     * @param limitPerKeyword 각 키워드당 가져올 기사 수
+     * @return 기사 제목, URL, 설명이 담긴 리스트
+     */
+    public List<Map<String, String>> searchNewsByKeywords(List<String> keywords, int limitPerKeyword) {
+        
+        log.info("키워드 기반 뉴스 검색 시작 - 키워드: {}, limit: {}", keywords, limitPerKeyword);
+        
+        List<Map<String, String>> results = new ArrayList<>();
+        Set<String> addedUrls = new HashSet<>();  // 중복 URL 방지
+        
+        for (String keyword : keywords) {
+            try {
+                // 네이버 API 호출
+                String naverResponse = getNaverNews(keyword);
+                
+                // JSON 파싱
+                JSONObject json = new JSONObject(naverResponse);
+                JSONArray items = json.getJSONArray("items");
+                
+                int added = 0;
+                for (int i = 0; i < items.length() && added < limitPerKeyword; i++) {
+                    JSONObject item = items.getJSONObject(i);
+                    
+                    String url = item.optString("link", "");
+                    
+                    // 중복 URL 체크
+                    if (!addedUrls.contains(url)) {
+                        Map<String, String> article = new HashMap<>();
+                        article.put("title", cleanHtml(item.optString("title", "")));
+                        article.put("description", cleanHtml(item.optString("description", "")));
+                        article.put("url", url);
+                        article.put("keyword", keyword);  // 어떤 키워드로 검색됐는지
+                        
+                        results.add(article);
+                        addedUrls.add(url);
+                        added++;
+                    }
+                }
+                
+                // API 호출 제한
+                Thread.sleep(500);
+                
+            } catch (Exception e) {
+                log.warn("키워드 '{}' 검색 실패", keyword, e);
+            }
+        }
+        
+        log.info("키워드 기반 뉴스 검색 완료 - {}건 반환", results.size());
+        return results;
     }
 
     /**

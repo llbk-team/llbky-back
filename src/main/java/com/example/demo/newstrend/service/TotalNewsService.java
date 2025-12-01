@@ -2,6 +2,7 @@ package com.example.demo.newstrend.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -201,6 +202,17 @@ public class TotalNewsService {
       
       log.info("뉴스 검색 완료 - {}건 분석됨", analyzed);
       return analyzed;
+  }
+
+  /**
+   * 키워드 리스트로 네이버 뉴스 검색 (단순 검색, 저장 안함)
+   * 
+   * @param keywords 검색할 키워드 리스트
+   * @param limitPerKeyword 각 키워드당 가져올 기사 수
+   * @return 기사 제목, URL, 설명이 담긴 리스트
+   */
+  public List<Map<String, String>> searchNewsByKeywords(List<String> keywords, int limitPerKeyword) {
+      return newsCollectorService.searchNewsByKeywords(keywords, limitPerKeyword);
   }
 
   /**
