@@ -19,9 +19,11 @@ import com.example.demo.ai.newstrend.NewsAnalysisAgent;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
+import com.example.demo.newstrend.dto.response.NewsAnalysisResult;
 import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
 import com.example.demo.newstrend.dto.response.NewsSummaryResponse;
 import com.example.demo.newstrend.entity.NewsSummary;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -63,16 +65,16 @@ public class NewsAIService {
     }
     
     /**
-     * 뉴스 분석 및 저장 (AI Agent 활용)
+     * 뉴스 분석  (AI Agent 활용)
      * @param request 뉴스 분석 요청 (제목, 본문, URL 등)
      * @return 분석된 뉴스 응답 (요약, 감정, 신뢰도, 키워드 등)
      * @throws Exception AI 호출 실패 또는 JSON 변환 실패 시
      */
     @Transactional
-    public NewsAnalysisResponse analyzeAndSaveNews(NewsAnalysisRequest request) throws Exception {
+    public NewsAnalysisResult analyzeNews(NewsAnalysisRequest request) throws Exception {
         log.info("뉴스 분석 및 저장 시작 - 제목: {}", request.getTitle());
 
-        // 0. 원문 확보 (짧으면 웹 스크래핑)
+          // 0. 원문 확보 (짧으면 웹 스크래핑)
         String fullContent = request.getContent();
         if (fullContent == null || fullContent.length() < 200) {
             log.info("짧은 content 감지, 웹 스크래핑 시도: {}", request.getSourceUrl());
@@ -82,20 +84,20 @@ public class NewsAIService {
             }
         }
 
-        // 1. AI Agent: 뉴스 분석 (요약, 감정, 신뢰도, 편향, 카테고리)
+        // 2. AI Agent: 뉴스 분석 (요약, 감정, 신뢰도, 편향, 카테고리)
         log.debug("Step 1: 뉴스 분석 Agent 호출");
         NewsSummaryResponse analysis = analysisAgent.analyzeNews(request.getTitle(),fullContent);
         log.info("뉴스 분석 완료 - 감정: {}, 신뢰도: {}, 편향: {}",
             analysis.getSentiment(), analysis.getTrustScore(), analysis.getBiasDetected());
 
-        // 2. AI Agent: 키워드 추출
+        // 3. AI Agent: 키워드 추출
         log.debug("Step 2: 키워드 추출 Agent 호출");
         List<NewsKeywordResponse> keywords = keywordAgent.extractKeywords(
             analysis.getSummary()
         );
         log.info("키워드 추출 완료 - 추출된 키워드 수: {}", keywords.size());
 
-        // 3. AI Agent: 편향 감지시 중립화
+        // 4. AI Agent: 편향 감지시 중립화
         String finalSummary = analysis.getSummary();
         if (Boolean.TRUE.equals(analysis.getBiasDetected())) {
             log.debug("Step 3: 편향 감지됨 - 중립화 Agent 호출");
@@ -105,36 +107,15 @@ public class NewsAIService {
             log.debug("Step 3: 편향 미감지 - 중립화 스킵");
         }
 
-        // 4. DB 저장: Entity 생성 및 저장
-        log.debug("Step 4: 뉴스 엔티티 생성 및 저장");
-        NewsSummary entity = new NewsSummary();
-        entity.setMemberId( 1);
-        entity.setTitle(request.getTitle());
-        entity.setSourceName(request.getSourceName());
-        entity.setSourceUrl(request.getSourceUrl());
-        entity.setPublishedAt(LocalDate.now());
-        entity.setSummaryText(finalSummary);
-        entity.setDetailSummary(analysis.getDetailSummary());
-        entity.setAnalysisJson(objectMapper.writeValueAsString(analysis));
-        entity.setKeywordsJson(objectMapper.writeValueAsString(keywords));
+       
 
-        // URL 중복 체크
-        NewsSummary existing = newsSummaryDao.selectNewsSummaryBySourceUrl(entity.getSourceUrl());
-        if (existing != null) {
-            log.info("이미 존재하는 뉴스 URL: {}", entity.getSourceUrl());
-            return createResponse(existing, analysis, keywords);
-        }
-
-        // 저장
-        newsSummaryDao.insertNewsSummary(entity);
-        log.info("뉴스 저장 완료 - summaryId: {}", entity.getSummaryId());
-
-        // 5. Response 생성 및 반환
-        log.debug("Step 5: Response 객체 생성");
-        NewsAnalysisResponse response = createResponse(entity, analysis, keywords);
-
-        log.info("뉴스 분석 및 저장 완료 - summaryId: {}", response.getSummaryId());
-        return response;
+        // 5. 분석 결과 반환 (저장 안함)
+        return NewsAnalysisResult.builder()
+            .originalContent(fullContent)
+            .analysis(analysis)
+            .keywords(keywords)
+            .finalSummary(finalSummary)
+            .build();
     }
     
     /**
@@ -144,7 +125,10 @@ public class NewsAIService {
      * @param keywords 추출된 키워드 리스트
      * @return 뉴스 분석 응답 DTO
      */
-        private NewsAnalysisResponse createResponse(
+
+
+
+ private NewsAnalysisResponse createResponse(
             NewsSummary saved,
             NewsSummaryResponse analysis,
             List<NewsKeywordResponse> keywords) {
@@ -218,17 +202,7 @@ public class NewsAIService {
 
     // ===== CRUD / 조회 헬퍼 메서드 =====
 
-    public boolean existsByUrl(String sourceUrl) {
-        return newsSummaryDao.selectNewsSummaryBySourceUrl(sourceUrl) != null;
-    }
-
-    public NewsSummary getNewsById(int summaryId) {
-        return newsSummaryDao.selectNewsSummaryById(summaryId);
-    }
-
-    public int deleteNewsSummary(int summaryId) {
-        return newsSummaryDao.deleteNewsSummary(summaryId);
-    }
+  
 
     public List<NewsAnalysisResponse> getLatestNewsByMember(int memberId, int limit) throws com.fasterxml.jackson.core.JsonProcessingException {
         List<NewsSummary> summaries = newsSummaryDao.selectLatestNewsByMemberId(memberId, limit);
@@ -251,6 +225,7 @@ public class NewsAIService {
         }
         return responses;
     }
+
 
     private NewsAnalysisResponse convertEntityToResponse(NewsSummary summary) throws com.fasterxml.jackson.core.JsonProcessingException {
         NewsSummaryResponse analysisData = objectMapper.readValue(summary.getAnalysisJson(), NewsSummaryResponse.class);

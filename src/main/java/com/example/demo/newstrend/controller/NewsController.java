@@ -1,6 +1,7 @@
 package com.example.demo.newstrend.controller;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,10 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
-import com.example.demo.newstrend.service.NewsAIService;
-import com.example.demo.newstrend.service.NewsCollectorService;
 import com.example.demo.newstrend.service.NewsSummaryService;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.example.demo.newstrend.service.TotalNewsService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,30 +32,59 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NewsController {
     
-  @Autowired
-  private  NewsAIService newsAIService;
-  @Autowired
-  private  NewsSummaryService newsSummaryService;
-  @Autowired
-  private  NewsCollectorService newsCollectorService;
+
+    @Autowired
+    private TotalNewsService totalNewsService;
+    
+    @Autowired
+    private NewsSummaryService newsSummaryService;
     
     /**
-     * 네이버 뉴스 검색
+     * 네이버 뉴스 검색 및 수집
      * 
-     * GET /news/search?keyword=AI
+     * GET /trend/news/search?keywords=AI&keywords=채용&memberId=1
      * 
-     * @param keyword 검색 키워드
-     * @return 네이버 뉴스 검색 결과 (JSON)
+     * @param keywords 검색 키워드 리스트
+     * @param memberId 회원 ID
+     * @return 수집 결과
      */
     @GetMapping("/search")
-    public String searchNews(@RequestParam String keyword) {
-        log.info("네이버 뉴스 검색 요청 - 키워드: {}", keyword);
+    public ResponseEntity<Map<String, Object>> searchNews(
+            @RequestParam(name = "keywords", required = false) List<String> keywords,
+            @RequestParam(name = "memberId", required = false) Integer memberId) {
         
-        String naverResult = newsCollectorService.getNaverNews(keyword);
+        log.info("네이버 뉴스 검색 요청 - 키워드: {}, memberId: {}", keywords, memberId);
         
-        log.info("네이버 뉴스 검색 완료 - 키워드: {}", keyword);
+        if (keywords == null || keywords.isEmpty()) {
+            Map<String, Object> bad = new HashMap<>();
+            bad.put("status", "error");
+            bad.put("message", "쿼리 파라미터 'keywords'를 하나 이상 전달해야 합니다.");
+            bad.put("analyzed", 0);
+            return ResponseEntity.badRequest().body(bad);
+        }
         
-        return naverResult;
+        try {
+            int analyzed = totalNewsService.searchNews(keywords, memberId);
+            
+            List<NewsAnalysisResponse> newsList = newsSummaryService.getTodayNewsByMember(memberId, 10);
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("status", "success");
+            resp.put("message", "뉴스 검색/수집 완료");
+            resp.put("analyzed", analyzed);
+            resp.put("data", newsList); 
+            
+            log.info("네이버 뉴스 검색 완료 - analyzed: {}", analyzed);
+            return ResponseEntity.ok(resp);
+            
+        } catch (Exception e) {
+            log.error("뉴스 검색 실패 - keywords: {}, memberId: {}", keywords, memberId, e);
+            Map<String, Object> err = new HashMap<>();
+            err.put("status", "error");
+            err.put("message", "뉴스 수집 중 오류가 발생했습니다: " + e.getMessage());
+            err.put("analyzed", 0);
+            return ResponseEntity.status(500).body(err);
+        }
     }
     
     /**
@@ -81,7 +109,7 @@ public class NewsController {
             throws Exception {
         log.info("뉴스 분석 요청 - 제목: {}", request.getTitle());
         
-        NewsAnalysisResponse response = newsAIService.analyzeAndSaveNews(request);
+        NewsAnalysisResponse response = totalNewsService.analyzeAndSaveNews(request);
         
         log.info("뉴스 분석 완료 - summaryId: {}, 감정: {}, 신뢰도: {}", 
             response.getSummaryId(), 
@@ -92,33 +120,191 @@ public class NewsController {
     }
     
     /**
-     * 저장된 뉴스 조회 (회원별)
+     * 오늘 뉴스 조회 (자동 수집 포함)
      * 
-     * GET /news/member/{memberId}?limit=10
+     * GET /trend/news/member/{memberId}/today?limit=6
+     * 
+     * @param memberId 회원 ID
+     * @param limit 조회 개수 (기본값: 6)
+     * @return 오늘의 뉴스 분석 결과 리스트 (6개)
+     */
+    @GetMapping("/member/{memberId}/today")
+    public ResponseEntity<Map<String, Object>> getTodayNewsSummary(
+            @PathVariable int memberId,
+            @RequestParam(defaultValue = "6") int limit) {
+        
+        log.info("오늘 뉴스 요약 조회 요청 - memberId: {}, limit: {}", memberId, limit);
+        
+        try {
+            // TotalNewsService에서 자동 수집 로직 포함하여 처리
+            List<NewsAnalysisResponse> newsList = totalNewsService.getTodayNewsByMember(memberId, limit);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "오늘 뉴스 조회 완료");
+            response.put("data", newsList);
+            response.put("totalCount", newsList != null ? newsList.size() : 0);
+            
+            log.info("오늘 뉴스 요약 조회 완료 - {}건 반환", 
+                newsList != null ? newsList.size() : 0);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("뉴스 요약 조회 실패 - memberId: {}", memberId, e);
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "뉴스 조회 중 오류가 발생했습니다: " + e.getMessage());
+            errorResponse.put("data", List.of());
+            errorResponse.put("totalCount", 0);
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * 뉴스 상세보기
+     * 
+     * GET /trend/news/detail/{summaryId}
+     * 
+     * @param summaryId 뉴스 요약 ID
+     * @return 뉴스 상세 분석 정보
+     */
+    @GetMapping("/detail/{summaryId}")
+    public ResponseEntity<Map<String, Object>> getNewsDetail(@PathVariable int summaryId) {
+
+        log.info("뉴스 상세보기 요청 - summaryId: {}", summaryId);
+
+        try {
+            NewsAnalysisResponse news = newsSummaryService.getNewsBySummaryId(summaryId);
+
+            if (news == null) {
+                log.warn("존재하지 않는 뉴스 ID - summaryId: {}", summaryId);
+                Map<String, Object> notFound = new HashMap<>();
+                notFound.put("status", "error");
+                notFound.put("message", "해당 ID의 뉴스가 존재하지 않습니다.");
+                notFound.put("data", null);
+                return ResponseEntity.status(404).body(notFound);
+            }
+
+            // 상세 정보를 위한 데이터 재구성 (표시 순서대로 정리)
+            Map<String, Object> detailData = new HashMap<>();
+            detailData.put("summaryId", news.getSummaryId());
+            detailData.put("sentiment", news.getSentiment());
+            detailData.put("trustScore", news.getTrustScore());
+            detailData.put("title", news.getTitle());
+            detailData.put("sourceName", news.getSourceName());
+            detailData.put("sourceUrl", news.getSourceUrl());
+            detailData.put("publishedAt", news.getPublishedAt());
+            detailData.put("detailSummary", news.getDetailSummary());
+            detailData.put("summaryText", news.getSummaryText());
+            detailData.put("keywords", news.getKeywords());
+            detailData.put("biasDetected", news.getBiasDetected());
+            detailData.put("biasType", news.getBiasType());
+            detailData.put("category", news.getCategory());
+            detailData.put("createdAt", news.getCreatedAt());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "뉴스 상세 정보 조회 완료");
+            response.put("data", detailData);
+
+            log.info("뉴스 상세 조회 완료 - summaryId: {}, 제목: {}", summaryId, news.getTitle());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("뉴스 상세보기 실패 - summaryId: {}", summaryId, e);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "뉴스 상세 조회 중 오류가 발생했습니다: " + e.getMessage());
+            errorResponse.put("data", null);
+
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * 회원별 최신 뉴스 조회 (전체 기간)
+     * 
+     * GET /trend/news/member/{memberId}/latest?limit=10
      * 
      * @param memberId 회원 ID
      * @param limit 조회 개수 (기본값: 10)
-     * @return 뉴스 분석 결과 리스트
-     * @throws com.fasterxml.jackson.core.JsonProcessingException JSON 파싱 실패 시
+     * @return 회원별 최신 뉴스 리스트
      */
-    @GetMapping("/member/{memberId}")
-    public List<NewsAnalysisResponse> getMemberNews(
+    @GetMapping("/member/{memberId}/latest")
+    public ResponseEntity<Map<String, Object>> getLatestNews(
             @PathVariable int memberId,
-            LocalDate date,
-            @RequestParam(defaultValue = "10") int limit) 
-            throws JsonProcessingException {
-        
-        log.info("회원별 뉴스 조회 요청 - memberId: {}, limit: {}", memberId, limit);
-        
-        List<NewsAnalysisResponse> news = newsSummaryService.getNewsByMemberAndDate(
-            memberId, 
-            date,
-            limit
-        );
-        
-        log.info("회원별 뉴스 조회 완료 - 조회된 뉴스 수: {}", news.size());
-        
-        return news;
+            @RequestParam(defaultValue = "10") int limit) {
+
+        log.info("회원별 최신 뉴스 조회 요청 - memberId: {}, limit: {}", memberId, limit);
+
+        try {
+            List<NewsAnalysisResponse> newsList = totalNewsService.getLatestNewsByMember(memberId, limit);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "최신 뉴스 조회 완료");
+            response.put("data", newsList);
+            response.put("totalCount", newsList.size());
+
+            log.info("회원별 최신 뉴스 조회 완료 - {}건 반환", newsList.size());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("최신 뉴스 조회 실패 - memberId: {}", memberId, e);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "최신 뉴스 조회 중 오류가 발생했습니다: " + e.getMessage());
+            errorResponse.put("data", List.of());
+            errorResponse.put("totalCount", 0);
+
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * 뉴스 수집 상태 확인
+     * 
+     * GET /trend/news/member/{memberId}/status
+     * 
+     * @param memberId 회원 ID
+     * @return 뉴스 수집 상태 정보
+     */
+    @GetMapping("/member/{memberId}/status")
+    public ResponseEntity<Map<String, Object>> getCollectionStatus(@PathVariable int memberId) {
+
+        log.info("뉴스 수집 상태 확인 - memberId: {}", memberId);
+
+        try {
+            List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 100);
+
+            Map<String, Object> status = new HashMap<>();
+            status.put("memberId", memberId);
+            status.put("todayNewsCount", todayNews.size());
+            status.put("hasData", !todayNews.isEmpty());
+            status.put("lastUpdate", todayNews.isEmpty() ? null : todayNews.get(0).getCreatedAt());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "뉴스 수집 상태 확인 완료");
+            response.put("data", status);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("뉴스 수집 상태 확인 실패 - memberId: {}", memberId, e);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "상태 확인 중 오류가 발생했습니다: " + e.getMessage());
+
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
     
     /**
@@ -139,18 +325,12 @@ public class NewsController {
     public ResponseEntity<?> collectNews(@RequestBody CollectNewsRequest request) throws Exception {
         log.info("뉴스 수집 요청: keywords={}, memberId={}", request.getKeywords(), request.getMemberId());
 
-        
-        
-        int analyzed = newsCollectorService.collectAndAnalyzeNews(
+        int analyzed = totalNewsService.collectAndAnalyzeNews(
             request.getKeywords(), 
             request.getMemberId()
         );
         
-        // String message = String.format("뉴스 수집 완료: %d건 분석됨", analyzed);
-        // log.info(message);
-        // return message;
-
-         return ResponseEntity.ok(Map.of(
+        return ResponseEntity.ok(Map.of(
                 "status", "success",
                 "message", "뉴스 수집 완료",
                 "analyzed", analyzed
