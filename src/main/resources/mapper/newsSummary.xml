@@ -107,8 +107,8 @@
         detail_summary,
         analysis_json,
         keywords_json,
-        created_at,
-        updated_at
+        created_at
+        
       from
         news_summary
       where
