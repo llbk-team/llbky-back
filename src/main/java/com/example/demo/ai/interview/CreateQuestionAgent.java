@@ -31,7 +31,8 @@ public class CreateQuestionAgent {
   }
 
   public List<AiQuestionResponse> createQuestion(QuestionRequest request) throws Exception {
-
+    
+    // 사용자의 직무, 직군 추출
     Member member = memberDao.findById(request.getMemberId());
     String jobGroup = member.getJobGroup();
     String jobRole = member.getJobRole();
@@ -46,8 +47,8 @@ public class CreateQuestionAgent {
       documentText = pdfReader.read(request.getDocumentFileData());
     }
 
-    // JSON 변환
-    BeanOutputConverter<AiQuestionResponse[]> converter = new BeanOutputConverter<>(AiQuestionResponse[].class);
+    // JSON 변환 (JSON 배열을 List로 바로 변환 불가능 -> 배열 변환 -> 리스트 변환)
+    BeanOutputConverter<AiQuestionResponse[]> converter = new BeanOutputConverter<>(AiQuestionResponse[].class); 
     String format = converter.getFormat();
 
     // System prompt
@@ -94,7 +95,7 @@ public class CreateQuestionAgent {
 
 
     // JSON -> DTO 배열
-    AiQuestionResponse[] arr = converter.convert(responseJson);
+    AiQuestionResponse[] arr = converter.convert(responseJson); // BeanOutputConverter는 JSON 배열을 DTO 배열로만 변환
 
     // 배열 -> List
     List<AiQuestionResponse> list = Arrays.asList(arr);
