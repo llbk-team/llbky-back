@@ -1,6 +1,5 @@
 package com.example.demo.newstrend.dto.response;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class NewsAnalysisResponse {
     private String title;
     private String sourceName;
     private String sourceUrl;
-    private LocalDate publishedAt;
+    private LocalDateTime publishedAt;
     
     // 요약 정보
     private String summaryText;

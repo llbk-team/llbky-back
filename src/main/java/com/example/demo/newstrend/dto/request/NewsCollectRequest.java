@@ -9,7 +9,7 @@ public class NewsCollectRequest {
    
     private List<String> keywords;
     
-    private Integer memberId = 1;  // 기본값
+    private Integer memberId ;  // 기본값
     
-    private Integer limitPerKeyword = 1;  // 키워드별 수집 개수
+    private Integer limitPerKeyword = 5;  // 키워드별 수집 개수
 }

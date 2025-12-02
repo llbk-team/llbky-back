@@ -1,7 +1,6 @@
 package com.example.demo.newstrend.entity;
 
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.Data;
@@ -23,7 +22,7 @@ public class NewsSummary {
   private String sourceName; // 언론사 이름
   private String sourceUrl; // 원문 뉴스 URL
   private String title; // 뉴스 제목
-  private LocalDate publishedAt; // 발행일
+  private LocalDateTime publishedAt; // 발행일 (원본 날짜 형식 저장)
   private String summaryText; // 3줄 요약 내용
   private String detailSummary; // 긴 요약
   private String analysisJson; // 감정/편향/신뢰도 통합

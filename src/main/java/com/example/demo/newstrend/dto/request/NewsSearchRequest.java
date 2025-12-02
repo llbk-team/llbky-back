@@ -10,5 +10,5 @@ public class NewsSearchRequest {
     private String sentiment;       // positive, neutral, negative
     private Integer minTrustScore;  // 최소 신뢰도
     private Boolean biasOnly;       // 편향된 뉴스만
-    private Integer limit = 10;     // 기본 10개
+    private Integer limit = 15;     // 기본 10개
 }
