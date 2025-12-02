@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 // 학습 플랜 생성 응답
-public class LearningResponse {
+public class AiCreateRoadmapResponse {
   private Integer memberId;
   private String title;
-  private List<LearningWeekResponse> weeks;
+  private List<AiCreateWeekResponse> weeks;
 }
