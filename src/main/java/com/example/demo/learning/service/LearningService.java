@@ -14,6 +14,7 @@ import com.example.demo.learning.dto.request.RoadmapRequest;
 import com.example.demo.learning.dto.response.AiCreateDayResponse;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.dto.response.AiCreateWeekResponse;
+import com.example.demo.learning.dto.response.LearningResponse;
 import com.example.demo.learning.entity.Learning;
 import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.entity.LearningWeek;
@@ -59,7 +60,8 @@ public class LearningService {
         learning.setTitle(roadmap.getTitle());
         learning.setStatus("진행중");
         
-        Integer learningId = learningDao.insert(learning);
+        learningDao.insert(learning);
+        Integer learningId = learning.getLearningId();
 
         // 2. Week 저장
         int weekNum = 1;
@@ -71,7 +73,8 @@ public class LearningService {
             week.setStatus("예정");
             week.setLearningWeekSummary(weekData.getLearningWeekSummary());
 
-            Integer weekId = learningWeekDao.insert(week);
+            learningWeekDao.insert(week);
+            Integer weekId = week.getWeekId();
 
 
             // 3. Day 저장
@@ -79,7 +82,7 @@ public class LearningService {
             for (AiCreateDayResponse dayData : weekData.getDays()) {
                 LearningDay day = new LearningDay();
                 day.setWeekId(weekId);
-                day.setDayNumber(dayNum);
+                day.setDayNumber(dayNum++);
                 day.setTitle(dayData.getTitle());
                 day.setContent(dayData.getContent());
                 day.setStatus("예정");
@@ -102,7 +105,7 @@ public class LearningService {
     }
 
     // 상태(학습중/완료 등)로 리스트 조회
-    public List<Learning> getLearningListByStatus(int memberId, String status) {
+    public List<LearningResponse> getLearningListByStatus(int memberId, String status) {
         return learningDao.selectListByStatus(memberId, status);
     }
 

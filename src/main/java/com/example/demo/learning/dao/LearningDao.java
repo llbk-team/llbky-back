@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.example.demo.learning.dto.response.LearningResponse;
 import com.example.demo.learning.entity.Learning;
 
 @Mapper
@@ -19,7 +20,7 @@ public interface LearningDao {
   public List<Learning> selectListByMemberId(int memberId);
 
   // 학습 상태에 따른 리스트 조회
-  public List<Learning> selectListByStatus(@Param("memberId") int memberId, @Param("status") String status);
+  public List<LearningResponse> selectListByStatus(@Param("memberId") int memberId, @Param("status") String status);
 
   // 사용자별 학습 개수 조회
   public int countByMemberId(int memberId);
