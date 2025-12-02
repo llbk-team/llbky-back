@@ -63,17 +63,24 @@ public class NewsAnalysisAgent {
                - null 불가
                
             3. sentiment (String, 필수)
-               - 반드시 다음 중 하나: "positive", "neutral", "negative"
-               - 소문자로만 작성
-               - null 불가
+            - 가장 높은 점수의 감정: "positive", "neutral", "negative"
+            - 소문자로만 작성
+            - null 불가
+            
+            4. sentimentScores (Object, 필수)
+            - positive: 0~100 사이의 정수 (긍정 감정 백분율)
+            - neutral: 0~100 사이의 정수 (중립 감정 백분율) 
+            - negative: 0~100 사이의 정수 (부정 감정 백분율)
+            - 세 값의 합은 반드시 100이어야 함
+            - null 불가
                
-            4. trustScore (Integer, 필수)
+            5. trustScore (Integer, 필수)
                - 0~100 사이의 정수
                - 객관성, 사실 확인 가능성, 출처 명확성 기준
                - null 불가
                
                            
-            5. category (String, 필수)
+            6. category (String, 필수)
                - 반드시 다음 중 하나: "IT", "경제", "사회", "정치", "기타"
                - null 불가
             
@@ -85,6 +92,15 @@ public class NewsAnalysisAgent {
             - 50~69점: 단일 출처, 일부 추측 포함
             - 30~49점: 출처 불명확, 과장 표현 있음
             - 0~29점: 루머성, 검증 불가능
+
+
+            ======================================== 
+            감정 분석 기준
+            ======================================== 
+            - positive: 좋은 뉴스, 성장, 기회, 성공, 혁신 등
+            - neutral: 중립적 정보, 단순 사실 전달, 변화 없음 등  
+            - negative: 나쁜 뉴스, 감소, 위기, 문제, 우려 등
+            - 세 감정의 백분율 합은 반드시 100이어야 함
             
             ======================================== 
             JSON 형식 예시
@@ -103,6 +119,8 @@ public class NewsAnalysisAgent {
             ======================================== 
             중요 주의사항
             ======================================== 
+            - sentimentScores의 positive + neutral + negative = 반드시 100
+            - sentiment는 sentimentScores에서 가장 높은 점수의 감정
             - null 값은 biasType에만 허용됨 (biasDetected=false일 때)
             - 모든 필수 필드는 반드시 값이 있어야 함
             - sentiment, category는 정해진 값 외 사용 불가
