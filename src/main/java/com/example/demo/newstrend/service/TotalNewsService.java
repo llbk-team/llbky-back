@@ -1,6 +1,6 @@
 package com.example.demo.newstrend.service;
 
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -147,7 +147,7 @@ public class TotalNewsService {
         // 2-4. AI 분석 결과를 JSON으로 저장
         entity.setSummaryText(analysisResult.getFinalSummary()); // AI 요약문
         
-        entity.setDetailSummary(analysisResult.getOriginalContent());
+        entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary());
         entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis()));
         entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords()));
         
