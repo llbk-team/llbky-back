@@ -59,7 +59,8 @@ public class LearningService {
         learning.setTitle(roadmap.getTitle());
         learning.setStatus("진행중");
         
-        Integer learningId = learningDao.insert(learning);
+        learningDao.insert(learning);
+        Integer learningId = learning.getLearningId();
 
         // 2. Week 저장
         int weekNum = 1;
@@ -71,7 +72,8 @@ public class LearningService {
             week.setStatus("예정");
             week.setLearningWeekSummary(weekData.getLearningWeekSummary());
 
-            Integer weekId = learningWeekDao.insert(week);
+            learningWeekDao.insert(week);
+            Integer weekId = weekData.getWeekId();
 
 
             // 3. Day 저장
@@ -79,7 +81,7 @@ public class LearningService {
             for (AiCreateDayResponse dayData : weekData.getDays()) {
                 LearningDay day = new LearningDay();
                 day.setWeekId(weekId);
-                day.setDayNumber(dayNum);
+                day.setDayNumber(dayNum++);
                 day.setTitle(dayData.getTitle());
                 day.setContent(dayData.getContent());
                 day.setStatus("예정");
