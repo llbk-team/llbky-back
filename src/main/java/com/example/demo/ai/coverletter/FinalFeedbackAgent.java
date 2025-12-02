@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import com.example.demo.coverletter.dao.CoverLetterDao;
 import com.example.demo.coverletter.dto.response.CoverLetterFinalFeedback;
 import com.example.demo.coverletter.entity.CoverLetter;
+import com.example.demo.member.dao.MemberDao;
+import com.example.demo.member.dto.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 // 자소서 최종 피드백 생성하고 저장하는 에이전트
@@ -18,6 +20,8 @@ public class FinalFeedbackAgent {
     // DAO
     @Autowired
     private CoverLetterDao coverLetterDao;
+    @Autowired
+    private MemberDao memberDao;
 
     // AI 응답 DTO → JSON 문자열로 직렬화하기 위한 ObjectMapper
     @Autowired
@@ -33,11 +37,14 @@ public class FinalFeedbackAgent {
     // 종합 피드백 생성
     public CoverLetterFinalFeedback execute(int coverletterId) throws Exception {
 
+        
         // 1. DB에서 자소서 불러오기
         CoverLetter coverLetter = coverLetterDao.selectOneCoverLetter(coverletterId);
         if (coverLetter == null) {
             throw new RuntimeException("CoverLetter not found");
         }
+
+        Member member = memberDao.findById(coverLetter.getMemberId());
 
         // 2. Bean 객체 -> JSON 출력 변환기 생성
         BeanOutputConverter<CoverLetterFinalFeedback> converter = new BeanOutputConverter<>(CoverLetterFinalFeedback.class);
@@ -74,18 +81,19 @@ public class FinalFeedbackAgent {
 
 
         String prompt = """
-            아래 자기소개서를 종합적으로 분석하세요.
+            지원자의 희망 직군은 "%s", 희망 직무는 "%s"입니다.
+            이 정보를 기반으로 자소서 전체를 종합 평가하세요.
 
             분석 항목:
             1) 문장 분석 (문법, 가독성, 논리 흐름, STAR 기법 적용 여부)
             2) 강점 3가지
-            3) 개선 제안 3가지
+            3) 개선 제안 3가지 (반드시 Action Plan 포함)
 
             --- 자기소개서 내용 ---
             [지원동기]
             %s
 
-            [성장과정]
+            [성장경험]
             %s
 
             [직무 역량]
@@ -94,10 +102,12 @@ public class FinalFeedbackAgent {
             [입사 후 포부]
             %s
         """.formatted(
-            coverLetter.getSupportMotive(),
-            coverLetter.getGrowthExperience(),
-            coverLetter.getJobCapability(),
-            coverLetter.getFuturePlan()
+                member != null ? member.getJobGroup() : "정보 없음",
+                member != null ? member.getJobRole() : "정보 없음",
+                coverLetter.getSupportMotive(),
+                coverLetter.getGrowthExperience(),
+                coverLetter.getJobCapability(),
+                coverLetter.getFuturePlan()
         );
 
         // 4. LLM 호출

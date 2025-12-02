@@ -2,15 +2,22 @@ package com.example.demo.ai.coverletter;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.coverletter.dto.request.CoverLetterCoachRequest;
 import com.example.demo.coverletter.dto.response.CoverLetterCoachResponse;
+import com.example.demo.member.dao.MemberDao;
+import com.example.demo.member.dto.Member;
 
 // 자소서 작성 시 실시간 코칭해주는 에이전트
 
 @Component
 public class RealtimeCoachingAgent {
+
+    // DAO
+    @Autowired
+    private MemberDao memberDao;
 
     // ChatClient
     private ChatClient chatClient;
@@ -21,6 +28,8 @@ public class RealtimeCoachingAgent {
 
     // 실시간 코칭
     public CoverLetterCoachResponse execute(CoverLetterCoachRequest request) {
+
+        Member member = memberDao.findById(request.getMemberId());
 
         // 1. Bean 객체 -> JSON 출력 변환기 생성
         BeanOutputConverter<CoverLetterCoachResponse> converter = new BeanOutputConverter<>(CoverLetterCoachResponse.class);
@@ -72,7 +81,18 @@ public class RealtimeCoachingAgent {
             
             [사용자 작성 내용]
             %s
-        """.formatted(section, request.getContent());
+
+            [지원자 정보]
+            - 희망 직군: %s
+            - 희망 직무: %s
+
+            이 정보를 기반으로 해당 직무에서 중요하게 평가되는 요소 중심으로 코칭하세요.
+        """.formatted(
+            section,
+            request.getContent(),
+            member != null ? member.getJobGroup() : "정보 없음",
+            member != null ? member.getJobRole() : "정보 없음"
+        );
 
         // 4. LLM 호출
         String json = chatClient.prompt()
