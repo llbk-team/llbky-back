@@ -10,17 +10,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
+import com.example.demo.learning.entity.LearningDay;
+import com.example.demo.learning.service.LearningDayService;
 import com.example.demo.learning.service.LearningService;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
 
 @RestController
-@RequestMapping("learning")
+@RequestMapping("/learning")
 public class LearningController {
 
   @Autowired
   private LearningService learningService;
+  @Autowired
+  private LearningDayService learningDayService;
 
   // AI 학습 로드맵 생성
   @PostMapping("/roadmap/create")
@@ -56,9 +60,16 @@ public class LearningController {
 
 
 
-  // AI 학습 정리 검증
-
-  // AI 데일리 학습 정리 작성
+  // AI 학습 정리 제출
+  @PostMapping("/submit-day-summary")
+  public ResponseEntity<LearningDay> submitLearningDaySummary(
+    @RequestParam("dayId") int dayId,
+    @RequestParam("learningDaySummary") String learningDaySummary
+  ) {
+      
+    return ResponseEntity.ok(learningDayService.submitMemo(dayId, learningDaySummary));
+  }
+  
 
 
 }

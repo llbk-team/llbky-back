@@ -5,14 +5,24 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.ai.learning.MemoCheckAgent;
+import com.example.demo.ai.learning.RewriteMemoAgent;
 import com.example.demo.learning.dao.LearningDayDao;
+import com.example.demo.learning.dto.response.MemoCheckResponse;
 import com.example.demo.learning.entity.LearningDay;
 
 @Service
 public class LearningDayService {
 
+    // DAO
     @Autowired
     private LearningDayDao learningDayDao;
+
+    // AI Agent
+    @Autowired
+    private MemoCheckAgent memoCheckAgent;
+    @Autowired
+    private RewriteMemoAgent rewriteMemoAgent;
 
     // 일차 생성
     public int createDay(LearningDay learningDay) {
@@ -37,6 +47,22 @@ public class LearningDayService {
     // 주차 ID + 일차 번호로 조회
     public LearningDay getDayByWeekIdAndDayNumber(int weekId, int dayNumber) {
         return learningDayDao.selectByWeekIdAndDayNumber(weekId, dayNumber);
+    }
+
+    // 일일 학습 메모 저장
+    public LearningDay submitMemo(int dayId, String learningDaySummary) {
+        
+        // 1. 일일 학습 정보 조회
+        LearningDay day = learningDayDao.selectedByDayId(dayId);
+        if (day == null) {
+            throw new RuntimeException("Day not found");
+        }
+
+        // 2. AI 검증
+        MemoCheckResponse checkResult = memoCheckAgent.execute(day, learningDaySummary);
+
+        // 3. AI 메모 정리
+        return rewriteMemoAgent.execute(day, learningDaySummary, checkResult);
     }
 
     // 일차 업데이트

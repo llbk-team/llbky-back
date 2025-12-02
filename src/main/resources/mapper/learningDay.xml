@@ -26,8 +26,6 @@
             updated_at
         FROM learning_day
         WHERE day_id = #{dayId};
-        FROM learning_day
-        WHERE day_id = #{dayId};
     </select>
 
     <!-- SELECT: 특정 주차 전체 일차 조회 -->
