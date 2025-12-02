@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.service.LearningService;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 @RestController
@@ -24,17 +26,22 @@ public class LearningController {
   @PostMapping("/roadmap/create")
   public ResponseEntity<AiCreateRoadmapResponse> createRoadmap(
     @RequestParam("memberId") Integer memberId,
-    @RequestParam("jobRole") String jobRole,
     @RequestParam("purposes") List<String> purposes,
     @RequestParam("skills") List<String> skills,
     @RequestParam("studyHours") int studyHours) {
 
-      AiCreateRoadmapResponse result = learningService.createLearning(memberId, jobRole, purposes, skills, studyHours);
+      AiCreateRoadmapResponse result = learningService.createLearning(memberId, purposes, skills, studyHours);
       return ResponseEntity.ok(result);
     }
 
   
   // AI 학습 로드맵 DB 저장
+  @PostMapping("/roadmap/save")
+  public ResponseEntity<AiCreateRoadmapResponse> saveRoadmap(@RequestBody AiCreateRoadmapResponse roadmap) {
+    AiCreateRoadmapResponse result = learningService.saveRoadmap(roadmap);
+    return ResponseEntity.ok(result);
+  }
+  
   
 
   // 사용자가 올린 문서 / 직군,직무로 AI가 추천해주는 기술
