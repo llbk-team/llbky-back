@@ -2,6 +2,7 @@ package com.example.demo.newstrend.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,17 @@ import lombok.extern.slf4j.Slf4j;
  * - NewsCollectorService: 수집
  * - NewsAIService: AI 분석  
  * - NewsSummaryService: 저장
+ * 
+ * 단계	내용	클래스
+    1번	뉴스 원문 수집	String(originalContent)
+    2번	AI 분석 결과 조각들 반환	NewsSummaryResponse, NewsKeywordResponse
+    3번	AI 결과를 하나로 묶음	NewsAnalysisResult ← 여기!
+    4번	DB 저장용 entity로 변환	NewsSummary
+    5번	프론트 응답 DTO	NewsAnalysisResponse
+ * 
+ * 
+ * 
+ * 
  */
 @Service
 @Slf4j
@@ -204,9 +216,21 @@ public class TotalNewsService {
   }
 
   /**
+   * 키워드 리스트로 네이버 뉴스 검색 (단순 검색, 저장 안함)
+   * 
+   * @param keywords 검색할 키워드 리스트
+   * @param limitPerKeyword 각 키워드당 가져올 기사 수
+   * @return 기사 제목, URL, 설명이 담긴 리스트
+   */
+  public List<Map<String, String>> searchNewsByKeywords(List<String> keywords, int limitPerKeyword) {
+      return newsCollectorService.searchNewsByKeywords(keywords, limitPerKeyword);
+  }
+
+  /**
    * Response 생성 헬퍼 메서드
    */
-  private NewsAnalysisResponse createResponse(NewsSummary saved, NewsAnalysisResult result) {        NewsAnalysisResponse response = new NewsAnalysisResponse();
+  private NewsAnalysisResponse createResponse(NewsSummary saved, NewsAnalysisResult result) {
+      NewsAnalysisResponse response = new NewsAnalysisResponse();
 
         // 기본 정보
         response.setSummaryId(saved.getSummaryId());

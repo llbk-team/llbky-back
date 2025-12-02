@@ -6,6 +6,16 @@ import java.time.LocalDateTime;
 
 import lombok.Data;
 
+/*
+  DB에서 관리하는 핵심 엔티티
+
+  네이버 API에서 가져온 원문 → 요약 → AI 분석 → 키워드
+  → 이 모든 결과를 한 엔티티에 저장(JSON 문자열 포함)
+
+  이후 조회 시 DB에서 꺼내 JSON 파싱하여 DTO로 변환해 프론트에 전달.
+*/
+
+
 @Data
 public class NewsSummary {
   private Integer summaryId; // 뉴스 요약 ID(PK)

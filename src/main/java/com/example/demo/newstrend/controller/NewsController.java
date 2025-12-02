@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
+import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
 import com.example.demo.newstrend.service.NewsSummaryService;
 import com.example.demo.newstrend.service.TotalNewsService;
 
@@ -302,6 +304,77 @@ public class NewsController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "상태 확인 중 오류가 발생했습니다: " + e.getMessage());
+
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * 키워드 기반 네이버 뉴스 검색 (외부 API 호출)
+     * 
+     * GET /trend/news/{summaryId}/related-search?limit=5
+     * 
+     * @param summaryId 현재 뉴스 ID
+     * @param limit 각 키워드당 조회 개수 (기본값: 5)
+     * @return 네이버 API에서 검색한 관련 뉴스 리스트
+     */
+    @GetMapping("/{summaryId}/related-search")
+    public ResponseEntity<Map<String, Object>> searchRelatedNews(
+            @PathVariable int summaryId,
+            @RequestParam(defaultValue = "5") int limit) {
+
+        log.info("키워드 기반 관련 뉴스 검색 - summaryId: {}, limit: {}", summaryId, limit);
+
+        try {
+            // 1. 현재 뉴스 조회해서 키워드 추출
+            NewsAnalysisResponse currentNews = newsSummaryService.getNewsBySummaryId(summaryId);
+            
+            if (currentNews == null) {
+                Map<String, Object> notFound = new HashMap<>();
+                notFound.put("status", "error");
+                notFound.put("message", "해당 뉴스가 존재하지 않습니다.");
+                notFound.put("data", List.of());
+                return ResponseEntity.status(404).body(notFound);
+            }
+
+            if (currentNews.getKeywords() == null || currentNews.getKeywords().isEmpty()) {
+                Map<String, Object> noKeywords = new HashMap<>();
+                noKeywords.put("status", "error");
+                noKeywords.put("message", "해당 뉴스에 키워드가 없습니다.");
+                noKeywords.put("data", List.of());
+                return ResponseEntity.badRequest().body(noKeywords);
+            }
+
+            // ✅ List<NewsKeywordResponse>를 List<String>으로 변환
+            List<String> keywordStrings = currentNews.getKeywords().stream()
+                .map(NewsKeywordResponse::getKeyword)
+                .collect(Collectors.toList());
+
+            // 2. 키워드로 네이버 뉴스 API 검색
+            List<Map<String, String>> relatedArticles = totalNewsService.searchNewsByKeywords(
+                keywordStrings,  // ✅ 변환된 List<String> 전달
+                limit
+            );
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "관련 뉴스 검색 완료");
+            response.put("keywords", keywordStrings);  // ✅ String 리스트로 반환
+            response.put("data", relatedArticles);
+            response.put("totalCount", relatedArticles.size());
+
+            log.info("관련 뉴스 검색 완료 - {}건 반환", relatedArticles.size());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("관련 뉴스 검색 실패 - summaryId: {}", summaryId, e);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "관련 뉴스 검색 중 오류: " + e.getMessage());
+            errorResponse.put("data", List.of());
+            errorResponse.put("totalCount", 0);
 
             return ResponseEntity.status(500).body(errorResponse);
         }
