@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.ai.interview.AnswerFeedbackAgent;
+import com.example.demo.ai.interview.CompanyIdealTalentAgent;
 import com.example.demo.ai.interview.CompanySearchAgent;
 import com.example.demo.ai.interview.CreateQuestionAgent;
 import com.example.demo.ai.interview.InterviewFeedbackAgent;
@@ -24,6 +25,7 @@ import com.example.demo.interview.dao.InterviewSessionDao;
 import com.example.demo.interview.dto.request.QuestionRequest;
 import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
+import com.example.demo.interview.dto.response.CompanySearchResponse;
 import com.example.demo.interview.dto.response.InterviewQAResponse;
 import com.example.demo.interview.dto.response.InterviewReportResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
@@ -59,43 +61,37 @@ public class InterviewService {
     @Autowired
     private CompanySearchAgent companySearchAgent;
     @Autowired
+    private CompanyIdealTalentAgent companyIdealTalentAgent;
+    @Autowired
     private InterviewFeedbackAgent interviewFeedbackAgent;
 
     // ObjectMapper
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${naver.api.client-id}")
-    private String clientId;
-    @Value("${naver.api.client-secret}")
-    private String clientSecret;
+    /*
+     * ====================
+     * 면접 세션 관련 메소드
+     * =====================
+     */
 
-    private WebClient webClient;
-
-    public InterviewService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder
-            .baseUrl("https://openapi.naver.com/v1/search")
-            .build();
-    }
-
-    /*====================
-      면접 세션 관련 메소드
-    =====================*/
-    
-    // 면접 세션 종료 & 종합 피드백 생성====================================================================================
+    // 면접 세션 종료 & 종합 피드백
+    // 생성====================================================================================
     public SessionFeedbackResponse createInterviewFeedback(int sessionId) throws Exception {
         // AI Agent 호출
         return interviewFeedbackAgent.execute(sessionId);
     }
-    
-    // 면접 목록 조회=====================================================================================================
+
+    // 면접 목록
+    // 조회=====================================================================================================
     public List<InterviewSession> getInterviewSessions(int memberId) {
         return interviewSessionDao.selectAllInterviewSessions(memberId);
     }
 
-    // 면접 상세 조회 (리포트 상세보기)=====================================================================================
+    // 면접 상세 조회 (리포트
+    // 상세보기)=====================================================================================
     public InterviewReportResponse getInterviewReport(int sessionId) throws Exception {
-        
+
         // 1) 세션 정보 조회
         InterviewSession session = interviewSessionDao.selectOneInterviewSession(sessionId);
         if (session == null) {
@@ -107,9 +103,8 @@ public class InterviewService {
 
         if (session.getReportFeedback() != null) {
             finalFeedback = objectMapper.readValue(
-                session.getReportFeedback(),
-                SessionFeedbackResponse.class
-            );
+                    session.getReportFeedback(),
+                    SessionFeedbackResponse.class);
         }
 
         // 3) 질문 + 답변 조회
@@ -122,7 +117,7 @@ public class InterviewService {
             InterviewQAResponse qaResponse = new InterviewQAResponse();
             qaResponse.setQuestionId(q.getQuestionId());
             qaResponse.setQuestionText(q.getQuestionText());
-            
+
             if (answer != null) {
                 qaResponse.setAnswerId(answer.getAnswerId());
                 qaResponse.setAnswerText(answer.getAnswerText());
@@ -146,9 +141,9 @@ public class InterviewService {
 
         return response;
     }
-    
 
-    // 면접 세션 질문 조회=================================================================================================
+    // 면접 세션 질문
+    // 조회=================================================================================================
     public List<TotalQuestionResponse> getSessionDetail(Integer sessionId) {
         // 질문 목록 조회
         List<InterviewQuestion> question = interviewQuestionDao.selectInterviewQuestionsBySessionId(sessionId);
@@ -160,17 +155,20 @@ public class InterviewService {
             dto.setQuestionText(q.getQuestionText());
             result.add(dto);
         }
-        
+
         return result;
     }
-    
 
-    /*====================
-      면접 질문 관련 메소드
-    =====================*/
+    /*
+     * ====================
+     * 면접 질문 관련 메소드
+     * =====================
+     */
 
-    // AI 면접 질문 생성 ===========================================================================
-    public List<AiQuestionResponse> createAiQuestion(Integer memberId, String type, String targetCompany, List<String> keywords, MultipartFile documentFile) throws Exception {
+    // AI 면접 질문 생성
+    // ===========================================================================
+    public List<AiQuestionResponse> createAiQuestion(Integer memberId, String type, String targetCompany,
+            List<String> keywords, MultipartFile documentFile) throws Exception {
 
         QuestionRequest request = new QuestionRequest();
         request.setMemberId(memberId);
@@ -195,10 +193,17 @@ public class InterviewService {
         return companySearchAgent.searchCompanyNames(query);
     }
 
+    // 사용자가 선택한 기업의 인재상 검색 및 요약
+    public CompanySearchResponse searchCompanyIdealTalent(String companyName) {
+        CompanySearchResponse response = companyIdealTalentAgent.searchCompanyIdealTalent(companyName);
+        return response;
+    }
 
-    // DB에 면접 질문 저장 ===========================================================================
-    public List<SaveSessionResponse> saveSessionAndQuestion(Integer memberId, String type, String targetCompany, List<String> keywords, MultipartFile file, 
-                                        List<String> aiQuestions, List<String> customQuestions) throws Exception { 
+    // DB에 면접 질문 저장
+    // ===========================================================================
+    public List<SaveSessionResponse> saveSessionAndQuestion(Integer memberId, String type, String targetCompany,
+            List<String> keywords, MultipartFile file,
+            List<String> aiQuestions, List<String> customQuestions) throws Exception {
 
         InterviewSession session = new InterviewSession();
         session.setMemberId(memberId);
@@ -217,8 +222,10 @@ public class InterviewService {
 
         // AI 질문과 사용자 질문 합치기
         List<String> finalQuestions = new ArrayList<>();
-        if (aiQuestions != null) finalQuestions.addAll(aiQuestions);
-        if (customQuestions != null) finalQuestions.addAll(customQuestions);
+        if (aiQuestions != null)
+            finalQuestions.addAll(aiQuestions);
+        if (customQuestions != null)
+            finalQuestions.addAll(customQuestions);
 
         // 질문 저장
         List<SaveSessionResponse> responseList = new ArrayList<>();
@@ -241,22 +248,25 @@ public class InterviewService {
 
     }
 
-    // 사용자별 질문 목록 조회========================================================================================================
+    // 사용자별 질문 목록
+    // 조회========================================================================================================
     public List<InterviewQuestion> getAllQuestionsByMemberId(int memberId) {
         return interviewQuestionDao.selectAllInterviewQuestions(memberId);
     }
 
-    /*====================
-      면접 답변 관련 메소드
-    =====================*/
+    /*
+     * ====================
+     * 면접 답변 관련 메소드
+     * =====================
+     */
 
-    // 답변 제출=======================================================================================
+    // 답변
+    // 제출=======================================================================================
     public int createInterviewAnswer(
-        int questionId, 
-        MultipartFile audio, 
-        MultipartFile video
-    ) throws Exception {
-        
+            int questionId,
+            MultipartFile audio,
+            MultipartFile video) throws Exception {
+
         // DB에 답변 원본 파일 저장
         InterviewAnswer answer = new InterviewAnswer();
         answer.setQuestionId(questionId);
@@ -276,7 +286,8 @@ public class InterviewService {
         return answer.getAnswerId();
     }
 
-    // 답변 다시 제출===================================================================================
+    // 답변 다시
+    // 제출===================================================================================
     public int modifyInterviewAnswer(int answerId, MultipartFile audio, MultipartFile video) throws Exception {
 
         // DB에 답변 원본 파일 업데이트
@@ -298,14 +309,14 @@ public class InterviewService {
         return interviewAnswerDao.updateInterviewAnswer(answer);
     }
 
-    // 답변 분석 + 피드백 생성===========================================================================
+    // 답변 분석 + 피드백
+    // 생성===========================================================================
     @Transactional
     public AnswerFeedbackResponse createAnswerFeedback(
-        int answerId,
-        MultipartFile audio,
-        MultipartFile videoAudio,
-        List<MultipartFile> frames
-    ) throws Exception {
+            int answerId,
+            MultipartFile audio,
+            MultipartFile videoAudio,
+            List<MultipartFile> frames) throws Exception {
 
         // 1. DB에 저장된 답변 조회
         InterviewAnswer answer = interviewAnswerDao.selectOneAnswer(answerId);
@@ -324,17 +335,17 @@ public class InterviewService {
             log.info("Content-Type: {}", videoAudio.getContentType());
             log.info("Filename: {}", videoAudio.getOriginalFilename());
             log.info("Size (bytes): {}", videoAudio.getSize());
-            
-            sttBytes = videoAudio.getBytes();   //영상 오디오 파일
+
+            sttBytes = videoAudio.getBytes(); // 영상 오디오 파일
             fileName = videoAudio.getOriginalFilename();
-            
+
         } else if (audio != null && !audio.isEmpty()) {
             log.info("=== [STT INPUT - audio] ===");
             log.info("Content-Type: {}", audio.getContentType());
             log.info("Filename: {}", audio.getOriginalFilename());
             log.info("Size (bytes): {}", audio.getSize());
 
-            sttBytes = audio.getBytes();    // 순수 음성 파일
+            sttBytes = audio.getBytes(); // 순수 음성 파일
             fileName = audio.getOriginalFilename();
 
         } else {
@@ -347,35 +358,34 @@ public class InterviewService {
         String answerText = "음성 입력이 감지되지 않았습니다.";
         if (videoAudio != null && !videoAudio.isEmpty()) {
             answerText = sttAgent.sttSave(
-                answerId,
-                videoAudio.getOriginalFilename(),
-                videoAudio.getBytes()
-            );
+                    answerId,
+                    videoAudio.getOriginalFilename(),
+                    videoAudio.getBytes());
         } else if (audio != null && !audio.isEmpty()) {
             answerText = sttAgent.sttSave(
-                answerId,
-                audio.getOriginalFilename(), 
-                audio.getBytes()
-            );
+                    answerId,
+                    audio.getOriginalFilename(),
+                    audio.getBytes());
         }
         // 3. VisualAnalysis Agent 호출 - 이미지 프레임 분석 리스트 얻기
         List<String> visualFeedback = visualAnalysisAgent.analyzeFrames(frames);
 
-        // 4. AnswerFeedback Agent 호출 - 답변별 피드백 생성 
+        // 4. AnswerFeedback Agent 호출 - 답변별 피드백 생성
         AnswerFeedbackResponse answerFeedback = answerFeedbackAgent.execute(answerId, answerText, visualFeedback);
 
         return answerFeedback;
     }
 
-    // 면접 질문 선택 시 해당하는 답변 조회===================================================================
+    // 면접 질문 선택 시 해당하는 답변
+    // 조회===================================================================
     public InterviewAnswer getInterviewAnswersByQuestionId(int questionId) {
         return interviewAnswerDao.selectInterviewAnswerByQuestionId(questionId);
     }
 
-    // 답변 ID로 답변 조회==================================================================================
+    // 답변 ID로 답변
+    // 조회==================================================================================
     public InterviewAnswer getOneInterviewAnswer(int answerId) {
         return interviewAnswerDao.selectOneAnswer(answerId);
     }
-
 
 }

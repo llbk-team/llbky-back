@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.interview.dto.response.AnswerFeedbackResponse;
+import com.example.demo.interview.dto.response.CompanySearchResponse;
 import com.example.demo.interview.dto.response.InterviewReportResponse;
 import com.example.demo.interview.dto.response.SaveSessionResponse;
 import com.example.demo.interview.dto.response.SessionFeedbackResponse;
@@ -22,6 +23,8 @@ import com.example.demo.interview.entity.InterviewAnswer;
 import com.example.demo.interview.entity.InterviewQuestion;
 import com.example.demo.interview.entity.InterviewSession;
 import com.example.demo.interview.service.InterviewService;
+
+import io.micrometer.core.ipc.http.HttpSender.Response;
 
 
 @RestController
@@ -72,6 +75,13 @@ public class InterviewController {
     public ResponseEntity<List<String>> searchCompany(@RequestParam("query") String query) {
         return ResponseEntity.ok(interviewService.searchCompany(query));
     }
+
+    // 기업의 인재상 요약
+    @GetMapping("/company-ideal")
+    public ResponseEntity<CompanySearchResponse> idealTalent(@RequestParam("companyName") String companyName) {
+        return ResponseEntity.ok(interviewService.searchCompanyIdealTalent(companyName));
+    }
+    
     
 
     // 세션 저장============================================================================================================================================
