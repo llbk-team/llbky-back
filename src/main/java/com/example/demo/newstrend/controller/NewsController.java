@@ -1,6 +1,8 @@
 package com.example.demo.newstrend.controller;
 
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.MonthDay;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +55,11 @@ public class NewsController {
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchNews(
             @RequestParam(name = "keywords", required = false) List<String> keywords,
-            @RequestParam(name = "memberId", required = false) Integer memberId) {
+            @RequestParam(name = "memberId", required = false) Integer memberId,
+            @RequestParam(defaultValue  = "month")String period,
+           @RequestParam(defaultValue = "15")int limit
+
+        ) {
         
         log.info("네이버 뉴스 검색 요청 - 키워드: {}, memberId: {}", keywords, memberId);
         
@@ -67,8 +73,8 @@ public class NewsController {
         
         try {
             int analyzed = totalNewsService.searchNews(keywords, memberId);
-            
-            List<NewsAnalysisResponse> newsList = newsSummaryService.getTodayNewsByMember(memberId, 10);
+            //멤버 빼고 찾아서 나오기만 하는거 아님?
+            List<NewsAnalysisResponse> newsList = newsSummaryService.searchNewsByUserKeywords(keywords,  period, 20);
 
             Map<String, Object> resp = new HashMap<>();
             resp.put("status", "success");
@@ -133,7 +139,7 @@ public class NewsController {
     @GetMapping("/member/{memberId}/today")
     public ResponseEntity<Map<String, Object>> getTodayNewsSummary(
             @PathVariable int memberId,
-            @RequestParam(defaultValue = "6") int limit) {
+            @RequestParam(defaultValue = "3") int limit) {
         
         log.info("오늘 뉴스 요약 조회 요청 - memberId: {}, limit: {}", memberId, limit);
         

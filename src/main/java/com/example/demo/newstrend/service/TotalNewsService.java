@@ -1,6 +1,7 @@
 package com.example.demo.newstrend.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +65,7 @@ public class TotalNewsService {
 
     //AI 분석 수행
   NewsAnalysisResult analysisResult = newsAIService.analyzeNews(request);
- log.info("AI 분석 완료 - 감정: {}, 신뢰도: {}", 
+  log.info("AI 분석 완료 - 감정: {}, 신뢰도: {}", 
             analysisResult.getAnalysis().getSentiment(), 
             analysisResult.getAnalysis().getTrustScore());
 
@@ -75,7 +76,7 @@ public class TotalNewsService {
       entity.setTitle(request.getTitle());
       entity.setSourceName(request.getSourceName());
       entity.setSourceUrl(request.getSourceUrl());
-      entity.setPublishedAt(LocalDate.now());
+      entity.setPublishedAt(LocalDateTime.now());
       // 최종 요약(중립화 적용된 문자열)
       entity.setSummaryText(analysisResult.getFinalSummary());
       // 상세 요약은 AI 분석 결과의 detailSummary 사용
@@ -138,10 +139,14 @@ public class TotalNewsService {
         entity.setTitle(newsRequest.getTitle());
         entity.setSourceName(newsRequest.getSourceName());
         entity.setSourceUrl(newsRequest.getSourceUrl());
-        entity.setPublishedAt(LocalDate.now());
-        
+        entity.setPublishedAt(
+            newsRequest.getPublishedAt() != null 
+                ? newsRequest.getPublishedAt()
+                : LocalDateTime.now()
+        );
         // 2-4. AI 분석 결과를 JSON으로 저장
         entity.setSummaryText(analysisResult.getFinalSummary()); // AI 요약문
+        
         entity.setDetailSummary(analysisResult.getOriginalContent());
         entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis()));
         entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords()));

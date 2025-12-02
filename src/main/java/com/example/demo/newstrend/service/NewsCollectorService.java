@@ -1,5 +1,9 @@
 package com.example.demo.newstrend.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -7,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -168,57 +173,44 @@ public class NewsCollectorService {
      */
     public List<NewsAnalysisRequest> collectNews(List<String> keywords, Integer memberId) throws Exception {
         log.info("뉴스 수집 시작 - 키워드: {}, memberId: {}", keywords, memberId);
-
-        List<String> jobGroupKeywords = generateJobGroupKeywords(keywords, memberId);
-        int filteredCount = 0;
+        
+        List<NewsAnalysisRequest> allNews = new ArrayList<>();
+        Set<String> urls = new HashSet<>();
+        int successCount = 0;
         int errorCount = 0;
-
-        // 사용자 직군 파악
-        String userJobGroup = "개발"; // 기본값
-        if (memberId != null) {
-            Member member = memberDao.findById(memberId);
-            if (member != null && member.getJobGroup() != null) {
-                userJobGroup = member.getJobGroup();
-            }
+        
+        Member member = memberDao.findById(memberId);
+        if (member == null) {
+            throw new RuntimeException("회원 정보를 찾을 수 없습니다.");
         }
-
-        Map<String, NewsAnalysisRequest> uniqueNewsMap = new HashMap<>();
-
-        // 각 키워드별로 뉴스 수집
-        for (String keyword : jobGroupKeywords) {
+        
+        // *** 핵심 변경: 사용자 키워드만 검색 ***
+        for (String keyword : keywords) {
             try {
-                String naverResponse = getNaverNews(keyword);
-                List<NewsAnalysisRequest> naverNews = parseNaverNews(naverResponse);
-
-                for (NewsAnalysisRequest news : naverNews) {
-                    if (!uniqueNewsMap.containsKey(news.getSourceUrl())) {
-
-                        // ✅ 직군별 특화 필터링
-                        if (isJobGroupRelated(news.getTitle(), news.getContent(), userJobGroup)) {
-                            news.setMemberId(memberId != null ? memberId : 1);
-                            uniqueNewsMap.put(news.getSourceUrl(), news);
-                            log.debug("'{}' 직군 관련 뉴스 추가: {}", userJobGroup, news.getTitle());
-                        } else {
-                            filteredCount++;
-                            log.debug("'{}' 직군과 무관한 뉴스 필터링: {}", userJobGroup, news.getTitle());
-                        }
+                String naverResponse = getNaverNews(keyword.trim());
+                List<NewsAnalysisRequest> news = parseNaverNews(naverResponse);
+                
+                for (NewsAnalysisRequest newsItem : news) {
+                    if (!urls.contains(newsItem.getSourceUrl())) {
+                        newsItem.setMemberId(memberId != null ? memberId : 1);
+                        allNews.add(newsItem);
+                        urls.add(newsItem.getSourceUrl());
+                        successCount++;
                     }
                 }
-
-                Thread.sleep(500);
-
+                
+                Thread.sleep(500); // API 호출 간 대기
+                
             } catch (Exception e) {
-                log.warn("키워드 '{}' 수집 실패", keyword, e);
+                log.error("뉴스 수집 오류 - 키워드: {}", keyword, e);
                 errorCount++;
             }
         }
-
-        List<NewsAnalysisRequest> collectedNews = new ArrayList<>(uniqueNewsMap.values());
-
-        log.info("'{}' 직군 뉴스 수집 완료 - 수집: {}건, 필터링 제외: {}건, 최종: {}건, 오류: {}건",
-                userJobGroup, uniqueNewsMap.size() + filteredCount, filteredCount, collectedNews.size(), errorCount);
-
-        return collectedNews;
+        
+        log.info("뉴스 수집 완료 - 성공: {}건, 중복 제외: {}건, 오류: {}건", 
+            successCount, urls.size() - successCount, errorCount);
+        
+        return allNews;
     }
 
     /**
@@ -320,53 +312,66 @@ public class NewsCollectorService {
         item.optString("link")
      */
     private List<NewsAnalysisRequest> parseNaverNews(String jsonResponse) {
-    // 네이버 API JSON 응답을 파싱해서 NewsAnalysisRequest 리스트로 변환하는 메서드
-
         List<NewsAnalysisRequest> newsList = new ArrayList<>();
-        // 결과로 반환할 리스트 생성
 
         try {
             JSONObject json = new JSONObject(jsonResponse);
-            // 응답 문자열을 JSON 객체로 변환
-
             JSONArray items = json.getJSONArray("items");
-            // 아이템(뉴스 리스트) 추출
 
             for (int i = 0; i < items.length(); i++) {
-                // items 배열 순회
-
                 JSONObject item = items.getJSONObject(i);
-                // 각 뉴스 객체 가져오기
 
                 NewsAnalysisRequest news = new NewsAnalysisRequest();
-                // 파싱한 데이터를 담을 DTO 생성
-
                 news.setTitle(cleanHtml(item.optString("title", "")));
-                // 제목 추출 + HTML 태그 제거
-
                 news.setContent(cleanHtml(item.optString("description", "")));
-                // 요약 설명 추출 + HTML 태그 제거
-
                 news.setSourceUrl(item.optString("link", ""));
-                // 뉴스 링크(URL)
-
                 news.setSourceName("네이버뉴스");
-                // 출처 이름 고정 입력
+
+                // ✅ 날짜 파싱 및 저장
+                String pubDate = item.optString("pubDate", "");
+                log.info("📅 원본 pubDate: [{}]", pubDate);
+
+                if (!pubDate.isEmpty()) {
+                    LocalDateTime parseDate = parsePubDate(pubDate);
+                    news.setPublishedAt(parseDate); 
+                    log.info("✅ 파싱된 날짜 저장: [{}]", parseDate);
+                } else {
+                    news.setPublishedAt(LocalDateTime.now());
+                    log.warn("⚠️ pubDate 없음, 현재 날짜 사용");
+                }
 
                 if (news.getSourceUrl() != null && !news.getSourceUrl().isEmpty()) {
-                    // URL이 존재하는 경우에만 정상 뉴스로 간주하고 추가
                     newsList.add(news);
                 }
             }
 
         } catch (Exception e) {
             log.error("네이버 뉴스 파싱 오류", e);
-            // JSON 구조 오류, 키 없음 등 예외 발생 시 로그 출력
         }
 
         return newsList;
-        // 파싱 결과 반환
     }
+    
+        private LocalDateTime parsePubDate(String pubDateStr) {
+        try {
+            // "Mon, 02 Dec 2024 14:30:00 +0900" 형식
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+                "EEE, dd MMM yyyy HH:mm:ss Z", 
+                Locale.ENGLISH
+            );
+            ZonedDateTime zdt = ZonedDateTime.parse(pubDateStr, formatter);
+            LocalDateTime result = zdt.toLocalDateTime();
+            log.info("✅ parsePubDate 성공 - 결과: [{}]", result);  // ✅ INFO 레벨로 추가
+            return result;
+            
+        } catch (Exception e) {
+            log.error("❌ pubDate 파싱 실패: [{}], 에러: {}", pubDateStr, e.getMessage(), e);  // ✅ ERROR로 변경 + 스택트레이스 추가
+            return LocalDateTime.now();
+        }
+    }
+
+
+
 
     // /**
     // * NewsAPI.org API 응답 파싱

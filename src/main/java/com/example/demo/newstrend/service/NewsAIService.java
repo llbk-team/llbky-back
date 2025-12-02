@@ -1,6 +1,5 @@
 package com.example.demo.newstrend.service;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,40 +134,53 @@ public class NewsAIService {
      * @param url 뉴스 URL
      * @return 추출된 본문 (실패시 null)
      */
-    private String extractNewsContent(String url) throws IOException {
+    private String extractNewsContent(String url) {
+        log.info("웹 스크래핑 시작 - URL: {}", url);
+        
         try {
+            // SSL 인증서 검증 우회
+            com.example.demo.config.SSLHelper.disableSSLVerification();
+            
             Document doc = Jsoup.connect(url)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                .timeout(10000)
-                .get();
-            // Jsoup로 URL 접속 → HTML 문서 가져오기
-            // User-Agent 설정 → 서버가 봇이 아닌 일반 브라우저로 인식하게 함
-            // timeout 10초
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .timeout(10000)
+                    .ignoreHttpErrors(true) // HTTP 에러 무시
+                    .followRedirects(true)  // 리다이렉트 따라가기
+                    .get();
 
-            // 네이버 뉴스
-            if (url.contains("news.naver.com")) {
-                Element article = doc.selectFirst("#dic_area, #articeBody, article");
-                // 네이버 뉴스 특정 ID/클래스에서 본문 추출
-                if (article != null) {
-                    return article.text();
-                    // 본문 텍스트 반환
+            StringBuilder content = new StringBuilder();
+            
+            // 본문 추출 시도 1: article 태그
+            Element articleBody = doc.selectFirst("article, .article-body, .news-body, .content, main");
+            if (articleBody != null && !articleBody.text().isEmpty()) {
+                content.append(articleBody.text());
+            } else {
+                // 본문 추출 시도 2: p 태그들
+                for (Element p : doc.select("p")) {
+                    String text = p.text();
+                    if (text.length() > 50) { // 짧은 문장 제외
+                        content.append(text).append(" ");
+                    }
                 }
             }
 
-            // 일반 뉴스 사이트
-            Element article = doc.selectFirst("article, .article-content, .news-content");
-            // 일반 뉴스 구조에서 article 태그나 class 기반으로 본문 선택
-            if (article != null) {
-                return article.text();
+            String result = content.toString().trim();
+            
+            if (result.length() < 100) {
+                log.warn("스크래핑된 내용이 너무 짧음 ({}자) - URL: {}", result.length(), url);
+                return null;
             }
-
-            log.warn("본문 추출 실패: {}", url);
-            // 본문 추출 실패 로그
+            
+            if (result.length() > 5000) {
+                result = result.substring(0, 5000);
+            }
+            
+            log.info("웹 스크래핑 성공 - URL: {}, 내용 길이: {}", url, result.length());
+            return result;
+            
+        } catch (Exception e) {
+            log.error("웹 스크래핑 오류 - URL: {}, 오류: {}", url, e.getMessage());
             return null;
-        } catch (IOException e) {
-            log.error("웹 스크래핑 오류 - URL: {}", url, e);
-            throw e;
-            // 예외 발생 시 로그 출력 후 다시 throw
         }
     }
 
