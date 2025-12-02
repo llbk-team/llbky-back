@@ -17,6 +17,4 @@ public class Portfolio {
   private String portfolioFeedback; //포트폴리오 피드백
   private LocalDateTime createdAt; //생성일
   private LocalDateTime updatedAt; // 수정일
-
-
 }

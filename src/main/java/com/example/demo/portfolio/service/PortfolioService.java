@@ -70,7 +70,7 @@ public class PortfolioService {
   }
 
   // 사용자별 포트폴리오 전체 조회
-  public List<PortfolioListResponse> getPortfolioList(Integer memberId) {
+  public List<Portfolio> getPortfolioList(Integer memberId) {
     return portfolioDao.selectPortfoliosByMemberId(memberId);
   }
 
@@ -88,6 +88,4 @@ public class PortfolioService {
   public void deletePortfolio(Integer portfolioId) {
     portfolioDao.deletePortfolio(portfolioId);
   }
-
-
 }

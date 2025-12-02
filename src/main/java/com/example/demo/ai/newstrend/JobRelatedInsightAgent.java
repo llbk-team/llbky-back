@@ -78,7 +78,7 @@ public class JobRelatedInsightAgent {
         [사용자 직무(jobRole)]
         %s
 
-        [트렌드 분석 데이터 InsightJson]
+        [트렌드 분석 데이터 (InsightJson)]
         %s
 
         요구사항:

@@ -78,7 +78,7 @@
   <!-- 회원별 포트폴리오 목록 조회 -->
   <select id="selectPortfoliosByMemberId" 
           parameterType="int" 
-          resultType="com.example.demo.portfolio.dto.response.PortfolioListResponse">
+          resultType="Portfolio">
     SELECT 
       portfolio_id,
       title,

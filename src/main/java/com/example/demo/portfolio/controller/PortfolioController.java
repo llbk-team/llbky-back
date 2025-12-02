@@ -71,8 +71,8 @@ public class PortfolioController {
 
   // 사용자별 포트폴리오 전체 조회
   @GetMapping("/list/{memberId}")
-  public ResponseEntity<List<PortfolioListResponse>> getPortfolioList(@PathVariable("memberId") Integer memberId) {
-    List<PortfolioListResponse> list = portfolioService.getPortfolioList(memberId);
+  public ResponseEntity<List<Portfolio>> getPortfolioList(@PathVariable("memberId") Integer memberId) {
+    List<Portfolio> list = portfolioService.getPortfolioList(memberId);
     return ResponseEntity.ok(list);
   }
 
