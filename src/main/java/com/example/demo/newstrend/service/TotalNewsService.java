@@ -24,6 +24,17 @@ import lombok.extern.slf4j.Slf4j;
  * - NewsCollectorService: 수집
  * - NewsAIService: AI 분석  
  * - NewsSummaryService: 저장
+ * 
+ * 단계	내용	클래스
+    1번	뉴스 원문 수집	String(originalContent)
+    2번	AI 분석 결과 조각들 반환	NewsSummaryResponse, NewsKeywordResponse
+    3번	AI 결과를 하나로 묶음	NewsAnalysisResult ← 여기!
+    4번	DB 저장용 entity로 변환	NewsSummary
+    5번	프론트 응답 DTO	NewsAnalysisResponse
+ * 
+ * 
+ * 
+ * 
  */
 @Service
 @Slf4j
@@ -218,7 +229,8 @@ public class TotalNewsService {
   /**
    * Response 생성 헬퍼 메서드
    */
-  private NewsAnalysisResponse createResponse(NewsSummary saved, NewsAnalysisResult result) {        NewsAnalysisResponse response = new NewsAnalysisResponse();
+  private NewsAnalysisResponse createResponse(NewsSummary saved, NewsAnalysisResult result) {
+      NewsAnalysisResponse response = new NewsAnalysisResponse();
 
         // 기본 정보
         response.setSummaryId(saved.getSummaryId());

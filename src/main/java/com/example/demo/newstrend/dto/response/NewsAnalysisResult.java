@@ -5,6 +5,21 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
+/*
+AI가 생성한 전체 분석 작업 결과를 한 번에 담는 DTO
+
+네이버 뉴스 원문을 AI에 넘기고
+
+요약/감정/편향 분석 받고
+
+키워드 추출하고
+
+중립화된 최종 요약 만들고
+
+이 모든 중간 결과를 묶어서 전달
+*/
+
+
 @Data
 @Builder
 public class NewsAnalysisResult {

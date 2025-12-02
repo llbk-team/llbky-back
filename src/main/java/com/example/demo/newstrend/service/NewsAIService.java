@@ -39,8 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class NewsAIService {
 
     // Optional WebClient builder (example exception constructor)
-    
-    private WebClient webClient;
+     private WebClient webClient;
 
     // AI Agents (field injection as requested)
     @Autowired
@@ -70,95 +69,63 @@ public class NewsAIService {
      * @return 분석된 뉴스 응답 (요약, 감정, 신뢰도, 키워드 등)
      * @throws Exception AI 호출 실패 또는 JSON 변환 실패 시
      */
-    @Transactional
+   @Transactional
+// 트랜잭션 범위 내에서 실행 → DB 저장이 포함될 경우 롤백 가능
     public NewsAnalysisResult analyzeNews(NewsAnalysisRequest request) throws Exception {
         log.info("뉴스 분석 및 저장 시작 - 제목: {}", request.getTitle());
+        // 분석 시작 로그, 어떤 뉴스인지 확인용
 
-          // 0. 원문 확보 (짧으면 웹 스크래핑)
+        // 0. 원문 확보 (짧으면 웹 스크래핑)
         String fullContent = request.getContent();
+        // 요청에 담긴 뉴스 본문(content)을 기본으로 사용
+
         if (fullContent == null || fullContent.length() < 200) {
+            // 본문이 없거나 너무 짧으면 웹에서 본문 가져오기
             log.info("짧은 content 감지, 웹 스크래핑 시도: {}", request.getSourceUrl());
+            // 스크래핑 시도 로그
+
             String scrapedContent = extractNewsContent(request.getSourceUrl());
+            // extractNewsContent 메서드로 실제 기사 본문 가져오기
+
             if (scrapedContent != null && scrapedContent.length() > fullContent.length()) {
                 fullContent = scrapedContent;
+                // 가져온 본문이 기존보다 길면 fullContent를 업데이트
             }
         }
 
         // 2. AI Agent: 뉴스 분석 (요약, 감정, 신뢰도, 편향, 카테고리)
-        log.debug("Step 1: 뉴스 분석 Agent 호출");
-        NewsSummaryResponse analysis = analysisAgent.analyzeNews(request.getTitle(),fullContent);
-        log.info("뉴스 분석 완료 - 감정: {}, 신뢰도: {}, 편향: {}",
-            analysis.getSentiment(), analysis.getTrustScore(), analysis.getBiasDetected());
+        NewsSummaryResponse analysis = analysisAgent.analyzeNews(request.getTitle(), fullContent);
+        // 분석Agent 호출 → 제목+본문으로 AI 분석 → 요약, 감정, 편향, 신뢰도, 카테고리 반환
 
         // 3. AI Agent: 키워드 추출
-        log.debug("Step 2: 키워드 추출 Agent 호출");
-        List<NewsKeywordResponse> keywords = keywordAgent.extractKeywords(
-            analysis.getSummary()
-        );
-        log.info("키워드 추출 완료 - 추출된 키워드 수: {}", keywords.size());
+        List<NewsKeywordResponse> keywords = keywordAgent.extractKeywords(analysis.getSummary());
+        // 분석된 요약(summary)에서 키워드 추출
 
         // 4. AI Agent: 편향 감지시 중립화
         String finalSummary = analysis.getSummary();
-        if (Boolean.TRUE.equals(analysis.getBiasDetected())) {
-            log.debug("Step 3: 편향 감지됨 - 중립화 Agent 호출");
-            finalSummary = neutralizationAgent.neutralizeText(fullContent);
-            log.info("편향 중립화 완료");
-        } else {
-            log.debug("Step 3: 편향 미감지 - 중립화 스킵");
-        }
+        // 기본 finalSummary는 AI가 분석한 요약(summary)
 
-       
+        if (Boolean.TRUE.equals(analysis.getBiasDetected())) {
+            // biasDetected가 true이면 편향 감지됨
+            finalSummary = neutralizationAgent.neutralizeText(fullContent);
+            // 중립화 처리 후 finalSummary 업데이트
+        } else {
+            log.debug("편향 미감지 - 중립화 스킵");
+            // 편향이 없으면 중립화 건너뜀
+        }
 
         // 5. 분석 결과 반환 (저장 안함)
         return NewsAnalysisResult.builder()
             .originalContent(fullContent)
+            // 원문 본문
             .analysis(analysis)
+            // AI 분석 결과 DTO
             .keywords(keywords)
+            // 키워드 리스트 DTO
             .finalSummary(finalSummary)
+            // 최종 요약(중립화 적용 가능)
             .build();
-    }
-    
-    /**
-     * Response 생성 헬퍼 메서드
-     * @param saved 저장된 뉴스 엔티티
-     * @param analysis AI 분석 결과
-     * @param keywords 추출된 키워드 리스트
-     * @return 뉴스 분석 응답 DTO
-     */
-
-
-
- private NewsAnalysisResponse createResponse(
-            NewsSummary saved,
-            NewsSummaryResponse analysis,
-            List<NewsKeywordResponse> keywords) {
-
-        NewsAnalysisResponse response = new NewsAnalysisResponse();
-
-        // 기본 정보
-        response.setSummaryId(saved.getSummaryId());
-        response.setTitle(saved.getTitle());
-        response.setSourceName(saved.getSourceName());
-        response.setSourceUrl(saved.getSourceUrl());
-        response.setPublishedAt(saved.getPublishedAt());
-
-        // 요약 정보
-        response.setSummaryText(saved.getSummaryText());
-        response.setDetailSummary(saved.getDetailSummary());
-
-        // AI 분석 결과
-        response.setSentiment(analysis.getSentiment());
-        response.setTrustScore(analysis.getTrustScore());
-        response.setBiasDetected(analysis.getBiasDetected());
-        response.setBiasType(analysis.getBiasType());
-        response.setCategory(analysis.getCategory());
-
-        // 키워드
-        response.setKeywords(keywords);
-
-        response.setCreatedAt(saved.getCreatedAt());
-
-        return response;
+            // NewsAnalysisResult 객체 생성 및 반환
     }
 
     /**
@@ -174,27 +141,34 @@ public class NewsAIService {
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .timeout(10000)
                 .get();
+            // Jsoup로 URL 접속 → HTML 문서 가져오기
+            // User-Agent 설정 → 서버가 봇이 아닌 일반 브라우저로 인식하게 함
+            // timeout 10초
 
             // 네이버 뉴스
             if (url.contains("news.naver.com")) {
                 Element article = doc.selectFirst("#dic_area, #articeBody, article");
+                // 네이버 뉴스 특정 ID/클래스에서 본문 추출
                 if (article != null) {
                     return article.text();
+                    // 본문 텍스트 반환
                 }
             }
 
             // 일반 뉴스 사이트
             Element article = doc.selectFirst("article, .article-content, .news-content");
+            // 일반 뉴스 구조에서 article 태그나 class 기반으로 본문 선택
             if (article != null) {
                 return article.text();
             }
 
             log.warn("본문 추출 실패: {}", url);
+            // 본문 추출 실패 로그
             return null;
-
         } catch (IOException e) {
             log.error("웹 스크래핑 오류 - URL: {}", url, e);
             throw e;
+            // 예외 발생 시 로그 출력 후 다시 throw
         }
     }
 
@@ -202,39 +176,49 @@ public class NewsAIService {
 
     // ===== CRUD / 조회 헬퍼 메서드 =====
 
-  
-
     public List<NewsAnalysisResponse> getLatestNewsByMember(int memberId, int limit) throws com.fasterxml.jackson.core.JsonProcessingException {
-        List<NewsSummary> summaries = newsSummaryDao.selectLatestNewsByMemberId(memberId, limit);
-        List<NewsAnalysisResponse> responses = new ArrayList<>();
-        if (summaries != null) {
-            for (NewsSummary s : summaries) {
-                responses.add(convertEntityToResponse(s));
-            }
+    List<NewsSummary> summaries = newsSummaryDao.selectLatestNewsByMemberId(memberId, limit);
+    // DAO에서 해당 회원의 최신 뉴스 summary를 조회
+
+    List<NewsAnalysisResponse> responses = new ArrayList<>();
+    if (summaries != null) {
+        for (NewsSummary s : summaries) {
+            responses.add(convertEntityToResponse(s));
+            // 각 NewsSummary 엔티티를 DTO로 변환 후 리스트에 추가
         }
-        return responses;
+    }
+    return responses;
     }
 
     public List<NewsAnalysisResponse> getNewsByMemberAndDate(int memberId, LocalDate date, int limit) throws com.fasterxml.jackson.core.JsonProcessingException {
-        List<NewsSummary> summaries = newsSummaryDao.selectNewsByMemberAndDate(memberId, date, limit);
-        List<NewsAnalysisResponse> responses = new ArrayList<>();
-        if (summaries != null) {
-            for (NewsSummary s : summaries) {
-                responses.add(convertEntityToResponse(s));
-            }
+    List<NewsSummary> summaries = newsSummaryDao.selectNewsByMemberAndDate(memberId, date, limit);
+    // DAO에서 특정 회원 + 날짜 기준 뉴스 조회
+
+    List<NewsAnalysisResponse> responses = new ArrayList<>();
+    if (summaries != null) {
+        for (NewsSummary s : summaries) {
+            responses.add(convertEntityToResponse(s));
+            // 엔티티 → DTO 변환
         }
-        return responses;
+    }
+    return responses;
     }
 
 
+    // 엔티티 → 클라이언트용 DTO 변환
     private NewsAnalysisResponse convertEntityToResponse(NewsSummary summary) throws com.fasterxml.jackson.core.JsonProcessingException {
         NewsSummaryResponse analysisData = objectMapper.readValue(summary.getAnalysisJson(), NewsSummaryResponse.class);
+        // DB에 저장된 analysisJson 문자열(JSON) → NewsSummaryResponse 객체로 역직렬화
+
         List<NewsKeywordResponse> keywords = objectMapper.readValue(
             summary.getKeywordsJson(),
             objectMapper.getTypeFactory().constructCollectionType(List.class, NewsKeywordResponse.class)
         );
+        // DB에 저장된 keywordsJson → List<NewsKeywordResponse>로 변환
 
         NewsAnalysisResponse response = new NewsAnalysisResponse();
+        // 최종 반환 DTO 생성
+
         response.setSummaryId(summary.getSummaryId());
         response.setTitle(summary.getTitle());
         response.setSourceName(summary.getSourceName());
@@ -242,17 +226,23 @@ public class NewsAIService {
         response.setPublishedAt(summary.getPublishedAt());
         response.setSummaryText(summary.getSummaryText());
         response.setDetailSummary(summary.getDetailSummary());
+        // 기본 정보 세팅 (원문/제목/출처/발행일/요약)
 
         response.setSentiment(analysisData.getSentiment());
         response.setTrustScore(analysisData.getTrustScore());
         response.setBiasDetected(analysisData.getBiasDetected());
         response.setBiasType(analysisData.getBiasType());
         response.setCategory(analysisData.getCategory());
+        // AI 분석 결과 세팅 (감정/신뢰도/편향/카테고리)
 
         response.setKeywords(keywords);
-        response.setCreatedAt(summary.getCreatedAt());
-        return response;
-    }
+        // 키워드 리스트 세팅
 
+        response.setCreatedAt(summary.getCreatedAt());
+        // 생성일 세팅
+
+        return response;
+        // 완성된 DTO 반환
+    }
 
 }
