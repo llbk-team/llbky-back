@@ -14,6 +14,7 @@ import com.example.demo.learning.dto.request.RoadmapRequest;
 import com.example.demo.learning.dto.response.AiCreateDayResponse;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.dto.response.AiCreateWeekResponse;
+import com.example.demo.learning.dto.response.LearningResponse;
 import com.example.demo.learning.entity.Learning;
 import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.entity.LearningWeek;
@@ -73,7 +74,7 @@ public class LearningService {
             week.setLearningWeekSummary(weekData.getLearningWeekSummary());
 
             learningWeekDao.insert(week);
-            Integer weekId = weekData.getWeekId();
+            Integer weekId = week.getWeekId();
 
 
             // 3. Day 저장
@@ -104,7 +105,7 @@ public class LearningService {
     }
 
     // 상태(학습중/완료 등)로 리스트 조회
-    public List<Learning> getLearningListByStatus(int memberId, String status) {
+    public List<LearningResponse> getLearningListByStatus(int memberId, String status) {
         return learningDao.selectListByStatus(memberId, status);
     }
 

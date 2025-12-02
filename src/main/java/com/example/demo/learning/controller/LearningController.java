@@ -4,14 +4,17 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
+import com.example.demo.learning.dto.response.LearningResponse;
 import com.example.demo.learning.service.LearningService;
-import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
@@ -51,6 +54,12 @@ public class LearningController {
 
 
   // 학습 리스트 조회
+  @GetMapping("/list")
+  public ResponseEntity<List<LearningResponse>> getLearningList(@RequestParam("memberId") Integer memberId, @RequestParam("status") String status) {
+    List<LearningResponse> result = learningService.getLearningListByStatus(memberId, status);
+    return ResponseEntity.ok(result);
+  }
+  
 
   // 학습 상세 조회
 
