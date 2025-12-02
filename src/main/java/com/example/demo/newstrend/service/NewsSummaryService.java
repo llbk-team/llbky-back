@@ -11,6 +11,7 @@ import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
 import com.example.demo.newstrend.dto.response.NewsSummaryResponse;
+import com.example.demo.newstrend.dto.response.SentimentScores;
 import com.example.demo.newstrend.entity.NewsSummary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -260,7 +261,11 @@ public class NewsSummaryService {
 
         defaultAnalysis.setSentiment("중립");
         // 감성 분석 결과가 없을 경우 기본 감성은 "중립"으로 세팅
-
+            SentimentScores defaultScores = new SentimentScores();
+                defaultScores.setPositive(0);
+                defaultScores.setNegative(0);
+                defaultScores.setNeutral(100);
+        defaultAnalysis.setSentimentScores(defaultScores);   
         defaultAnalysis.setTrustScore(50);
         // 신뢰도 점수 기본값을 50으로 세팅(0~100 스케일을 가정)
 
@@ -336,7 +341,8 @@ public class NewsSummaryService {
         // ✅ 분석 결과
         response.setSentiment(analysisData.getSentiment());
         // 파싱된(또는 기본) 분석 데이터에서 감성 결과를 꺼내서 응답에 넣음
-
+        response.setSentimentScores(analysisData.getSentimentScores());
+        
         response.setTrustScore(analysisData.getTrustScore());
         // 신뢰도 점수 설정
 

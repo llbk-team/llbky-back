@@ -251,6 +251,7 @@ public class TotalNewsService {
         // AI 분석 결과
       NewsSummaryResponse analysis = result.getAnalysis();
         response.setSentiment(analysis.getSentiment());
+        response.setSentimentScores(analysis.getSentimentScores()); 
         response.setTrustScore(analysis.getTrustScore());
         response.setBiasDetected(analysis.getBiasDetected());
         response.setBiasType(analysis.getBiasType());

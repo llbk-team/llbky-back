@@ -241,6 +241,7 @@ public class NewsAIService {
         // 기본 정보 세팅 (원문/제목/출처/발행일/요약)
 
         response.setSentiment(analysisData.getSentiment());
+        response.setSentimentScores(analysisData.getSentimentScores());
         response.setTrustScore(analysisData.getTrustScore());
         response.setBiasDetected(analysisData.getBiasDetected());
         response.setBiasType(analysisData.getBiasType());

@@ -34,6 +34,7 @@ public class NewsAnalysisResponse {
     
     // AI 분석 결과
     private String sentiment;
+    private SentimentScores sentimentScores;
     private Integer trustScore;
     private Boolean biasDetected;
     private String biasType;
