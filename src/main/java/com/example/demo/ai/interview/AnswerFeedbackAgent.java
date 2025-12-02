@@ -101,6 +101,8 @@ public class AnswerFeedbackAgent {
 
             ※ 중요: speechAnalysis와 contentAnalysis는 절대 중복되지 않으며,
             speechAnalysis는 말투·표현 습관만, contentAnalysis는 답변의 내용·전문성만 평가합니다.
+            speechAnalysis에서는 논리 구조나 전문성 언급을 절대 포함하지 않습니다.
+            contentAnalysis에서는 발음, 말투, 억양, 템포와 같은 언어 습관 관련 표현을 절대 포함하지 않습니다.
 
             평가 규칙:
             - 각 항목 점수는 0~100점 사이 정수로 계산한다.
