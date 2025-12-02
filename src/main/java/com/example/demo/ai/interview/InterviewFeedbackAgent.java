@@ -102,6 +102,9 @@ public class InterviewFeedbackAgent {
             톤은 따뜻하거나 무난한 조언이 아니라, 지원자를 성장시키기 위한 ‘냉정하고 직설적인 전문가 코멘트’ 스타일로 작성합니다.
             지나친 감정 표현, 공감 문구, 부드러운 표현은 절대 사용하지 않습니다.
 
+            ※ 중요: speechAnalysis와 contentAnalysis는 절대 중복되지 않으며,
+            speechAnalysis는 말투·표현 습관만, contentAnalysis는 답변의 내용·전문성만 평가합니다.
+
             [평가 규칙]
             - 각 항목 점수는 0~100점 정수로 산정합니다.
             - 점수는 반드시 명확한 근거 기반으로 작성합니다.

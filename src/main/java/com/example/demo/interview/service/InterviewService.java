@@ -126,7 +126,13 @@ public class InterviewService {
             if (answer != null) {
                 qaResponse.setAnswerId(answer.getAnswerId());
                 qaResponse.setAnswerText(answer.getAnswerText());
-                qaResponse.setAnswerFeedback(answer.getAnswerFeedback());
+                
+                if (answer.getAnswerFeedback() != null) {
+                    // JSON 문자열 -> 객체로 변환
+                    AnswerFeedbackResponse feedbackObj = objectMapper.readValue(answer.getAnswerFeedback(), AnswerFeedbackResponse.class);
+                    qaResponse.setAnswerFeedback(feedbackObj);
+                }
+
                 qaResponse.setAudioFileName(answer.getAudioFileName());
                 qaResponse.setAudioFileType(answer.getAudioFileType());
                 qaResponse.setAudioFileData(answer.getAudioFileData());

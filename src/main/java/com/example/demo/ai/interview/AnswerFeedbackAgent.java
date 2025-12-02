@@ -99,6 +99,9 @@ public class AnswerFeedbackAgent {
             - timeStructureAnalysis: 말하는 구조, 시간 배분 분석
             - contentAnalysis: 내용의 깊이, 전문성 분석
 
+            ※ 중요: speechAnalysis와 contentAnalysis는 절대 중복되지 않으며,
+            speechAnalysis는 말투·표현 습관만, contentAnalysis는 답변의 내용·전문성만 평가합니다.
+
             평가 규칙:
             - 각 항목 점수는 0~100점 사이 정수로 계산한다.
             - 점수는 명확한 근거 기반으로 설명해야 한다.

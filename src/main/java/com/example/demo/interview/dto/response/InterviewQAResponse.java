@@ -10,7 +10,7 @@ public class InterviewQAResponse {
     private int answerId;   // 답변 ID
     private String questionText;    // 질문
     private String answerText;  // 답변
-    private String answerFeedback;  // 답변 피드백
+    private AnswerFeedbackResponse answerFeedback;  // 답변 피드백
 
     private String audioFileName;   // 오디오 파일 이름
     private String audioFileType;   // 오디오 파일 타입
