@@ -10,9 +10,12 @@ import com.example.demo.coverletter.dto.response.CoverLetterCoachResponse;
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
 
+import lombok.extern.slf4j.Slf4j;
+
 // 자소서 작성 시 실시간 코칭해주는 에이전트
 
 @Component
+@Slf4j
 public class RealtimeCoachingAgent {
 
     // DAO
@@ -81,6 +84,8 @@ public class RealtimeCoachingAgent {
             
             [사용자 작성 내용]
             %s
+            [선택된 키워드]
+            %s
 
             [지원자 정보]
             - 희망 직군: %s
@@ -90,9 +95,12 @@ public class RealtimeCoachingAgent {
         """.formatted(
             section,
             request.getContent(),
+            request.getKeywords(),
             member != null ? member.getJobGroup() : "정보 없음",
             member != null ? member.getJobRole() : "정보 없음"
         );
+
+        log.info("받은 키워드: {}", request.getKeywords());
 
         // 4. LLM 호출
         String json = chatClient.prompt()
