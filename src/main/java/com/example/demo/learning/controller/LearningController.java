@@ -1,7 +1,7 @@
 package com.example.demo.learning.controller;
 
 import java.util.List;
-
+import com.example.demo.learning.service.LearningWeekService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,16 +19,20 @@ import com.example.demo.learning.service.LearningDayService;
 import com.example.demo.learning.service.LearningService;
 
 
-
-
 @RestController
 @RequestMapping("/learning")
 public class LearningController {
+
+    private final LearningWeekService learningWeekService;
 
   @Autowired
   private LearningService learningService;
   @Autowired
   private LearningDayService learningDayService;
+
+    LearningController(LearningWeekService learningWeekService) {
+        this.learningWeekService = learningWeekService;
+    }
 
   // AI 학습 로드맵 생성
   @PostMapping("/roadmap-create")
@@ -74,9 +78,19 @@ public class LearningController {
 
   // 학습 상세 조회
 
+  // 일일 학습 조회 (주차별)
+  @GetMapping("/day-by-week")
+  public ResponseEntity<List<LearningDay>> getLearningDayByWeek(@RequestParam("weekId") int weekId) {
+    return ResponseEntity.ok(learningDayService.getDayListByWeekId(weekId));
+  }
 
+  // 일일 학습 조회 (일차별)
+  @GetMapping("/day-by-day")
+  public ResponseEntity<LearningDay> getLearningDayByDayId(@RequestParam("dayId") int dayId) {
+    return ResponseEntity.ok(learningDayService.getDayById(dayId));
+  }
 
-  // AI 학습 정리 제출
+  // AI 일일 학습 정리 제출
   @PostMapping("/submit-day-summary")
   public ResponseEntity<LearningDay> submitLearningDaySummary(
     @RequestParam("dayId") int dayId,

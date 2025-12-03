@@ -85,6 +85,7 @@ public class JobRelatedInsightAgent {
         - 총 3개의 insights 항목을 생성하세요.
         - insights 배열의 첫 번째 항목은 반드시 사용자 직무(jobRole) 기반 인사이트여야 합니다.
         - insights 배열 총 길이는 3이어야 합니다.
+        - summary는 jobRole(직무)에 대한 직업 설명으로 간단한 1문장으로 작성하세요.
         - trendSummary는 1~2문장으로 작성하세요.
         - relatedKeywords는 최소 3개 이상의 키워드를 포함한 문자열 배열이어야 합니다.
         - 출력은 반드시 JSON만 출력하고, format만 따라야 합니다.

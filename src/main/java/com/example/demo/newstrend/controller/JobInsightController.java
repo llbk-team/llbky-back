@@ -2,6 +2,7 @@ package com.example.demo.newstrend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -9,8 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.newstrend.entity.JobInsight;
 import com.example.demo.newstrend.service.JobInsightService;
-import org.springframework.web.bind.annotation.GetMapping;
-
 
 @RestController
 @RequestMapping("/jobInsight")
@@ -25,7 +24,12 @@ public class JobInsightController {
 
   @GetMapping("/latest")
   public ResponseEntity<JobInsight> getJobInsight(@RequestParam("memberId") int memberId) {
-      return ResponseEntity.ok(jobInsightService.getLatestInsight(memberId));
+    return ResponseEntity.ok(jobInsightService.getLatestInsight(memberId));
   }
-  
+
+  @GetMapping("/today")
+  public ResponseEntity<JobInsight> analyze(@RequestParam("memberId") int memberId) throws Exception {
+    return ResponseEntity.ok(jobInsightService.getOrCreateInsight(memberId));
+  }
+
 }

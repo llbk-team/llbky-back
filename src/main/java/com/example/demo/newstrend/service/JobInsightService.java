@@ -46,4 +46,28 @@ public class JobInsightService {
   public JobInsight getLatestInsight(int memberId) {
     return jobInsightDao.selectLatestJobInsight(memberId);
   }
+
+  public JobInsight getOrCreateInsight(int memberId) throws Exception{
+    JobInsight latest = jobInsightDao.selectLatestJobInsight(memberId);
+    if (latest != null) {
+      return latest;
+    }
+    
+    // 성장 제안 생성 에이전트 호출
+    String growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId);
+
+    // 직무 인사이트 카드 생성하는 에이전트 호출
+    JobInsightListResponse cards = jobRelatedInsightAgent.relatedJobs(memberId);
+
+    // DB 저장
+    JobInsight entity = new JobInsight();
+    entity.setMemberId(memberId);
+    entity.setAnalysisJson(growthAdviceJson);
+    entity.setRelatedJobsJson(mapper.writeValueAsString(cards));
+
+    jobInsightDao.insertJobInsight(entity);
+
+    return entity;
+  }
+  
 }
