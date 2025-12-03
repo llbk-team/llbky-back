@@ -136,40 +136,40 @@ public class NewsController {
      * @param limit 조회 개수 (기본값: 6)
      * @return 오늘의 뉴스 분석 결과 리스트 (6개)
      */
-    @GetMapping("/member/{memberId}/today")
-    public ResponseEntity<Map<String, Object>> getTodayNewsSummary(
-            @PathVariable int memberId,
-            @RequestParam(defaultValue = "3") int limit) {
+    // @GetMapping("/member/{memberId}/today")
+    // public ResponseEntity<Map<String, Object>> getTodayNewsSummary(
+    //         @PathVariable int memberId,
+    //         @RequestParam(defaultValue = "3") int limit) {
         
-        log.info("오늘 뉴스 요약 조회 요청 - memberId: {}, limit: {}", memberId, limit);
+    //     log.info("오늘 뉴스 요약 조회 요청 - memberId: {}, limit: {}", memberId, limit);
         
-        try {
-            // TotalNewsService에서 자동 수집 로직 포함하여 처리
-            List<NewsAnalysisResponse> newsList = totalNewsService.getTodayNewsByMember(memberId, limit);
+    //     try {
+    //         // TotalNewsService에서 자동 수집 로직 포함하여 처리
+    //         List<NewsAnalysisResponse> newsList = totalNewsService.getTodayNewsByMember(memberId, limit);
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("message", "오늘 뉴스 조회 완료");
-            response.put("data", newsList);
-            response.put("totalCount", newsList != null ? newsList.size() : 0);
+    //         Map<String, Object> response = new HashMap<>();
+    //         response.put("status", "success");
+    //         response.put("message", "오늘 뉴스 조회 완료");
+    //         response.put("data", newsList);
+    //         response.put("totalCount", newsList != null ? newsList.size() : 0);
             
-            log.info("오늘 뉴스 요약 조회 완료 - {}건 반환", 
-                newsList != null ? newsList.size() : 0);
+    //         log.info("오늘 뉴스 요약 조회 완료 - {}건 반환", 
+    //             newsList != null ? newsList.size() : 0);
             
-            return ResponseEntity.ok(response);
+    //         return ResponseEntity.ok(response);
             
-        } catch (Exception e) {
-            log.error("뉴스 요약 조회 실패 - memberId: {}", memberId, e);
+    //     } catch (Exception e) {
+    //         log.error("뉴스 요약 조회 실패 - memberId: {}", memberId, e);
             
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", "error");
-            errorResponse.put("message", "뉴스 조회 중 오류가 발생했습니다: " + e.getMessage());
-            errorResponse.put("data", List.of());
-            errorResponse.put("totalCount", 0);
+    //         Map<String, Object> errorResponse = new HashMap<>();
+    //         errorResponse.put("status", "error");
+    //         errorResponse.put("message", "뉴스 조회 중 오류가 발생했습니다: " + e.getMessage());
+    //         errorResponse.put("data", List.of());
+    //         errorResponse.put("totalCount", 0);
             
-            return ResponseEntity.status(500).body(errorResponse);
-        }
-    }
+    //         return ResponseEntity.status(500).body(errorResponse);
+    //     }
+    // }
     
     /**
      * 뉴스 상세보기
@@ -200,6 +200,7 @@ public class NewsController {
             Map<String, Object> detailData = new HashMap<>();
             detailData.put("summaryId", news.getSummaryId());
             detailData.put("sentiment", news.getSentiment());
+            detailData.put("sentimentScores", news.getSentimentScores());
             detailData.put("trustScore", news.getTrustScore());
             detailData.put("title", news.getTitle());
             detailData.put("sourceName", news.getSourceName());
@@ -242,38 +243,38 @@ public class NewsController {
      * @param limit 조회 개수 (기본값: 10)
      * @return 회원별 최신 뉴스 리스트
      */
-    @GetMapping("/member/{memberId}/latest")
-    public ResponseEntity<Map<String, Object>> getLatestNews(
-            @PathVariable int memberId,
-            @RequestParam(defaultValue = "10") int limit) {
+    // @GetMapping("/member/{memberId}/latest")
+    // public ResponseEntity<Map<String, Object>> getLatestNews(
+    //         @PathVariable int memberId,
+    //         @RequestParam(defaultValue = "10") int limit) {
 
-        log.info("회원별 최신 뉴스 조회 요청 - memberId: {}, limit: {}", memberId, limit);
+    //     log.info("회원별 최신 뉴스 조회 요청 - memberId: {}, limit: {}", memberId, limit);
 
-        try {
-            List<NewsAnalysisResponse> newsList = totalNewsService.getLatestNewsByMember(memberId, limit);
+    //     try {
+    //         List<NewsAnalysisResponse> newsList = totalNewsService.getLatestNewsByMember(memberId, limit);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("message", "최신 뉴스 조회 완료");
-            response.put("data", newsList);
-            response.put("totalCount", newsList.size());
+    //         Map<String, Object> response = new HashMap<>();
+    //         response.put("status", "success");
+    //         response.put("message", "최신 뉴스 조회 완료");
+    //         response.put("data", newsList);
+    //         response.put("totalCount", newsList.size());
 
-            log.info("회원별 최신 뉴스 조회 완료 - {}건 반환", newsList.size());
+    //         log.info("회원별 최신 뉴스 조회 완료 - {}건 반환", newsList.size());
 
-            return ResponseEntity.ok(response);
+    //         return ResponseEntity.ok(response);
 
-        } catch (Exception e) {
-            log.error("최신 뉴스 조회 실패 - memberId: {}", memberId, e);
+    //     } catch (Exception e) {
+    //         log.error("최신 뉴스 조회 실패 - memberId: {}", memberId, e);
 
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", "error");
-            errorResponse.put("message", "최신 뉴스 조회 중 오류가 발생했습니다: " + e.getMessage());
-            errorResponse.put("data", List.of());
-            errorResponse.put("totalCount", 0);
+    //         Map<String, Object> errorResponse = new HashMap<>();
+    //         errorResponse.put("status", "error");
+    //         errorResponse.put("message", "최신 뉴스 조회 중 오류가 발생했습니다: " + e.getMessage());
+    //         errorResponse.put("data", List.of());
+    //         errorResponse.put("totalCount", 0);
 
-            return ResponseEntity.status(500).body(errorResponse);
-        }
-    }
+    //         return ResponseEntity.status(500).body(errorResponse);
+    //     }
+    // }
     
     /**
      * 뉴스 수집 상태 확인
@@ -283,37 +284,37 @@ public class NewsController {
      * @param memberId 회원 ID
      * @return 뉴스 수집 상태 정보
      */
-    @GetMapping("/member/{memberId}/status")
-    public ResponseEntity<Map<String, Object>> getCollectionStatus(@PathVariable int memberId) {
+    // @GetMapping("/member/{memberId}/status")
+    // public ResponseEntity<Map<String, Object>> getCollectionStatus(@PathVariable int memberId) {
 
-        log.info("뉴스 수집 상태 확인 - memberId: {}", memberId);
+    //     log.info("뉴스 수집 상태 확인 - memberId: {}", memberId);
 
-        try {
-            List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 100);
+    //     try {
+    //         List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 100);
 
-            Map<String, Object> status = new HashMap<>();
-            status.put("memberId", memberId);
-            status.put("todayNewsCount", todayNews.size());
-            status.put("hasData", !todayNews.isEmpty());
-            status.put("lastUpdate", todayNews.isEmpty() ? null : todayNews.get(0).getCreatedAt());
+    //         Map<String, Object> status = new HashMap<>();
+    //         status.put("memberId", memberId);
+    //         status.put("todayNewsCount", todayNews.size());
+    //         status.put("hasData", !todayNews.isEmpty());
+    //         status.put("lastUpdate", todayNews.isEmpty() ? null : todayNews.get(0).getCreatedAt());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("message", "뉴스 수집 상태 확인 완료");
-            response.put("data", status);
+    //         Map<String, Object> response = new HashMap<>();
+    //         response.put("status", "success");
+    //         response.put("message", "뉴스 수집 상태 확인 완료");
+    //         response.put("data", status);
 
-            return ResponseEntity.ok(response);
+    //         return ResponseEntity.ok(response);
 
-        } catch (Exception e) {
-            log.error("뉴스 수집 상태 확인 실패 - memberId: {}", memberId, e);
+    //     } catch (Exception e) {
+    //         log.error("뉴스 수집 상태 확인 실패 - memberId: {}", memberId, e);
 
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", "error");
-            errorResponse.put("message", "상태 확인 중 오류가 발생했습니다: " + e.getMessage());
+    //         Map<String, Object> errorResponse = new HashMap<>();
+    //         errorResponse.put("status", "error");
+    //         errorResponse.put("message", "상태 확인 중 오류가 발생했습니다: " + e.getMessage());
 
-            return ResponseEntity.status(500).body(errorResponse);
-        }
-    }
+    //         return ResponseEntity.status(500).body(errorResponse);
+    //     }
+    // }
     
     /**
      * 키워드 기반 네이버 뉴스 검색 (외부 API 호출)
@@ -400,22 +401,20 @@ public class NewsController {
      * @param request 수집 요청 (키워드 리스트, 회원 ID)
      * @return 수집 결과 메시지
      */
-    @PostMapping("/collect")
-    public ResponseEntity<?> collectNews(@RequestBody CollectNewsRequest request) throws Exception {
-        log.info("뉴스 수집 요청: keywords={}, memberId={}", request.getKeywords(), request.getMemberId());
+    // @PostMapping("/collect")
+    // public ResponseEntity<?> collectNews(@RequestBody CollectNewsRequest request) throws Exception {
+    //     log.info("뉴스 수집 요청: keywords={}, memberId={}", request.getKeywords(), request.getMemberId());
 
-        int analyzed = totalNewsService.collectAndAnalyzeNews(
-            request.getKeywords(), 
-            request.getMemberId()
-        );
-        
-        return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "뉴스 수집 완료",
-                "analyzed", analyzed
-            ));
-        
-    }
+    //     int analyzed = totalNewsService.collectAndAnalyzeNews(
+    //         request.getKeywords(), 
+    //         request.getMemberId()
+    //     );
+    //     return ResponseEntity.ok(Map.of(
+    //             "status", "success",
+    //             "message", "뉴스 수집 완료",
+    //             "analyzed", analyzed
+    //         ));
+    // }
     
     /**
      * 뉴스 수집 요청 DTO
