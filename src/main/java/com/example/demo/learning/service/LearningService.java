@@ -9,11 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.ai.learning.CreateRoadmapAgent;
 import com.example.demo.ai.learning.RecommendSkillAgent;
+import com.example.demo.ai.learning.RefineRoadmapAgent;
 import com.example.demo.coverletter.dao.CoverLetterDao;
 import com.example.demo.coverletter.entity.CoverLetter;
 import com.example.demo.learning.dao.LearningDao;
 import com.example.demo.learning.dao.LearningDayDao;
 import com.example.demo.learning.dao.LearningWeekDao;
+import com.example.demo.learning.dto.request.RoadmapRefineRequest;
 import com.example.demo.learning.dto.request.RoadmapRequest;
 import com.example.demo.learning.dto.request.SkillRecommendRequest;
 import com.example.demo.learning.dto.response.AiCreateDayResponse;
@@ -56,6 +58,8 @@ public class LearningService {
     private CreateRoadmapAgent createRoadmapAgent;
     @Autowired
     private RecommendSkillAgent recommendSkillAgent;
+    @Autowired
+    private RefineRoadmapAgent refineRoadmapAgent;
 
     // 학습 로드맵 생성
     public AiCreateRoadmapResponse createLearning(Integer memberId, List<String> purposes, List<String> skills,
@@ -71,6 +75,11 @@ public class LearningService {
         request.setStudyHours(studyHours);
 
         return createRoadmapAgent.generateRoadmap(request);
+    }
+
+    // 학습 로드맵 수정
+    public AiCreateRoadmapResponse refineRoadmap(RoadmapRefineRequest request) {
+        return refineRoadmapAgent.refineRoadmap(request);
     }
 
     // 학습 로드맵 저장

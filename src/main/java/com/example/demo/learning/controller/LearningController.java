@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.learning.dto.request.RoadmapRefineRequest;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.dto.response.LearningResponse;
 import com.example.demo.learning.dto.response.RecommendSkillResponse;
@@ -45,6 +46,13 @@ public class LearningController {
       AiCreateRoadmapResponse result = learningService.createLearning(memberId, purposes, skills, studyHours);
       return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/roadmap-refine")
+    public ResponseEntity<AiCreateRoadmapResponse> refineRoadmap(@RequestBody RoadmapRefineRequest request) {
+      AiCreateRoadmapResponse response = learningService.refineRoadmap(request);
+      return ResponseEntity.ok(response);
+    }
+    
 
   
   // AI 학습 로드맵 DB 저장
