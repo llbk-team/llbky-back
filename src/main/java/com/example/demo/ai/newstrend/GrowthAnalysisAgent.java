@@ -140,7 +140,6 @@ public class GrowthAnalysisAgent {
           "learningAdvice": "..."
         }
         각 항목은 1~2문장으로 작성.
-
         """;
 
     String request = """
@@ -155,8 +154,8 @@ public class GrowthAnalysisAgent {
           "insightJson": %s
         }
         """.formatted(
-        mapper.writeValueAsString(member.getJobRole()),
-        mapper.writeValueAsString(member.getJobGroup()),
+        jobRole,
+        jobGroup,
         mapper.writeValueAsString(savedKeywords),
         mapper.writeValueAsString(resumeFeedbackRaw),
         mapper.writeValueAsString(coverFeedbackRaw),
