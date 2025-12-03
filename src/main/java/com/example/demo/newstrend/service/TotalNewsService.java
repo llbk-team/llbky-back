@@ -258,6 +258,7 @@ public class TotalNewsService {
         response.setCategory(analysis.getCategory());
 
         // 키워드
+        
         response.setKeywords(result.getKeywords());
 
         response.setCreatedAt(saved.getCreatedAt());
