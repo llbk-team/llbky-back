@@ -85,7 +85,7 @@ public class NewsSummaryService {
     
     LocalDate startDate = calculateStartDate(period);
     
-    List<NewsSummary> summaries = newsSummaryDao.findByKeywords(keywords, memberId, startDate, limit);
+    List<NewsSummary> summaries = newsSummaryDao.findByJobGroupKeywords(keywords, memberId, startDate, limit);
     
     List<NewsAnalysisResponse> responses = new ArrayList<>();
     for (NewsSummary summary : summaries) {

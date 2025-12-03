@@ -120,35 +120,6 @@
 
     </select>
 
-    <!-- 키워드 기반 뉴스 검색 -->
-    <select id="findByKeywords" resultType="NewsSummary">
-        select
-            summary_id,
-            member_id,
-            source_name,
-            source_url,
-            title,
-            published_at,
-            summary_text,
-            detail_summary,
-            analysis_json,
-            keywords_json,
-            created_at
-        from news_summary
-        where member_id = #{memberId}
-        <if test="startDate != null">
-            AND published_at >= #{startDate}
-        </if>
-        AND (
-            <foreach collection="keywords" item="keyword" separator=" OR ">
-                title LIKE CONCAT('%', #{keyword}, '%')
-                OR CAST(keywords_json AS TEXT) LIKE CONCAT('%', #{keyword}, '%')
-            </foreach>
-        )
-        
-        limit #{limit}
-    </select>
-
     <select id="searchNewsByKeywordsAndDate" resultType="NewsSummary">
       select 
           summary_id, 
@@ -200,8 +171,6 @@
         order by published_at DESC, created_at DESC
         limit #{limit}
     </select>
-
-
 
     <!-- 뉴스 삭제 -->
     <delete id="deleteNewsSummary">
