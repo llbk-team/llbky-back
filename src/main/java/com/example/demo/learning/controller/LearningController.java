@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.dto.response.LearningResponse;
+import com.example.demo.learning.dto.response.RecommendSkillResponse;
 import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.service.LearningDayService;
 import com.example.demo.learning.service.LearningService;
@@ -52,6 +53,12 @@ public class LearningController {
   
 
   // 사용자가 올린 문서 / 직군,직무로 AI가 추천해주는 기술
+  @PostMapping("/recommend-skills")
+  public ResponseEntity<RecommendSkillResponse> recommendSkill(@RequestParam("memberId") Integer memberId) {
+    RecommendSkillResponse result = learningService.recommendSkillsFromFeedback(memberId);
+    return ResponseEntity.ok(result); 
+  }
+  
 
   // 사용자가 선택한 기술 DB 저장
 

@@ -8,22 +8,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.ai.learning.CreateRoadmapAgent;
+import com.example.demo.ai.learning.RecommendSkillAgent;
+import com.example.demo.coverletter.dao.CoverLetterDao;
+import com.example.demo.coverletter.entity.CoverLetter;
 import com.example.demo.learning.dao.LearningDao;
 import com.example.demo.learning.dao.LearningDayDao;
 import com.example.demo.learning.dao.LearningWeekDao;
 import com.example.demo.learning.dto.request.RoadmapRequest;
+import com.example.demo.learning.dto.request.SkillRecommendRequest;
 import com.example.demo.learning.dto.response.AiCreateDayResponse;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.dto.response.AiCreateWeekResponse;
 import com.example.demo.learning.dto.response.DayDetailResponse;
 import com.example.demo.learning.dto.response.LearningDetailResponse;
 import com.example.demo.learning.dto.response.LearningResponse;
+import com.example.demo.learning.dto.response.RecommendSkillResponse;
 import com.example.demo.learning.dto.response.WeekDetailResponse;
 import com.example.demo.learning.entity.Learning;
 import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.entity.LearningWeek;
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
+import com.example.demo.portfolio.dao.PortfolioDao;
+import com.example.demo.portfolio.entity.Portfolio;
+import com.example.demo.resume.dao.ResumeDao;
+import com.example.demo.resume.entity.Resume;
 
 @Service
 public class LearningService {
@@ -36,9 +45,17 @@ public class LearningService {
     private LearningDayDao learningDayDao;
     @Autowired
     private MemberDao memberDao;
+    @Autowired
+    private ResumeDao resumeDao;
+    @Autowired
+    private CoverLetterDao coverLetterDao;
+    @Autowired
+    private PortfolioDao portfolioDao;
 
     @Autowired
     private CreateRoadmapAgent createRoadmapAgent;
+    @Autowired
+    private RecommendSkillAgent recommendSkillAgent;
 
     // 학습 로드맵 생성
     public AiCreateRoadmapResponse createLearning(Integer memberId, List<String> purposes, List<String> skills,
@@ -182,6 +199,51 @@ public class LearningService {
 
         // 4. DTO 리스트 반환
         return dtoList;
+    }
+
+    // 로드맵 생성중 부족한 역량 추천
+    public RecommendSkillResponse recommendSkillsFromFeedback(int memberId) {
+
+        // 1. 각 종합 피드백 추출
+        List<Resume> resumes = resumeDao.selectResumesByMemberId(memberId);
+        List<String> resumeFeedbackRaw = new ArrayList<>();
+        for (Resume r : resumes) {
+            resumeFeedbackRaw.add(r.getResumeFeedback()); // JSON 그대로
+        }
+
+        List<CoverLetter> coverLetters = coverLetterDao.selectAllCoverLetters(memberId);
+        List<String> coverFeedbackRaw = new ArrayList<>();
+        for (CoverLetter cl : coverLetters) {
+            coverFeedbackRaw.add(cl.getCoverFeedback());
+        }
+
+        List<Portfolio> portfolios = portfolioDao.selectPortfoliosByMemberId(memberId);
+        List<String> portfolioFeedbackRaw = new ArrayList<>();
+        for (Portfolio p : portfolios) {
+            portfolioFeedbackRaw.add(p.getPortfolioFeedback());
+        }
+
+        // 2. Service에서 Feedback Merge 처리
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("=== Resume Feedback ===\n");
+        for (String r : resumeFeedbackRaw) {
+            sb.append(r).append("\n\n");
+        }
+
+        sb.append("=== Cover Letter Feedback ===\n");
+        for (String c : coverFeedbackRaw) {
+            sb.append(c).append("\n\n");
+        }
+
+        sb.append("=== Portfolio Feedback ===\n");
+        for (String p : portfolioFeedbackRaw) {
+            sb.append(p).append("\n\n");
+        }
+
+        String mergedFeedback = sb.toString();
+
+        return recommendSkillAgent.recommendSkillFromFeedback(mergedFeedback);
     }
 
     // 사용자별 학습 개수 조회
