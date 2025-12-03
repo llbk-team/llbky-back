@@ -80,7 +80,15 @@ public class RewriteMemoAgent {
 
         // DB에 메모 저장
         day.setLearningDaySummary(newMemo);
-        day.setStatus("완료");
+        
+        // 검증 실패/성공 상태 처리 분기
+        if (Boolean.FALSE.equals(checkResult.getIsValid())) {
+            // 검증 결과 적합하지 않은 내용이면
+            day.setStatus("진행 중");
+        } else {
+            // 검증 결과 적합하여 새 메모 만들어진 경우
+            day.setStatus("완료");
+        }
 
         learningDayDao.update(day);
 
