@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +17,7 @@ import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.dto.response.LearningResponse;
 import com.example.demo.learning.dto.response.RecommendSkillResponse;
 import com.example.demo.learning.entity.LearningDay;
+import com.example.demo.learning.entity.LearningWeek;
 import com.example.demo.learning.service.LearningDayService;
 import com.example.demo.learning.service.LearningService;
 
@@ -24,16 +26,12 @@ import com.example.demo.learning.service.LearningService;
 @RequestMapping("/learning")
 public class LearningController {
 
-    private final LearningWeekService learningWeekService;
-
   @Autowired
   private LearningService learningService;
   @Autowired
   private LearningDayService learningDayService;
-
-    LearningController(LearningWeekService learningWeekService) {
-        this.learningWeekService = learningWeekService;
-    }
+  @Autowired
+  private LearningWeekService learningWeekService; 
 
   // AI 학습 로드맵 생성
   @PostMapping("/roadmap-create")
@@ -84,7 +82,21 @@ public class LearningController {
   }
   
 
-  // 학습 상세 조회
+  // 학습 상세 조회==========================================================================================================================================
+  
+  // 학습 ID 기준 주차 전체 조회
+  @GetMapping("/weeks-by-roadmap")
+  public ResponseEntity<List<LearningWeek>> getWeekListByLearningId(@RequestParam("learningId") int learningId) {
+    List<LearningWeek> result = learningWeekService.getWeekListByLearningId(learningId);
+    return ResponseEntity.ok(result);
+  }
+  
+  // 주차 상세 조회
+  @GetMapping("/week-detail")
+  public ResponseEntity<LearningWeek> getLearningWeekDetail(@RequestParam("weekId") int weekId) {
+    LearningWeek result = learningWeekService.getWeekById(weekId);
+    return ResponseEntity.ok(result);
+  }
 
   // 일일 학습 조회 (주차별)
   @GetMapping("/day-by-week")

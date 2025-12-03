@@ -19,7 +19,7 @@ public interface LearningWeekDao {
   public List<LearningWeek> selectListByLearningId(int learningId);
   
   // 학습 플랜 + 주차 번호로 조회 ex) 2주차
-    LearningWeek selectByLearningIdAndWeekNumber(@Param("learningId") int learningId, @Param("weekNumber") int weekNumber);
+  public LearningWeek selectByLearningIdAndWeekNumber(@Param("learningId") int learningId, @Param("weekNumber") int weekNumber);
 
   // 학습 상태 변경
   public int update(LearningWeek learningWeek);

@@ -20,7 +20,7 @@
             title,
             goal,
             status,
-            week_summary,
+            learning_week_summary,
             created_at,
             updated_at
         FROM learning_week
@@ -36,7 +36,7 @@
             title,
             goal,
             status,
-            week_summary,
+            learning_week_summary,
             created_at,
             updated_at
         FROM learning_week
@@ -54,7 +54,7 @@
             title,
             goal,
             status,
-            week_summary,
+            learning_week_summary,
             created_at,
             updated_at
         FROM learning_week
@@ -77,7 +77,7 @@
             title = #{title},
             goal = #{goal},
             status = #{status},
-            week_summary = #{weekSummary},
+            learning_week_summary = #{learningWeekSummary},
             updated_at = NOW()
         WHERE week_id = #{weekId};
     </update>
