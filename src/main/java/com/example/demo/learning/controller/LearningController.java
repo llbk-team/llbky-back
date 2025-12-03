@@ -30,7 +30,7 @@ public class LearningController {
   private LearningDayService learningDayService;
 
   // AI 학습 로드맵 생성
-  @PostMapping("/roadmap/create")
+  @PostMapping("/roadmap-create")
   public ResponseEntity<AiCreateRoadmapResponse> createRoadmap(
     @RequestParam("memberId") Integer memberId,
     @RequestParam("purposes") List<String> purposes,
@@ -43,7 +43,7 @@ public class LearningController {
 
   
   // AI 학습 로드맵 DB 저장
-  @PostMapping("/roadmap/save")
+  @PostMapping("/roadmap-save")
   public ResponseEntity<AiCreateRoadmapResponse> saveRoadmap(@RequestBody AiCreateRoadmapResponse roadmap) {
     AiCreateRoadmapResponse result = learningService.saveRoadmap(roadmap);
     return ResponseEntity.ok(result);
