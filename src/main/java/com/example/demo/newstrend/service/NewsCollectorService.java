@@ -41,63 +41,6 @@ public class NewsCollectorService {
     @Value("${naver.api.client-secret}")
     private String clientSecret;
 
-    // ✅ 직군별 키워드 매핑
-    private static final Map<String, List<String>> JOB_GROUP_KEYWORDS = Map.of(
-            "개발", Arrays.asList(
-                    "개발자 채용", "백엔드 채용", "프론트엔드 채용", "풀스택 개발자",
-                    "소프트웨어 엔지니어", "프로그래머", "코딩", "Java", "Python", "React", "Spring"),
-
-            "AI/데이터", Arrays.asList(
-                    "데이터 사이언티스트", "데이터 엔지니어", "AI 개발자", "머신러닝 엔지니어",
-                    "빅데이터", "데이터 분석가", "인공지능", "딥러닝", "ML"),
-
-            "디자인", Arrays.asList(
-                    "UI 디자이너", "UX 디자이너", "웹디자인", "그래픽 디자이너", "프로덕트 디자이너",
-                    "디자인 채용", "포토샵", "피그마", "일러스트", "브랜딩"),
-
-            "기획", Arrays.asList(
-                    "기획자 채용", "서비스 기획", "상품 기획", "사업 기획", "전략 기획",
-                    "기획 업무", "기획 직무", "비즈니스 분석"),
-
-            "PM", Arrays.asList(
-                    "프로덕트 매니저", "프로젝트 매니저", "PM 채용", "PO", "프로덕트 오너",
-                    "애자일", "스크럼", "프로젝트 관리"),
-
-            "마케팅", Arrays.asList(
-                    "마케팅 매니저", "디지털 마케팅", "퍼포먼스 마케팅", "콘텐츠 마케팅",
-                    "브랜드 마케팅", "마케팅 기획", "광고", "SNS 마케팅", "SEO"),
-
-            "영업", Arrays.asList(
-                    "영업 대표", "세일즈", "비즈니스 개발", "B2B 영업", "고객 관리",
-                    "영업 기획", "계정 관리", "Sales"),
-
-            "장성", Arrays.asList( // 경영으로 추정
-                    "경영", "경영관리", "경영기획", "전략", "경영지원", "임원", "관리자"),
-
-            "교육", Arrays.asList(
-                    "교육 기획", "강사", "교육 콘텐츠", "이러닝", "교육 프로그램", "연수", "교육생"),
-
-            "기타", Arrays.asList(
-                    "인사", "총무", "재무", "회계", "법무", "운영", "고객서비스", "품질관리"));
-
-    private static final Map<String, Set<String>> JOB_GROUP_FILTERS = Map.of(
-            "개발", Set.of("개발", "프로그래밍", "코딩", "시스템", "소프트웨어", "앱", "웹", "API"),
-            "AI/데이터", Set.of("데이터", "분석", "AI", "머신러닝", "딥러닝", "빅데이터", "알고리즘"),
-            "디자인", Set.of("디자인", "UI", "UX", "그래픽", "브랜딩", "시각", "창작"),
-            "기획", Set.of("기획", "전략", "분석", "리서치", "컨셉"),
-            "PM", Set.of("관리", "매니저", "리드", "PM", "프로젝트", "제품"),
-            "마케팅", Set.of("마케팅", "광고", "프로모션", "브랜드", "고객", "캠페인"),
-            "영업", Set.of("영업", "세일즈", "판매", "고객", "계약", "B2B", "B2C"),
-            "장성", Set.of("경영", "관리", "전략", "임원", "리더십"),
-            "교육", Set.of("교육", "강의", "연수", "학습", "강사"),
-            "기타", Set.of("인사", "총무", "재무", "회계", "법무", "운영", "지원"));
-
-    // 공통 제외 키워드
-    private static final Set<String> COMMON_EXCLUDE_KEYWORDS = Set.of(
-            "운전", "배달", "서빙", "매장", "판매원", "아르바이트", "알바",
-            "카페", "식당", "마트", "편의점", "주유소", "택시", "버스",
-            "건설", "제조", "생산", "공장", "청소", "경비");
-
     public NewsCollectorService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder
                 .baseUrl("https://openapi.naver.com/v1/search")
@@ -126,46 +69,10 @@ public class NewsCollectorService {
         return result;
     }
 
-    /**
-     * ✅ 사용자 직군에 맞는 키워드 생성
-     */
-    private List<String> generateJobGroupKeywords(List<String> inputKeywords, Integer memberId) {
-        List<String> keywords = new ArrayList<>();
-
-        // 1. 입력된 키워드 추가
-        if (inputKeywords != null && !inputKeywords.isEmpty()) {
-            keywords.addAll(inputKeywords);
-        }
-
-        // 2. 사용자 직군별 키워드 추가
-        if (memberId != null) {
-            Member member = memberDao.findById(memberId);
-            if (member != null && member.getJobGroup() != null) {
-                String jobGroup = member.getJobGroup();
-
-                // 직군별 특화 키워드 추가
-                List<String> jobKeywords = JOB_GROUP_KEYWORDS.get(jobGroup);
-                if (jobKeywords != null) {
-                    keywords.addAll(jobKeywords);
-                    log.info("직군 '{}' 키워드 {}개 추가", jobGroup, jobKeywords.size());
-                } else {
-                    log.warn("매핑되지 않은 직군: {}", jobGroup);
-                    // 기본 키워드 추가
-                    keywords.addAll(Arrays.asList(jobGroup + " 채용", jobGroup + " 모집"));
-                }
-            }
-        }
-
-        // 3. 키워드가 없으면 개발 직군 기본값 사용
-        if (keywords.isEmpty()) {
-            keywords.addAll(JOB_GROUP_KEYWORDS.get("개발"));
-        }
-
-        return keywords.stream().distinct().collect(Collectors.toList());
-    }
+    
 
     /**
-     * 키워드 기반 뉴스 수집 (순수 수집만 담당)
+     * 검색 키워드 기반 뉴스 수집 (순수 수집만 담당)
      * 
      * @param keywords 검색 키워드 목록
      * @param memberId 회원 ID (null이면 1로 설정)
@@ -425,69 +332,69 @@ public class NewsCollectorService {
     // return newsList;
     // }
 
-    /**
-     * ✅ 직군별 특화 관련성 판단
-     */
-    private boolean isJobGroupRelated(String title, String content, String jobGroup) {
-        if (title == null)
-            return false;
-        // 제목이 없으면 직군 관련성을 판단할 수 없으므로 false 반환
+    // /**
+    //  * ✅ 직군별 특화 관련성 판단
+    //  */
+    // private boolean isJobGroupRelated(String title, String content, String jobGroup) {
+    //     if (title == null)
+    //         return false;
+    //     // 제목이 없으면 직군 관련성을 판단할 수 없으므로 false 반환
 
-        String text = (title + " " + (content != null ? content : "")).toLowerCase();
-        // 제목 + 내용(본문)을 하나의 문자열로 합치고 모두 소문자로 변환해서 비교를 쉽게 만듦
+    //     String text = (title + " " + (content != null ? content : "")).toLowerCase();
+    //     // 제목 + 내용(본문)을 하나의 문자열로 합치고 모두 소문자로 변환해서 비교를 쉽게 만듦
 
-        // 1. 공통 제외 키워드 체크
-        for (String excludeKeyword : COMMON_EXCLUDE_KEYWORDS) {
-            if (text.contains(excludeKeyword.toLowerCase())) {
-                return false;
-            }
-        }
-        // 공통 제외 키워드 목록에 있는 단어가 포함되어 있으면 이 뉴스는 직군과 무관하다고 판단하여 즉시 false
+    //     // 1. 공통 제외 키워드 체크
+    //     for (String excludeKeyword : COMMON_EXCLUDE_KEYWORDS) {
+    //         if (text.contains(excludeKeyword.toLowerCase())) {
+    //             return false;
+    //         }
+    //     }
+    //     // 공통 제외 키워드 목록에 있는 단어가 포함되어 있으면 이 뉴스는 직군과 무관하다고 판단하여 즉시 false
 
-        // 2. 해당 직군 필터링 키워드 점수 계산
-        Set<String> jobFilters = JOB_GROUP_FILTERS.getOrDefault(jobGroup, Set.of());
-        // 직군(jobGroup)별 필터링 키워드 목록을 가져옴. 없으면 빈 Set 반환
+    //     // 2. 해당 직군 필터링 키워드 점수 계산
+    //     Set<String> jobFilters = JOB_GROUP_FILTERS.getOrDefault(jobGroup, Set.of());
+    //     // 직군(jobGroup)별 필터링 키워드 목록을 가져옴. 없으면 빈 Set 반환
 
-        int score = 0;
-        // 관련성 점수를 계산하기 위한 변수
+    //     int score = 0;
+    //     // 관련성 점수를 계산하기 위한 변수
 
-        for (String filter : jobFilters) {
-            if (text.contains(filter.toLowerCase())) {
-                // 뉴스 텍스트에 해당 직군의 필터 단어가 포함되면
+    //     for (String filter : jobFilters) {
+    //         if (text.contains(filter.toLowerCase())) {
+    //             // 뉴스 텍스트에 해당 직군의 필터 단어가 포함되면
 
-                if (title.toLowerCase().contains(filter.toLowerCase())) {
-                    score += 2;
-                } else {
-                    score += 1;
-                }
-                // 제목에 포함되면 가중치 2점, 본문에만 있으면 1점 추가
-            }
-        }
+    //             if (title.toLowerCase().contains(filter.toLowerCase())) {
+    //                 score += 2;
+    //             } else {
+    //                 score += 1;
+    //             }
+    //             // 제목에 포함되면 가중치 2점, 본문에만 있으면 1점 추가
+    //         }
+    //     }
 
-        // 3. 채용 관련 키워드 가산점
-        if (text.matches(".*채용|구인|모집|입사|취업|면접.*")) {
-            score += 2;
-        }
-        // 텍스트 안에 '채용, 구인, 모집, 입사, 취업, 면접' 같은 단어가 있으면 +2점 추가
-        // 즉 "채용 관련 뉴스" 가능성이 있으면 강하게 가산점
+    //     // 3. 채용 관련 키워드 가산점
+    //     if (text.matches(".*채용|구인|모집|입사|취업|면접.*")) {
+    //         score += 2;
+    //     }
+    //     // 텍스트 안에 '채용, 구인, 모집, 입사, 취업, 면접' 같은 단어가 있으면 +2점 추가
+    //     // 즉 "채용 관련 뉴스" 가능성이 있으면 강하게 가산점
 
-        // 4. 직군별 임계점 설정 (개발직군은 더 까다롭게)
-        int threshold = "개발".equals(jobGroup) ? 3 : 2;
-        // 개발 직군이면 임계점을 3점으로 설정해 더 엄격하게,
-        // 그 외 직군은 2점 이상이면 관련된 것으로 판단
+    //     // 4. 직군별 임계점 설정 (개발직군은 더 까다롭게)
+    //     int threshold = "개발".equals(jobGroup) ? 3 : 2;
+    //     // 개발 직군이면 임계점을 3점으로 설정해 더 엄격하게,
+    //     // 그 외 직군은 2점 이상이면 관련된 것으로 판단
 
-        boolean isRelated = score >= threshold;
-        // 최종 점수가 임계값 이상이면 직군 관련 뉴스라고 판단
+    //     boolean isRelated = score >= threshold;
+    //     // 최종 점수가 임계값 이상이면 직군 관련 뉴스라고 판단
 
-        log.debug("'{}' 직군 관련성 판단 - 제목: '{}', 점수: {}/{}, 결과: {}",
-                jobGroup,
-                title.length() > 40 ? title.substring(0, 40) + "..." : title,
-                score, threshold, isRelated);
-        // 디버깅용 로그: 어떤 직군으로 평가했는지, 제목 일부, 점수/임계치, 최종결과 출력
+    //     log.debug("'{}' 직군 관련성 판단 - 제목: '{}', 점수: {}/{}, 결과: {}",
+    //             jobGroup,
+    //             title.length() > 40 ? title.substring(0, 40) + "..." : title,
+    //             score, threshold, isRelated);
+    //     // 디버깅용 로그: 어떤 직군으로 평가했는지, 제목 일부, 점수/임계치, 최종결과 출력
 
-        return isRelated;
-        // 최종 판단 결과 반환
-    }
+    //     return isRelated;
+    //     // 최종 판단 결과 반환
+    // }
 
 
     /**

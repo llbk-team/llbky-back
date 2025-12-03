@@ -2,13 +2,19 @@ package com.example.demo.newstrend.service;
 
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.member.dao.MemberDao;
+import com.example.demo.member.dto.Member;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResult;
@@ -32,10 +38,7 @@ import lombok.extern.slf4j.Slf4j;
     3번	AI 결과를 하나로 묶음	NewsAnalysisResult ← 여기!
     4번	DB 저장용 entity로 변환	NewsSummary
     5번	프론트 응답 DTO	NewsAnalysisResponse
- * 
- * 
- * 
- * 
+
  */
 @Service
 @Slf4j
@@ -52,6 +55,97 @@ public class TotalNewsService {
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Autowired
+  private MemberDao memberDao;
+
+  // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
+  @Transactional
+  public List<NewsAnalysisResponse> getNewsFeed(int memberId, int limit) throws Exception{
+    
+    List<String> jobGroupKeywords= generateJobGroupKeywords(memberId);
+
+      if(jobGroupKeywords.isEmpty()){
+        log.warn("키워드 생성 실패 - memberId: {}", memberId);
+        return new ArrayList<>();
+      }
+      log.info("생성된 키워드: {}", jobGroupKeywords);
+
+      List<NewsAnalysisResponse> feedList = newsSummaryService.getNewsByJobGroup(
+           jobGroupKeywords, memberId, "today", limit);
+
+      if (feedList == null || feedList.isEmpty()) {
+            log.info("오늘 피드 데이터 없음 - 자동 수집 시작");
+            
+            int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId);
+            log.info("자동 수집 완료 - {}건 분석됨", analyzed);
+            
+            // 4. 수집 후 다시 조회
+            feedList = newsSummaryService.getNewsByJobGroup(
+                jobGroupKeywords, 
+                memberId, 
+                "today", 
+                limit
+            );
+        }
+        
+        log.info("뉴스 피드 조회 완료 - {}건", feedList != null ? feedList.size() : 0);
+        return feedList != null ? feedList : new ArrayList<>();
+  }
+
+  /**
+     * ✅ 사용자 직군에 맞는 키워드 생성
+     */
+    private List<String> generateJobGroupKeywords(int memberId) {
+        List<String> keywords = new ArrayList<>();
+
+        
+        //1. 회원 정보 조회
+            Member member = memberDao.findById(memberId);
+            if (member != null && member.getJobGroup() != null) {
+                String jobGroup = member.getJobGroup();
+                String role = member.getJobRole();
+        // 2. 직군별 특화 키워드 추가
+              List<String> jobKeywords = JOB_GROUP_KEYWORDS.get(jobGroup);
+
+              if (jobKeywords != null) {
+                  keywords.addAll(jobKeywords);
+                  log.info("직군 '{}' 키워드 {}개 추가", jobGroup, jobKeywords.size());
+              } else {
+                  log.warn("매핑되지 않은 직군: {}", jobGroup);
+                  // 기본 키워드 추가
+                  keywords.addAll(Arrays.asList(jobGroup + " 채용", jobGroup + " 모집"));
+              }
+              //세부 직무 추가
+              if (role != null && !role.trim().isEmpty()) {
+              keywords.add(role);
+              keywords.add(role + " 채용");
+              log.info("세부 직무 '{}' 추가", role);
+            }
+
+            }
+        
+
+        // 3. 키워드가 없으면 개발 직군 기본값 사용
+        if (keywords.isEmpty()) {
+            keywords.addAll(JOB_GROUP_KEYWORDS.get("개발"));
+        }
+
+        return keywords.stream().distinct().collect(Collectors.toList());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /**
    * 단일 뉴스 분석 및 저장
@@ -266,6 +360,61 @@ public class TotalNewsService {
         return response;
     }
 
+// ✅ 직군별 키워드 매핑
+    private static final Map<String, List<String>> JOB_GROUP_KEYWORDS = Map.of(
+            "개발", Arrays.asList(
+                    "개발자 채용", "백엔드 채용", "프론트엔드 채용", "풀스택 개발자",
+                    "소프트웨어 엔지니어", "프로그래머", "코딩", "Java", "Python", "React", "Spring"),
 
+            "AI/데이터", Arrays.asList(
+                    "데이터 사이언티스트", "데이터 엔지니어", "AI 개발자", "머신러닝 엔지니어",
+                    "빅데이터", "데이터 분석가", "인공지능", "딥러닝", "ML"),
+
+            "디자인", Arrays.asList(
+                    "UI 디자이너", "UX 디자이너", "웹디자인", "그래픽 디자이너", "프로덕트 디자이너",
+                    "디자인 채용", "포토샵", "피그마", "일러스트", "브랜딩"),
+
+            "기획", Arrays.asList(
+                    "기획자 채용", "서비스 기획", "상품 기획", "사업 기획", "전략 기획",
+                    "기획 업무", "기획 직무", "비즈니스 분석"),
+
+            "PM", Arrays.asList(
+                    "프로덕트 매니저", "프로젝트 매니저", "PM 채용", "PO", "프로덕트 오너",
+                    "애자일", "스크럼", "프로젝트 관리"),
+
+            "마케팅", Arrays.asList(
+                    "마케팅 매니저", "디지털 마케팅", "퍼포먼스 마케팅", "콘텐츠 마케팅",
+                    "브랜드 마케팅", "마케팅 기획", "광고", "SNS 마케팅", "SEO"),
+
+            "영업", Arrays.asList(
+                    "영업 대표", "세일즈", "비즈니스 개발", "B2B 영업", "고객 관리",
+                    "영업 기획", "계정 관리", "Sales"),
+
+            "장성", Arrays.asList( // 경영으로 추정
+                    "경영", "경영관리", "경영기획", "전략", "경영지원", "임원", "관리자"),
+
+            "교육", Arrays.asList(
+                    "교육 기획", "강사", "교육 콘텐츠", "이러닝", "교육 프로그램", "연수", "교육생"),
+
+            "기타", Arrays.asList(
+                    "인사", "총무", "재무", "회계", "법무", "운영", "고객서비스", "품질관리"));
+
+    private static final Map<String, Set<String>> JOB_GROUP_FILTERS = Map.of(
+            "개발", Set.of("개발", "프로그래밍", "코딩", "시스템", "소프트웨어", "앱", "웹", "API"),
+            "AI/데이터", Set.of("데이터", "분석", "AI", "머신러닝", "딥러닝", "빅데이터", "알고리즘"),
+            "디자인", Set.of("디자인", "UI", "UX", "그래픽", "브랜딩", "시각", "창작"),
+            "기획", Set.of("기획", "전략", "분석", "리서치", "컨셉"),
+            "PM", Set.of("관리", "매니저", "리드", "PM", "프로젝트", "제품"),
+            "마케팅", Set.of("마케팅", "광고", "프로모션", "브랜드", "고객", "캠페인"),
+            "영업", Set.of("영업", "세일즈", "판매", "고객", "계약", "B2B", "B2C"),
+            "장성", Set.of("경영", "관리", "전략", "임원", "리더십"),
+            "교육", Set.of("교육", "강의", "연수", "학습", "강사"),
+            "기타", Set.of("인사", "총무", "재무", "회계", "법무", "운영", "지원"));
+
+    // 공통 제외 키워드
+    private static final Set<String> COMMON_EXCLUDE_KEYWORDS = Set.of(
+            "운전", "배달", "서빙", "매장", "판매원", "아르바이트", "알바",
+            "카페", "식당", "마트", "편의점", "주유소", "택시", "버스",
+            "건설", "제조", "생산", "공장", "청소", "경비");
 
 }
