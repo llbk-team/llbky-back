@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,9 +39,8 @@ public class SavedKeywordController {
   }
 
   // 삭제
-  @Delete("/delete")
+  @DeleteMapping("/delete")
   public ResponseEntity<Integer> deleteSavedKeyword(@RequestParam("savedKeywordId") int savedKeywordId){
     return ResponseEntity.ok(savedKeywordService.removeSavedKeyword(savedKeywordId));
   }
-
 }
