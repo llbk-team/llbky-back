@@ -8,8 +8,11 @@ import org.springframework.stereotype.Service;
 import com.example.demo.ai.learning.MemoCheckAgent;
 import com.example.demo.ai.learning.RewriteMemoAgent;
 import com.example.demo.learning.dao.LearningDayDao;
+import com.example.demo.learning.dao.LearningWeekDao;
 import com.example.demo.learning.dto.response.MemoCheckResponse;
+import com.example.demo.learning.entity.Learning;
 import com.example.demo.learning.entity.LearningDay;
+import com.example.demo.learning.entity.LearningWeek;
 
 @Service
 public class LearningDayService {
@@ -17,6 +20,8 @@ public class LearningDayService {
     // DAO
     @Autowired
     private LearningDayDao learningDayDao;
+    @Autowired
+    private LearningWeekDao learningWeekDao;
 
     // AI Agent
     @Autowired
@@ -62,7 +67,38 @@ public class LearningDayService {
         MemoCheckResponse checkResult = memoCheckAgent.execute(day, learningDaySummary);
 
         // 3. AI 메모 정리
-        return rewriteMemoAgent.execute(day, learningDaySummary, checkResult);
+        LearningDay updatedDay = rewriteMemoAgent.execute(day, learningDaySummary, checkResult);
+
+        // 4. 주차 상태 업데이트
+        updateWeekStatus(updatedDay.getWeekId());
+
+        return updatedDay;
+    }
+
+    // 일일 학습 결과를 주차 진행률에 반영
+    private void updateWeekStatus(int weekId)  {
+
+        // 1. 해당 주차의 모든 Day 가져오기
+        List<LearningDay> days = learningDayDao.selectListByWeekId(weekId);
+
+        // 2. 상태 계산
+        boolean allComplete = days.stream().allMatch(d -> "완료".equals(d.getStatus()));
+        boolean anyStarted = days.stream().anyMatch(d -> "완료".equals(d.getStatus()) || "진행 중".equals(d.getStatus()));
+
+        // 3. 기존 Week 불러오기
+        LearningWeek week = learningWeekDao.selectedByWeekId(weekId);
+
+        // 4. 상태 업데이트
+        if (allComplete) {
+            week.setStatus("완료");
+        } else if (anyStarted) {
+            week.setStatus("진행 중");
+        } else {
+            week.setStatus("예정");
+        }
+
+        // 5. DB 업데이트
+        learningWeekDao.update(week);
     }
 
     // 일차 업데이트

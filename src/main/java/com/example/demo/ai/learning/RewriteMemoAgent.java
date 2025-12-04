@@ -78,15 +78,19 @@ public class RewriteMemoAgent {
             .call()
             .content();
 
+        if (newMemo == null || newMemo.isBlank()) {
+            newMemo = origin;
+        }
+
         // DB에 메모 저장
         day.setLearningDaySummary(newMemo);
         
         // 검증 실패/성공 상태 처리 분기
-        if (Boolean.FALSE.equals(checkResult.getIsValid())) {
-            // 검증 결과 적합하지 않은 내용이면
+        Boolean valid = checkResult.getIsValid() != null ? checkResult.getIsValid() : false;
+
+        if (!valid) {
             day.setStatus("진행 중");
         } else {
-            // 검증 결과 적합하여 새 메모 만들어진 경우
             day.setStatus("완료");
         }
 
