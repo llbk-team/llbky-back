@@ -1,14 +1,13 @@
 package com.example.demo.newstrend.controller;
 
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.MonthDay;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,9 +45,17 @@ public class NewsController {
     @GetMapping("/feed")
     public ResponseEntity<Map<String, Object>> getNewsFeed(
             @RequestParam int memberId,
+            @RequestParam(defaultValue = "week") String period, 
+            @RequestParam(required = false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastPublishedAt,  // ✅ 추가
+            @RequestParam(required = false) Integer lastSummaryId, 
             @RequestParam(defaultValue = "15") int limit) throws Exception {
 
-        List<NewsAnalysisResponse> feedList = totalNewsService.getNewsFeed(memberId, limit);
+        List<NewsAnalysisResponse> feedList = totalNewsService.getNewsFeed(
+            memberId,
+            period,    
+            lastPublishedAt,   // ✅ 전달
+            lastSummaryId,     // ✅ 전달
+            limit);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
@@ -92,7 +99,7 @@ public class NewsController {
     
     try {
         // 1. 뉴스 수집 및 분석
-        int analyzed = totalNewsService.searchNews(keywords, memberId);
+        int analyzed = totalNewsService.searchNews(keywords, memberId,limit);
         
         // 2. 수집된 뉴스 조회
         List<NewsAnalysisResponse> newsList = newsSummaryService.searchNewsByUserKeywords(
@@ -222,7 +229,7 @@ public class NewsController {
 
 
     /**
-     * 키워드 기반 네이버 뉴스 검색 (외부 API 호출)
+     * 관련뉴스 네이버 뉴스 검색 (외부 API 호출)
      * 
      * GET /trend/news/{summaryId}/related-search?limit=5
      * 
@@ -291,21 +298,7 @@ public class NewsController {
         }
     }
 
-    /**
-     * 뉴스 자동 수집 및 분석 (수동 실행)
-     * 
-     * POST /news/collect
-     * 
-     * 요청 예시:
-     * {
-     * "keywords": ["AI 개발자", "백엔드 채용", "프론트엔드"],
-     * "memberId": 1
-     * }
-     * 
-     * @param request 수집 요청 (키워드 리스트, 회원 ID)
-     * @return 수집 결과 메시지
-     */
-   
+
     /**
      * 뉴스 수집 요청 DTO
      */

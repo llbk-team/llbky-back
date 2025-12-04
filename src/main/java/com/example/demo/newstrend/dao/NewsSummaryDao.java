@@ -1,6 +1,6 @@
 package com.example.demo.newstrend.dao;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -27,21 +27,23 @@ public interface NewsSummaryDao {
   // 오늘 뉴스 조회 (Controller: /member/{memberId}/today)
   public List<NewsSummary> selectNewsByMemberAndDate(
     @Param("memberId") int memberId,
-    @Param("date") LocalDate date,
+    @Param("date") LocalDateTime date,
     @Param("limit") int limit);
 
-  // 검색창 검색 (memberId 무관, 단일 키워드) - Controller: /search
+  // 검색창 검색 (memberId 무관, 키워드 리스트, period 필터) - Controller: /search
   List<NewsSummary> searchNewsByKeywordsAndDate(
-      @Param("keyword") String keyword,
-      @Param("startDate") LocalDate startDate,
+      @Param("keywords") List<String> keywords,
+      @Param("period") String period,
       @Param("limit") int limit
   );
 
-  // 피드 조회 (직군 기반 키워드, memberId 필터) - Controller: /member/{memberId}/feed
+  // 피드 조회 (직군 기반 키워드, memberId 필터, 커서 페이징, period) - Controller: /member/{memberId}/feed
   List<NewsSummary> findByJobGroupKeywords(
       @Param("keywords") List<String> keywords,
       @Param("memberId") Integer memberId,
-      @Param("startDate") LocalDate startDate,
+      @Param("period") String period,
+      @Param("lastPublishedAt") LocalDateTime lastPublishedAt,
+      @Param("lastSummaryId") Integer lastSummaryId,
       @Param("limit") int limit
   );
 

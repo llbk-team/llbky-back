@@ -134,11 +134,27 @@
           keywords_json, 
           created_at
       from news_summary
-      where published_at >= #{startDate}
-      AND (
-          title LIKE CONCAT('%', #{keyword}, '%')
-          OR CAST(keywords_json AS TEXT) LIKE CONCAT('%', #{keyword}, '%')
-      )
+      where 1=1
+        <if test="keywords != null and keywords.size() > 0">
+            AND (
+                <foreach collection="keywords" item="keyword" separator=" OR ">
+                    title LIKE CONCAT('%', #{keyword}, '%')
+                    OR summary_text LIKE CONCAT('%', #{keyword}, '%')
+                    OR CAST(keywords_json AS TEXT) LIKE CONCAT('%', #{keyword}, '%')
+                </foreach>
+            )
+        </if>
+       <!-- 날짜 필터 -->
+            <if test="period == 'today'">
+                AND DATE(published_at) = CURRENT_DATE
+            </if>
+            <if test="period == 'week'">
+                AND published_at >= CURRENT_DATE - INTERVAL '7 days'
+            </if>
+            <if test="period == 'month'">
+                AND published_at >= CURRENT_DATE - INTERVAL '1 month'
+            </if>
+
       order by published_at DESC, created_at DESC
       limit #{limit}
     </select>
@@ -159,9 +175,26 @@
             created_at
         from news_summary
         where member_id = #{memberId}
-        <if test="startDate != null">
-            AND published_at >= #{startDate}
+       
+        <!-- 날짜 필터 -->
+            <if test="period == 'today'">
+                AND DATE(published_at) = CURRENT_DATE
+            </if>
+            <if test="period == 'week'">
+                AND published_at >= CURRENT_DATE - INTERVAL '7 days'
+            </if>
+            <if test="period == 'month'">
+                AND published_at >= CURRENT_DATE - INTERVAL '1 month'
+            </if>
+            <!-- period가 'all'이거나 null이면 날짜 필터 없음 -->
+
+        <if test="lastPublishedAt != null and lastSummaryId != null">
+          AND (
+              published_at &lt; #{lastPublishedAt}
+              OR (published_at = #{lastPublishedAt} AND summary_id &lt; #{lastSummaryId})
+          )
         </if>
+
         AND (
             <foreach collection="keywords" item="keyword" separator=" OR ">
                 title LIKE CONCAT('%', #{keyword}, '%')

@@ -61,7 +61,12 @@ public class TotalNewsService {
 
   // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
   @Transactional
-  public List<NewsAnalysisResponse> getNewsFeed(int memberId, int limit) throws Exception{
+  public List<NewsAnalysisResponse> getNewsFeed(
+      int memberId, 
+      String period,
+      LocalDateTime lastPublishedAt,   
+      Integer lastSummaryId,
+      int limit) throws Exception{
     
     List<String> jobGroupKeywords= generateJobGroupKeywords(memberId);
 
@@ -72,19 +77,26 @@ public class TotalNewsService {
       log.info("생성된 키워드: {}", jobGroupKeywords);
 
       List<NewsAnalysisResponse> feedList = newsSummaryService.getNewsByJobGroup(
-           jobGroupKeywords, memberId, "today", limit);
+           jobGroupKeywords, 
+           memberId, 
+           period, 
+           lastPublishedAt,   
+            lastSummaryId,     
+           limit);
 
       if (feedList == null || feedList.isEmpty()) {
-            log.info("오늘 피드 데이터 없음 - 자동 수집 시작");
+            log.info("{}기간  피드 데이터 없음 - 자동 수집 시작",period);
             
-            int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId);
+            int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId,limit);
             log.info("자동 수집 완료 - {}건 분석됨", analyzed);
             
             // 4. 수집 후 다시 조회
             feedList = newsSummaryService.getNewsByJobGroup(
                 jobGroupKeywords, 
                 memberId, 
-                "today", 
+                period, 
+                lastPublishedAt,   
+                lastSummaryId,     
                 limit
             );
         }
@@ -99,7 +111,6 @@ public class TotalNewsService {
     private List<String> generateJobGroupKeywords(int memberId) {
         List<String> keywords = new ArrayList<>();
 
-        
         //1. 회원 정보 조회
             Member member = memberDao.findById(memberId);
             if (member != null && member.getJobGroup() != null) {
@@ -136,17 +147,6 @@ public class TotalNewsService {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
   /**
    * 단일 뉴스 분석 및 저장
    */
@@ -155,6 +155,7 @@ public class TotalNewsService {
     //중복 체크
     if(newsSummaryService.existsByUrl(request.getSourceUrl())){
       log.warn("이미 존재하는 뉴스입니다.:{}",request.getSourceUrl());
+      return null;
     }
 
     //AI 분석 수행
@@ -197,11 +198,12 @@ public class TotalNewsService {
    * @return 분석된 뉴스 개수
    */
   @Transactional
-  public int collectAndAnalyzeNews(List<String> keywords, Integer memberId) throws Exception {
+  public int collectAndAnalyzeNews(List<String> keywords, Integer memberId, int limit) throws Exception {
     log.info("뉴스 수집 및 분석 통합 처리 시작 - keywords: {}, memberId: {}", keywords, memberId);
     
+
     // 1. 뉴스 수집 (NewsCollectorService)
-    List<NewsAnalysisRequest> collectedNews = newsCollectorService.collectNews(keywords, memberId);
+     List<NewsAnalysisRequest> collectedNews = newsCollectorService.collectNews(keywords, memberId, limit);
     log.info("뉴스 수집 완료 - {}건", collectedNews.size());
     
     if (collectedNews.isEmpty()) {
@@ -217,11 +219,11 @@ public class TotalNewsService {
     for (NewsAnalysisRequest newsRequest : collectedNews) {
       try {
         // 2-1. URL 중복 체크
-        if (newsSummaryService.existsByUrl(newsRequest.getSourceUrl())) {
-          log.debug("이미 저장된 뉴스: {}", newsRequest.getSourceUrl());
-          duplicateCount++;
-          continue;
-        }
+        // if (newsSummaryService.existsByUrl(newsRequest.getSourceUrl())) {
+        //   log.debug("이미 저장된 뉴스: {}", newsRequest.getSourceUrl());
+        //   duplicateCount++;
+        //   continue;
+        // }
         
         // 2-2. AI 분석 실행
         log.debug("AI 분석 시작: {}", newsRequest.getTitle());
@@ -280,7 +282,7 @@ public class TotalNewsService {
    //2. 데이터 없으면 자동 수집
    if(responses==null || responses.isEmpty()){
     log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
-            int analyzed = collectAndAnalyzeNews(null, memberId);  // ✅ 통합 메소드 호출
+            int analyzed = collectAndAnalyzeNews(null, memberId,limit);  // ✅ 통합 메소드 호출
             log.info("자동 수집 완료 - {}건 분석됨", analyzed);
     //3. 수집 후 다시 조회
     responses = newsSummaryService.getTodayNewsByMember(memberId, limit);
@@ -304,11 +306,11 @@ public class TotalNewsService {
    * 뉴스 검색 및 수집 (API 엔드포인트용)
    */
   @Transactional
-  public int searchNews(List<String> keywords, Integer memberId) throws Exception {
+  public int searchNews(List<String> keywords, Integer memberId,int limit) throws Exception {
       log.info("뉴스 검색 시작 - keywords: {}, memberId: {}", keywords, memberId);
       
       // ✅ 통합 메소드 호출
-      int analyzed = collectAndAnalyzeNews(keywords, memberId);
+      int analyzed = collectAndAnalyzeNews(keywords, memberId,limit);
       
       log.info("뉴스 검색 완료 - {}건 분석됨", analyzed);
       return analyzed;
@@ -364,15 +366,17 @@ public class TotalNewsService {
     private static final Map<String, List<String>> JOB_GROUP_KEYWORDS = Map.of(
             "개발", Arrays.asList(
                     "개발자 채용", "백엔드 채용", "프론트엔드 채용", "풀스택 개발자",
-                    "소프트웨어 엔지니어", "프로그래머", "코딩", "Java", "Python", "React", "Spring"),
+                    "소프트웨어 엔지니어", "프로그래머", "코딩", "Java", "Python", "React", "Spring",
+                  "IT", "기술", "소프트웨어", "엔지니어링", "개발", "프로그래밍", "개발자"),
 
             "AI/데이터", Arrays.asList(
                     "데이터 사이언티스트", "데이터 엔지니어", "AI 개발자", "머신러닝 엔지니어",
-                    "빅데이터", "데이터 분석가", "인공지능", "딥러닝", "ML"),
+                    "빅데이터", "데이터 분석가", "인공지능", "딥러닝", "ML", "IT", "기술", "데이터", "AI", "분석"),
 
             "디자인", Arrays.asList(
                     "UI 디자이너", "UX 디자이너", "웹디자인", "그래픽 디자이너", "프로덕트 디자이너",
-                    "디자인 채용", "포토샵", "피그마", "일러스트", "브랜딩"),
+                    "디자인 채용", "포토샵", "피그마", "일러스트", "브랜딩",
+                 "디자인", "디자이너", "크리에이티브" ),
 
             "기획", Arrays.asList(
                     "기획자 채용", "서비스 기획", "상품 기획", "사업 기획", "전략 기획",
@@ -380,41 +384,30 @@ public class TotalNewsService {
 
             "PM", Arrays.asList(
                     "프로덕트 매니저", "프로젝트 매니저", "PM 채용", "PO", "프로덕트 오너",
-                    "애자일", "스크럼", "프로젝트 관리"),
+                    "애자일", "스크럼", "프로젝트 관리",
+                  "기획", "기획자","PM", "매니저", "관리"),
 
             "마케팅", Arrays.asList(
                     "마케팅 매니저", "디지털 마케팅", "퍼포먼스 마케팅", "콘텐츠 마케팅",
-                    "브랜드 마케팅", "마케팅 기획", "광고", "SNS 마케팅", "SEO"),
+                    "브랜드 마케팅", "마케팅 기획", "광고", "SNS 마케팅", "SEO",
+                  "마케팅", "마케터"),
 
             "영업", Arrays.asList(
                     "영업 대표", "세일즈", "비즈니스 개발", "B2B 영업", "고객 관리",
-                    "영업 기획", "계정 관리", "Sales"),
+                    "영업 기획", "계정 관리", "Sales",
+                  "영업", "세일즈"),
 
-            "장성", Arrays.asList( // 경영으로 추정
-                    "경영", "경영관리", "경영기획", "전략", "경영지원", "임원", "관리자"),
+            "경영", Arrays.asList( // 경영으로 추정
+                    "경영", "경영관리", "경영기획", "전략", "경영지원", "임원", "관리자","경영", "관리", "임원"),
 
             "교육", Arrays.asList(
-                    "교육 기획", "강사", "교육 콘텐츠", "이러닝", "교육 프로그램", "연수", "교육생"),
+                    "교육 기획", "강사", "교육 콘텐츠", "이러닝", "교육 프로그램", "연수", "교육생","교육", "강의", "트레이닝", "부트캠프", "양성", "과정"),
 
             "기타", Arrays.asList(
-                    "인사", "총무", "재무", "회계", "법무", "운영", "고객서비스", "품질관리"));
+                    "인사", "총무", "재무", "회계", "법무", "운영", "고객서비스", "품질관리","지원", "관리"));
 
-    private static final Map<String, Set<String>> JOB_GROUP_FILTERS = Map.of(
-            "개발", Set.of("개발", "프로그래밍", "코딩", "시스템", "소프트웨어", "앱", "웹", "API"),
-            "AI/데이터", Set.of("데이터", "분석", "AI", "머신러닝", "딥러닝", "빅데이터", "알고리즘"),
-            "디자인", Set.of("디자인", "UI", "UX", "그래픽", "브랜딩", "시각", "창작"),
-            "기획", Set.of("기획", "전략", "분석", "리서치", "컨셉"),
-            "PM", Set.of("관리", "매니저", "리드", "PM", "프로젝트", "제품"),
-            "마케팅", Set.of("마케팅", "광고", "프로모션", "브랜드", "고객", "캠페인"),
-            "영업", Set.of("영업", "세일즈", "판매", "고객", "계약", "B2B", "B2C"),
-            "장성", Set.of("경영", "관리", "전략", "임원", "리더십"),
-            "교육", Set.of("교육", "강의", "연수", "학습", "강사"),
-            "기타", Set.of("인사", "총무", "재무", "회계", "법무", "운영", "지원"));
 
-    // 공통 제외 키워드
-    private static final Set<String> COMMON_EXCLUDE_KEYWORDS = Set.of(
-            "운전", "배달", "서빙", "매장", "판매원", "아르바이트", "알바",
-            "카페", "식당", "마트", "편의점", "주유소", "택시", "버스",
-            "건설", "제조", "생산", "공장", "청소", "경비");
+
+  
 
 }

@@ -1,6 +1,6 @@
 package com.example.demo.newstrend.service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -202,7 +202,7 @@ public class NewsAIService {
     return responses;
     }
 
-    public List<NewsAnalysisResponse> getNewsByMemberAndDate(int memberId, LocalDate date, int limit) throws com.fasterxml.jackson.core.JsonProcessingException {
+    public List<NewsAnalysisResponse> getNewsByMemberAndDate(int memberId, LocalDateTime date, int limit) throws com.fasterxml.jackson.core.JsonProcessingException {
     List<NewsSummary> summaries = newsSummaryDao.selectNewsByMemberAndDate(memberId, date, limit);
     // DAO에서 특정 회원 + 날짜 기준 뉴스 조회
 
