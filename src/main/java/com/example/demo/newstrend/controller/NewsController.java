@@ -1,6 +1,7 @@
 package com.example.demo.newstrend.controller;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,7 @@ public class NewsController {
      */
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchNews(
-        @RequestParam(name = "keywords", required = false) List<String> keywords,
+        @RequestParam(name = "keywords", required = false) String keywords,
         @RequestParam(name = "memberId", required = false) Integer memberId,
         @RequestParam(defaultValue = "month") String period,
         @RequestParam(defaultValue = "15") int limit
@@ -98,12 +99,15 @@ public class NewsController {
     }
     
     try {
+        //String을 List로 변환
+        List<String> keywordList = Arrays.asList(keywords.split(","));
+
         // 1. 뉴스 수집 및 분석
-        int analyzed = totalNewsService.searchNews(keywords, memberId,limit);
+        int analyzed = totalNewsService.searchNews(keywordList, memberId,limit);
         
         // 2. 수집된 뉴스 조회
         List<NewsAnalysisResponse> newsList = newsSummaryService.searchNewsByUserKeywords(
-            keywords, 
+            keywordList, 
             period, 
             limit
         );
