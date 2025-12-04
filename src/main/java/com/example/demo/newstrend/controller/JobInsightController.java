@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.newstrend.entity.JobInsight;
 import com.example.demo.newstrend.service.JobInsightService;
 
+
 @RestController
 @RequestMapping("/jobInsight")
 public class JobInsightController {
@@ -32,4 +33,8 @@ public class JobInsightController {
     return ResponseEntity.ok(jobInsightService.getOrCreateInsight(memberId));
   }
 
+  @PostMapping("/refresh")
+  public ResponseEntity<JobInsight> updateGrowth(@RequestParam("memberId") int memberId) throws Exception {
+    return ResponseEntity.ok(jobInsightService.modifyGrowthAnalysis(memberId));
+  }
 }
