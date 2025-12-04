@@ -165,6 +165,7 @@ public class LearningService {
                 dayDto.setTitle(d.getTitle());
                 dayDto.setContent(d.getContent());
                 dayDto.setStatus(d.getStatus());
+                dayDto.setLearningDaySummary(d.getLearningDaySummary());
                 // 리스트에 추가
                 dayList.add(dayDto);
             }
