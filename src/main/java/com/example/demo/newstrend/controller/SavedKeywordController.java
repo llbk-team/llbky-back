@@ -26,7 +26,7 @@ public class SavedKeywordController {
 
   // 키워드 저장
   @PostMapping("/create")
-  public ResponseEntity<SavedKeyword> createKeyword(@RequestBody SavedKeywordRequest request) {
+  public ResponseEntity<SavedKeyword> createKeyword(@RequestBody SavedKeywordRequest request) throws Exception {
     SavedKeyword keyword = savedKeywordService.saveKeyword(request);
     return ResponseEntity.ok(keyword);
   }
@@ -40,7 +40,7 @@ public class SavedKeywordController {
 
   // 삭제
   @DeleteMapping("/delete")
-  public ResponseEntity<Integer> deleteSavedKeyword(@RequestParam("savedKeywordId") int savedKeywordId){
+  public ResponseEntity<Integer> deleteSavedKeyword(@RequestParam("savedKeywordId") int savedKeywordId) throws Exception{
     return ResponseEntity.ok(savedKeywordService.removeSavedKeyword(savedKeywordId));
   }
 }

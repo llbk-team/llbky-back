@@ -46,10 +46,11 @@ public class LearningController {
       return ResponseEntity.ok(result);
     }
 
+    // 학습 로드맵 수정
     @PostMapping("/roadmap-refine")
     public ResponseEntity<AiCreateRoadmapResponse> refineRoadmap(@RequestBody RoadmapRefineRequest request) {
-      AiCreateRoadmapResponse response = learningService.refineRoadmap(request);
-      return ResponseEntity.ok(response);
+      AiCreateRoadmapResponse result = learningService.refineRoadmap(request);
+      return ResponseEntity.ok(result);
     }
     
 
@@ -69,10 +70,6 @@ public class LearningController {
     RecommendSkillResponse result = learningService.recommendSkillsFromFeedback(memberId);
     return ResponseEntity.ok(result); 
   }
-  
-
-  // 사용자가 선택한 기술 DB 저장
-
 
 
   // 학습 리스트 조회
@@ -126,7 +123,6 @@ public class LearningController {
       
     return ResponseEntity.ok(learningDayService.submitMemo(dayId, learningDaySummary));
   }
-  
 
 
 }

@@ -27,7 +27,20 @@
       from saved_keyword
       where member_id = #{memberId}
       order by created_at desc
-  </select>
+    </select>
+    
+    <!-- 키워드 조회 -->
+    <select id="selectSavedKeywordById"
+    resultType="com.example.demo.newstrend.entity.SavedKeyword">
+    select
+      saved_keyword_id,
+      member_id,
+      keyword,
+      source_label,
+      created_at
+    from saved_keyword
+    where saved_keyword_id = #{savedKeywordId}
+   </select>
 
   <!-- 멤버 + 키워드 중복 체크 -->
    <select id="selectSavedKeyword"

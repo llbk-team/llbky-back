@@ -154,7 +154,7 @@ public class LearningService {
             List<DayDetailResponse> dayList = new ArrayList<>();
 
             // 6. 현재 WeekId에 속한 Day 엔티티들 조회
-            List<LearningDay> dayEntities = learningDayDao.selectListByWeekId(learningId);
+            List<LearningDay> dayEntities = learningDayDao.selectListByWeekId(w.getWeekId());
 
             // 7. Day 엔티티 하나씩 DTO로 변환
             for (LearningDay d : dayEntities) {
