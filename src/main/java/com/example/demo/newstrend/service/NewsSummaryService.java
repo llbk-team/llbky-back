@@ -1,6 +1,7 @@
 package com.example.demo.newstrend.service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
 import com.example.demo.newstrend.dto.response.NewsSummaryResponse;
 import com.example.demo.newstrend.dto.response.SentimentScores;
 import com.example.demo.newstrend.entity.NewsSummary;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -58,7 +60,7 @@ public class NewsSummaryService {
     // 1.오늘 날짜 뉴스 조회 없으면 자동수집
     @Transactional
     public List<NewsAnalysisResponse> getTodayNewsByMember(int memberId, int limit) throws Exception {
-        LocalDate today = LocalDate.now();
+        LocalDateTime today = LocalDateTime.now();
         List<NewsSummary> todayNews = newsSummaryDao.selectNewsByMemberAndDate(memberId, today, limit);
 
         // 2. 오늘 데이터가 있으면 DB값 반환
@@ -76,97 +78,61 @@ public class NewsSummaryService {
 
     }
 
-    // 키워드로 뉴스 검색(날짜 제한 없음)
-   public List<NewsAnalysisResponse> getNewsByKeywords(
-        List<String> keywords, 
-        Integer memberId, 
-        String period,  // "today", "week", "month", "all"
-        int limit) throws Exception {
-    
-    LocalDate startDate = calculateStartDate(period);
-    
-    List<NewsSummary> summaries = newsSummaryDao.findByJobGroupKeywords(keywords, memberId, startDate, limit);
-    
-    List<NewsAnalysisResponse> responses = new ArrayList<>();
-    for (NewsSummary summary : summaries) {
-        responses.add(convertToResponse(summary));
-    }
-    
-    return responses;
-    }
-
     /**
      * 검색창 검색용 - 사용자 입력 키워드만, memberId 무관
+     * 
+     * @throws JsonProcessingException
      */
     public List<NewsAnalysisResponse> searchNewsByUserKeywords(
-        List<String> keywords, 
-        String period, 
-        int limit) throws Exception {
-        
-        LocalDate startDate = calculateStartDate(period);
-        List<NewsAnalysisResponse> allResults = new ArrayList<>();
-        
-        for (String keyword : keywords) {
-            List<NewsSummary> summaries = newsSummaryDao.searchNewsByKeywordsAndDate(
-                keyword.trim(), 
-                startDate, 
-                limit
-            );
-            
-            for (NewsSummary summary : summaries) {
-                allResults.add(convertToResponse(summary));
-            }
+            List<String> keywords,
+            String period,
+            int limit) throws JsonProcessingException {
+
+
+        List<NewsSummary> summaries = newsSummaryDao.searchNewsByKeywordsAndDate(
+                keywords,
+                period,
+                limit);
+
+        List<NewsAnalysisResponse> responses = new ArrayList<>();
+        for (NewsSummary summary : summaries) {
+            responses.add(convertToResponse(summary));
         }
-        
-        return allResults;
+
+        return responses;
     }
 
     /**
      * 기본 피드용 - 직군 기반 여러 키워드 + memberId 필터링
      */
     public List<NewsAnalysisResponse> getNewsByJobGroup(
-        List<String> jobGroupKeywords, 
-        Integer memberId,
-        String period, 
-        int limit) throws Exception {
-        
-        LocalDate startDate = calculateStartDate(period);
-        
+            List<String> jobGroupKeywords,
+            Integer memberId,
+            String period,
+            LocalDateTime lastPublishedAt,
+            Integer lastSummaryId,
+            int limit) throws Exception {
+
+       
+
         List<NewsSummary> summaries = newsSummaryDao.findByJobGroupKeywords(
             jobGroupKeywords, 
             memberId, 
-            startDate, 
+            period,            // ✅ period 직접 전달
+            lastPublishedAt,  
+            lastSummaryId, 
             limit
         );
-        
+
         List<NewsAnalysisResponse> responses = new ArrayList<>();
         for (NewsSummary summary : summaries) {
             responses.add(convertToResponse(summary));
         }
-        
+
         return responses;
     }
 
-    private LocalDate calculateStartDate(String period){
-        if(period==null || period.equals("all")){
-            return null;
-        }
-        LocalDate today = LocalDate.now();
-        
-        switch (period) {
-            case "today":
-                return today;
-            case "week":
-                return today.minusWeeks(1);
-            case "month":
-                return today.minusMonths(1);
-          
-            default:
-                return null;
-        }
-    }
 
-    
 
     public boolean existsByUrl(String sourceUrl) {
         return newsSummaryDao.selectNewsSummaryBySourceUrl(sourceUrl) != null;
@@ -205,7 +171,7 @@ public class NewsSummaryService {
      * @return 뉴스 분석 결과 리스트
      * @throws com.fasterxml.jackson.core.JsonProcessingException JSON 파싱 실패 시
      */
-    public List<NewsAnalysisResponse> getNewsByMemberAndDate(int memberId, LocalDate date, int limit)
+    public List<NewsAnalysisResponse> getNewsByMemberAndDate(int memberId, LocalDateTime date, int limit)
             throws com.fasterxml.jackson.core.JsonProcessingException {
 
         log.info("회원별 날짜 뉴스 조회 - memberId: {}, date: {}, limit: {}", memberId, date, limit);
@@ -261,11 +227,11 @@ public class NewsSummaryService {
 
         defaultAnalysis.setSentiment("중립");
         // 감성 분석 결과가 없을 경우 기본 감성은 "중립"으로 세팅
-            SentimentScores defaultScores = new SentimentScores();
-                defaultScores.setPositive(0);
-                defaultScores.setNegative(0);
-                defaultScores.setNeutral(100);
-        defaultAnalysis.setSentimentScores(defaultScores);   
+        SentimentScores defaultScores = new SentimentScores();
+        defaultScores.setPositive(0);
+        defaultScores.setNegative(0);
+        defaultScores.setNeutral(100);
+        defaultAnalysis.setSentimentScores(defaultScores);
         defaultAnalysis.setTrustScore(50);
         // 신뢰도 점수 기본값을 50으로 세팅(0~100 스케일을 가정)
 
@@ -342,7 +308,7 @@ public class NewsSummaryService {
         response.setSentiment(analysisData.getSentiment());
         // 파싱된(또는 기본) 분석 데이터에서 감성 결과를 꺼내서 응답에 넣음
         response.setSentimentScores(analysisData.getSentimentScores());
-        
+
         response.setTrustScore(analysisData.getTrustScore());
         // 신뢰도 점수 설정
 
