@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
+import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +31,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NewsCollectorService {
 
+    
+
     private WebClient webClient;
 
     @Autowired
     private MemberDao memberDao;
+
+    @Autowired
+    private NewsSummaryDao newsSummaryDao;
 
     @Value("${naver.api.client-id}")
     private String clientId;
@@ -41,35 +47,38 @@ public class NewsCollectorService {
     @Value("${naver.api.client-secret}")
     private String clientSecret;
 
-    public NewsCollectorService(WebClient.Builder webClientBuilder) {
+    public NewsCollectorService(WebClient.Builder webClientBuilder, NewsSummaryService newsSummaryService) {
         this.webClient = webClientBuilder
                 .baseUrl("https://openapi.naver.com/v1/search")
                 .build();
+       
     }
-
-    public String getNaverNews(String keyword) {
-        log.info("네이버 뉴스 검색 - 키워드: {}", keyword);
-
-        String result = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/news.json")
-                        .queryParam("query", keyword)
-                        .queryParam("display", 10)
-                        .queryParam("sort", "date")
-                        .build())
-                .header("X-Naver-Client-Id", clientId)
-                .header("X-Naver-Client-Secret", clientSecret)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-
-        log.debug("네이버 뉴스 검색 완료 - 응답 길이: {} bytes",
-                result != null ? result.length() : 0);
-
-        return result;
-    }
-
     
+    public String getNaverNews(String keyword) {
+        return getNaverNews(keyword, 10);  // 기본 10개
+    }
+
+    public String getNaverNews(String keyword, int display) {
+    log.info("네이버 뉴스 검색 - 키워드: {}, display: {}", keyword, display);
+
+    String result = webClient.get()
+            .uri(uriBuilder -> uriBuilder
+                    .path("/news.json")
+                    .queryParam("query", keyword)
+                    .queryParam("display", Math.min(display, 50))
+                    .queryParam("sort", "date")
+                    .build())
+            .header("X-Naver-Client-Id", clientId)
+            .header("X-Naver-Client-Secret", clientSecret)
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
+
+    log.debug("네이버 뉴스 검색 완료 - 응답 길이: {} bytes",
+            result != null ? result.length() : 0);
+
+    return result;
+}
 
     /**
      * 검색 키워드 기반 뉴스 수집 (순수 수집만 담당)
@@ -78,45 +87,70 @@ public class NewsCollectorService {
      * @param memberId 회원 ID (null이면 1로 설정)
      * @return 수집된 뉴스 리스트
      */
-    public List<NewsAnalysisRequest> collectNews(List<String> keywords, Integer memberId) throws Exception {
-        log.info("뉴스 수집 시작 - 키워드: {}, memberId: {}", keywords, memberId);
-        
+    public List<NewsAnalysisRequest> collectNews(List<String> keywords, Integer memberId, int limit) throws Exception {
+        log.info("뉴스 수집 시작 - 키워드: {}, memberId: {}, limit: {}", keywords, memberId, limit);
+
         List<NewsAnalysisRequest> allNews = new ArrayList<>();
         Set<String> urls = new HashSet<>();
         int successCount = 0;
         int errorCount = 0;
-        
+        int sessionDuplicateCount = 0;  // ✅ 이번 수집에서 중복
+        int dbDuplicateCount = 0;  // ✅ DB에 이미 있음
+
         Member member = memberDao.findById(memberId);
         if (member == null) {
             throw new RuntimeException("회원 정보를 찾을 수 없습니다.");
         }
-        
-        // *** 핵심 변경: 사용자 키워드만 검색 ***
+
+        // ✅ 키워드당 가져올 개수 계산
+        int perKeyword = Math.max(1, limit / keywords.size());
+
         for (String keyword : keywords) {
+            // ✅ 이미 limit 도달하면 중단
+            if (allNews.size() >= limit) {
+                log.info("수집 limit 도달 - {}건 수집 완료", allNews.size());
+                break;
+            }
+
             try {
-                String naverResponse = getNaverNews(keyword.trim());
+                String naverResponse = getNaverNews(keyword.trim(), perKeyword);
                 List<NewsAnalysisRequest> news = parseNaverNews(naverResponse);
-                
+
                 for (NewsAnalysisRequest newsItem : news) {
-                    if (!urls.contains(newsItem.getSourceUrl())) {
-                        newsItem.setMemberId(memberId != null ? memberId : 1);
-                        allNews.add(newsItem);
-                        urls.add(newsItem.getSourceUrl());
-                        successCount++;
+                    // ✅ limit 체크
+                    if (allNews.size() >= limit) {
+                        break;
                     }
+
+                    String url = newsItem.getSourceUrl();
+
+                    if(urls.contains(url)){
+                        sessionDuplicateCount++;
+                        continue;
+                    }
+
+                     if (newsSummaryDao.selectNewsSummaryBySourceUrl(url) != null) {
+                        dbDuplicateCount++;
+                        log.debug("DB 중복 제외: {}", newsItem.getTitle());
+                        continue;
+                    }
+
+                    newsItem.setMemberId(memberId != null ? memberId : 1);
+                    allNews.add(newsItem);
+                    urls.add(url);
+                    successCount++;
                 }
-                
-                Thread.sleep(500); // API 호출 간 대기
-                
+
+                Thread.sleep(500);
+
             } catch (Exception e) {
                 log.error("뉴스 수집 오류 - 키워드: {}", keyword, e);
                 errorCount++;
             }
         }
-        
-        log.info("뉴스 수집 완료 - 성공: {}건, 중복 제외: {}건, 오류: {}건", 
-            successCount, urls.size() - successCount, errorCount);
-        
+
+        log.info("뉴스 수집 완료 - 성공: {}건, 오류: {}건", successCount, errorCount);
+
         return allNews;
     }
 
@@ -214,9 +248,9 @@ public class NewsCollectorService {
      * 
      * @param jsonResponse 네이버 API JSON 응답
      * @return 뉴스 요청 목록
-     * item.optString("title") NAVER API 파싱에 필수로 필요한 코드
-        item.optString("description")
-        item.optString("link")
+     *         item.optString("title") NAVER API 파싱에 필수로 필요한 코드
+     *         item.optString("description")
+     *         item.optString("link")
      */
     private List<NewsAnalysisRequest> parseNaverNews(String jsonResponse) {
         List<NewsAnalysisRequest> newsList = new ArrayList<>();
@@ -236,12 +270,12 @@ public class NewsCollectorService {
 
                 // ✅ 날짜 파싱 및 저장
                 String pubDate = item.optString("pubDate", "");
-                log.info("📅 원본 pubDate: [{}]", pubDate);
+                // log.info("📅 원본 pubDate: [{}]", pubDate);
 
                 if (!pubDate.isEmpty()) {
                     LocalDateTime parseDate = parsePubDate(pubDate);
-                    news.setPublishedAt(parseDate); 
-                    log.info("✅ 파싱된 날짜 저장: [{}]", parseDate);
+                    news.setPublishedAt(parseDate);
+                    // log.info("✅ 파싱된 날짜 저장: [{}]", parseDate);
                 } else {
                     news.setPublishedAt(LocalDateTime.now());
                     log.warn("⚠️ pubDate 없음, 현재 날짜 사용");
@@ -258,27 +292,23 @@ public class NewsCollectorService {
 
         return newsList;
     }
-    
-        private LocalDateTime parsePubDate(String pubDateStr) {
+
+    private LocalDateTime parsePubDate(String pubDateStr) {
         try {
             // "Mon, 02 Dec 2024 14:30:00 +0900" 형식
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
-                "EEE, dd MMM yyyy HH:mm:ss Z", 
-                Locale.ENGLISH
-            );
+                    "EEE, dd MMM yyyy HH:mm:ss Z",
+                    Locale.ENGLISH);
             ZonedDateTime zdt = ZonedDateTime.parse(pubDateStr, formatter);
             LocalDateTime result = zdt.toLocalDateTime();
-            log.info("✅ parsePubDate 성공 - 결과: [{}]", result);  // ✅ INFO 레벨로 추가
+            // log.info("✅ parsePubDate 성공 - 결과: [{}]", result); // ✅ INFO 레벨로 추가
             return result;
-            
+
         } catch (Exception e) {
-            log.error("❌ pubDate 파싱 실패: [{}], 에러: {}", pubDateStr, e.getMessage(), e);  // ✅ ERROR로 변경 + 스택트레이스 추가
+            log.error("❌ pubDate 파싱 실패: [{}], 에러: {}", pubDateStr, e.getMessage(), e); // ✅ ERROR로 변경 + 스택트레이스 추가
             return LocalDateTime.now();
         }
     }
-
-
-
 
     // /**
     // * NewsAPI.org API 응답 파싱
@@ -333,69 +363,69 @@ public class NewsCollectorService {
     // }
 
     // /**
-    //  * ✅ 직군별 특화 관련성 판단
-    //  */
-    // private boolean isJobGroupRelated(String title, String content, String jobGroup) {
-    //     if (title == null)
-    //         return false;
-    //     // 제목이 없으면 직군 관련성을 판단할 수 없으므로 false 반환
+    // * ✅ 직군별 특화 관련성 판단
+    // */
+    // private boolean isJobGroupRelated(String title, String content, String
+    // jobGroup) {
+    // if (title == null)
+    // return false;
+    // // 제목이 없으면 직군 관련성을 판단할 수 없으므로 false 반환
 
-    //     String text = (title + " " + (content != null ? content : "")).toLowerCase();
-    //     // 제목 + 내용(본문)을 하나의 문자열로 합치고 모두 소문자로 변환해서 비교를 쉽게 만듦
+    // String text = (title + " " + (content != null ? content : "")).toLowerCase();
+    // // 제목 + 내용(본문)을 하나의 문자열로 합치고 모두 소문자로 변환해서 비교를 쉽게 만듦
 
-    //     // 1. 공통 제외 키워드 체크
-    //     for (String excludeKeyword : COMMON_EXCLUDE_KEYWORDS) {
-    //         if (text.contains(excludeKeyword.toLowerCase())) {
-    //             return false;
-    //         }
-    //     }
-    //     // 공통 제외 키워드 목록에 있는 단어가 포함되어 있으면 이 뉴스는 직군과 무관하다고 판단하여 즉시 false
+    // // 1. 공통 제외 키워드 체크
+    // for (String excludeKeyword : COMMON_EXCLUDE_KEYWORDS) {
+    // if (text.contains(excludeKeyword.toLowerCase())) {
+    // return false;
+    // }
+    // }
+    // // 공통 제외 키워드 목록에 있는 단어가 포함되어 있으면 이 뉴스는 직군과 무관하다고 판단하여 즉시 false
 
-    //     // 2. 해당 직군 필터링 키워드 점수 계산
-    //     Set<String> jobFilters = JOB_GROUP_FILTERS.getOrDefault(jobGroup, Set.of());
-    //     // 직군(jobGroup)별 필터링 키워드 목록을 가져옴. 없으면 빈 Set 반환
+    // // 2. 해당 직군 필터링 키워드 점수 계산
+    // Set<String> jobFilters = JOB_GROUP_FILTERS.getOrDefault(jobGroup, Set.of());
+    // // 직군(jobGroup)별 필터링 키워드 목록을 가져옴. 없으면 빈 Set 반환
 
-    //     int score = 0;
-    //     // 관련성 점수를 계산하기 위한 변수
+    // int score = 0;
+    // // 관련성 점수를 계산하기 위한 변수
 
-    //     for (String filter : jobFilters) {
-    //         if (text.contains(filter.toLowerCase())) {
-    //             // 뉴스 텍스트에 해당 직군의 필터 단어가 포함되면
+    // for (String filter : jobFilters) {
+    // if (text.contains(filter.toLowerCase())) {
+    // // 뉴스 텍스트에 해당 직군의 필터 단어가 포함되면
 
-    //             if (title.toLowerCase().contains(filter.toLowerCase())) {
-    //                 score += 2;
-    //             } else {
-    //                 score += 1;
-    //             }
-    //             // 제목에 포함되면 가중치 2점, 본문에만 있으면 1점 추가
-    //         }
-    //     }
-
-    //     // 3. 채용 관련 키워드 가산점
-    //     if (text.matches(".*채용|구인|모집|입사|취업|면접.*")) {
-    //         score += 2;
-    //     }
-    //     // 텍스트 안에 '채용, 구인, 모집, 입사, 취업, 면접' 같은 단어가 있으면 +2점 추가
-    //     // 즉 "채용 관련 뉴스" 가능성이 있으면 강하게 가산점
-
-    //     // 4. 직군별 임계점 설정 (개발직군은 더 까다롭게)
-    //     int threshold = "개발".equals(jobGroup) ? 3 : 2;
-    //     // 개발 직군이면 임계점을 3점으로 설정해 더 엄격하게,
-    //     // 그 외 직군은 2점 이상이면 관련된 것으로 판단
-
-    //     boolean isRelated = score >= threshold;
-    //     // 최종 점수가 임계값 이상이면 직군 관련 뉴스라고 판단
-
-    //     log.debug("'{}' 직군 관련성 판단 - 제목: '{}', 점수: {}/{}, 결과: {}",
-    //             jobGroup,
-    //             title.length() > 40 ? title.substring(0, 40) + "..." : title,
-    //             score, threshold, isRelated);
-    //     // 디버깅용 로그: 어떤 직군으로 평가했는지, 제목 일부, 점수/임계치, 최종결과 출력
-
-    //     return isRelated;
-    //     // 최종 판단 결과 반환
+    // if (title.toLowerCase().contains(filter.toLowerCase())) {
+    // score += 2;
+    // } else {
+    // score += 1;
+    // }
+    // // 제목에 포함되면 가중치 2점, 본문에만 있으면 1점 추가
+    // }
     // }
 
+    // // 3. 채용 관련 키워드 가산점
+    // if (text.matches(".*채용|구인|모집|입사|취업|면접.*")) {
+    // score += 2;
+    // }
+    // // 텍스트 안에 '채용, 구인, 모집, 입사, 취업, 면접' 같은 단어가 있으면 +2점 추가
+    // // 즉 "채용 관련 뉴스" 가능성이 있으면 강하게 가산점
+
+    // // 4. 직군별 임계점 설정 (개발직군은 더 까다롭게)
+    // int threshold = "개발".equals(jobGroup) ? 3 : 2;
+    // // 개발 직군이면 임계점을 3점으로 설정해 더 엄격하게,
+    // // 그 외 직군은 2점 이상이면 관련된 것으로 판단
+
+    // boolean isRelated = score >= threshold;
+    // // 최종 점수가 임계값 이상이면 직군 관련 뉴스라고 판단
+
+    // log.debug("'{}' 직군 관련성 판단 - 제목: '{}', 점수: {}/{}, 결과: {}",
+    // jobGroup,
+    // title.length() > 40 ? title.substring(0, 40) + "..." : title,
+    // score, threshold, isRelated);
+    // // 디버깅용 로그: 어떤 직군으로 평가했는지, 제목 일부, 점수/임계치, 최종결과 출력
+
+    // return isRelated;
+    // // 최종 판단 결과 반환
+    // }
 
     /**
      * HTML 태그 제거 및 특수 문자 변환
