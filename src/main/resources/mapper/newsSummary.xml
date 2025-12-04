@@ -138,9 +138,10 @@
         <if test="keywords != null and keywords.size() > 0">
             AND (
                 <foreach collection="keywords" item="keyword" separator=" OR ">
-                    title LIKE CONCAT('%', #{keyword}, '%')
-                    OR summary_text LIKE CONCAT('%', #{keyword}, '%')
-                    OR CAST(keywords_json AS TEXT) LIKE CONCAT('%', #{keyword}, '%')
+                    title ILIKE CONCAT('%', #{keyword}, '%')
+                    OR summary_text ILIKE CONCAT('%', #{keyword}, '%')
+                    OR detail_summary ILIKE CONCAT('%', #{keyword}, '%')
+                    OR CAST(keywords_json AS TEXT) ILIKE CONCAT('%', #{keyword}, '%')
                 </foreach>
             )
         </if>
@@ -197,8 +198,9 @@
 
         AND (
             <foreach collection="keywords" item="keyword" separator=" OR ">
-                title LIKE CONCAT('%', #{keyword}, '%')
-                OR CAST(keywords_json AS TEXT) LIKE CONCAT('%', #{keyword}, '%')
+                title ILIKE CONCAT('%', #{keyword}, '%')
+                OR detail_summary ILIKE CONCAT('%', #{keyword}, '%')
+                OR CAST(keywords_json AS TEXT) ILIKE CONCAT('%', #{keyword}, '%')
             </foreach>
         )
         order by published_at DESC, created_at DESC
