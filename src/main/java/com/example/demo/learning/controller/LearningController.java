@@ -1,12 +1,12 @@
 package com.example.demo.learning.controller;
 
 import java.util.List;
-import com.example.demo.learning.service.LearningWeekService;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +21,9 @@ import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.entity.LearningWeek;
 import com.example.demo.learning.service.LearningDayService;
 import com.example.demo.learning.service.LearningService;
+import com.example.demo.learning.service.LearningWeekService;
+
+import io.micrometer.core.ipc.http.HttpSender.Response;
 
 
 @RestController
@@ -123,6 +126,12 @@ public class LearningController {
       
     return ResponseEntity.ok(learningDayService.submitMemo(dayId, learningDaySummary));
   }
+
+  @GetMapping("/count")
+  public ResponseEntity<Map<String, Integer>> getLearningCount(@RequestParam("memberId") Integer memberId) {
+    return ResponseEntity.ok(learningService.getLearningCount(memberId));
+  }
+  
 
 
 }

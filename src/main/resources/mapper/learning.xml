@@ -59,10 +59,10 @@
     </select>
 
     <!-- SELECT: 사용자별 학습 개수 -->
-    <select id="countByMemberId" parameterType="int" resultType="int">
+    <select id="countByMemberId" parameterType="map" resultType="int">
         SELECT COUNT(*)
         FROM learning
-        WHERE member_id = #{memberId}
+        WHERE member_id = #{memberId} AND status = #{status}
     </select>
 
     <!-- UPDATE: 학습 상태 또는 AI 요약 변경 -->

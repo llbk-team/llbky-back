@@ -1,7 +1,9 @@
 package com.example.demo.learning.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,6 @@ import com.example.demo.learning.dao.LearningDayDao;
 import com.example.demo.learning.dao.LearningWeekDao;
 import com.example.demo.learning.dto.request.RoadmapRefineRequest;
 import com.example.demo.learning.dto.request.RoadmapRequest;
-import com.example.demo.learning.dto.request.SkillRecommendRequest;
 import com.example.demo.learning.dto.response.AiCreateDayResponse;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.learning.dto.response.AiCreateWeekResponse;
@@ -256,8 +257,15 @@ public class LearningService {
     }
 
     // 사용자별 학습 개수 조회
-    public int getLearningCount(int memberId) {
-        return learningDao.countByMemberId(memberId);
+    public Map<String, Integer> getLearningCount(int memberId) {
+        int ongoing = learningDao.countByMemberId(memberId, "진행중");
+        int completed = learningDao.countByMemberId(memberId, "완료");
+
+        Map<String, Integer> result = new HashMap<>();
+        result.put("ongoing", ongoing);
+        result.put("completed", completed);
+
+        return result;
     }
 
     // 학습 상태 또는 기타 정보 업데이트
