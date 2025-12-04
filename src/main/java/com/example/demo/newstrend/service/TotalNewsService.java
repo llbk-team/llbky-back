@@ -279,11 +279,15 @@ public class TotalNewsService {
      log.info("오늘 뉴스 조회 - memberId: {}, limit: {}", memberId, limit);
      //1. db 먼저 조회
      List<NewsAnalysisResponse> responses =newsSummaryService.getTodayNewsByMember(memberId, limit);
-   //2. 데이터 없으면 자동 수집
+   
+     //2. 데이터 없으면 자동 수집
    if(responses==null || responses.isEmpty()){
     log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
-            int analyzed = collectAndAnalyzeNews(null, memberId,limit);  // ✅ 통합 메소드 호출
-            log.info("자동 수집 완료 - {}건 분석됨", analyzed);
+    List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
+    
+    int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId,limit);  // ✅ 통합 메소드 호출
+    
+    log.info("자동 수집 완료 - {}건 분석됨", analyzed);
     //3. 수집 후 다시 조회
     responses = newsSummaryService.getTodayNewsByMember(memberId, limit);
 
