@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
 import com.example.demo.newstrend.dao.SavedKeywordDao;
 import com.example.demo.newstrend.dao.TrendInsightDao;
+import com.example.demo.newstrend.dto.response.GrowthAnalysisResponse;
 import com.example.demo.newstrend.dto.response.InsightJson;
 import com.example.demo.newstrend.entity.SavedKeyword;
 import com.example.demo.newstrend.entity.TrendInsight;
@@ -51,7 +53,7 @@ public class GrowthAnalysisAgent {
   /*
    * 성장 제안 에이전트
    */
-  public String generateGrowthAdvice(int memberId) throws Exception {
+  public GrowthAnalysisResponse generateGrowthAdvice(int memberId) throws Exception {
     // 사용자의 직무, 직군 정보 조회
     Member member = memberDao.findById(memberId);
     String jobGroup = member.getJobGroup();
@@ -99,9 +101,13 @@ public class GrowthAnalysisAgent {
       portfolioFeedbackRaw.add(p.getPortfolioFeedback());
     }
 
+    // 출력 변환기
+    BeanOutputConverter<GrowthAnalysisResponse> converter = new BeanOutputConverter<>(GrowthAnalysisResponse.class);
+
+    String format = converter.getFormat();
+
     // 프롬프트
     String systemPrompt = """
-        당신은 AI 기반 커리어 성장 코치입니다.
         이 기능은 '트렌드 기반 성장 제안'을 보여주는 기능이며,
         트렌드를 참고하되 근거 없이 특정 기술이 증가·감소한다고 단정하지 않아야 합니다.
 
@@ -140,7 +146,7 @@ public class GrowthAnalysisAgent {
           "learningAdvice": "..."
         }
         각 항목은 1~2문장으로 작성.
-        """;
+        """.formatted(format);
 
     String request = """
         {
@@ -169,7 +175,8 @@ public class GrowthAnalysisAgent {
         .call()
         .content();
 
-    return response;
+    // JSON -> DTO 변환
+    return converter.convert(response);
   }
 
 }

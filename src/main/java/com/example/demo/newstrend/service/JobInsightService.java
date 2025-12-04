@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.example.demo.ai.newstrend.GrowthAnalysisAgent;
 import com.example.demo.ai.newstrend.JobRelatedInsightAgent;
 import com.example.demo.newstrend.dao.JobInsightDao;
+import com.example.demo.newstrend.dto.response.GrowthAnalysisResponse;
 import com.example.demo.newstrend.dto.response.JobInsightListResponse;
 import com.example.demo.newstrend.entity.JobInsight;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +27,7 @@ public class JobInsightService {
 
   public JobInsight createJobInsight(int memberId) throws Exception {
     // 성장 제안 생성 에이전트 호출
-    String growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId);
+    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId);
 
     // 직무 인사이트 카드 생성하는 에이전트 호출
     JobInsightListResponse cards = jobRelatedInsightAgent.relatedJobs(memberId);
@@ -34,7 +35,7 @@ public class JobInsightService {
     // DB 저장
     JobInsight entity = new JobInsight();
     entity.setMemberId(memberId);
-    entity.setAnalysisJson(growthAdviceJson);
+    entity.setAnalysisJson(mapper.writeValueAsString(growthAdviceJson));
     entity.setRelatedJobsJson(mapper.writeValueAsString(cards));
 
     jobInsightDao.insertJobInsight(entity);
@@ -66,12 +67,12 @@ public class JobInsightService {
     }
 
     // 성장 제안 생성 에이전트 호출
-    String growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId);
+    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId);
 
     // INSERT (직무 카드는 이전 값 그대로)
     JobInsight entity = new JobInsight();
     entity.setMemberId(memberId);
-    entity.setAnalysisJson(growthAdviceJson);
+    entity.setAnalysisJson(mapper.writeValueAsString(growthAdviceJson));
     entity.setRelatedJobsJson(latest.getRelatedJobsJson());
 
     jobInsightDao.insertJobInsight(entity);
