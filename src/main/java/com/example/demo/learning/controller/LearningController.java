@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.learning.dto.request.RoadmapRefineRequest;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
+import com.example.demo.learning.dto.response.LearningDetailResponse;
 import com.example.demo.learning.dto.response.LearningResponse;
 import com.example.demo.learning.dto.response.RecommendSkillResponse;
 import com.example.demo.learning.entity.LearningDay;
@@ -82,7 +83,13 @@ public class LearningController {
   }
   
 
-  // 학습 상세 조회==========================================================================================================================================
+  // 학습 상세 조회
+  @GetMapping("/detail")
+  public ResponseEntity<LearningDetailResponse> getLearningDetail(@RequestParam("learningId") int learningId) {
+    LearningDetailResponse result = learningService.getLearningById(learningId);
+    return ResponseEntity.ok(result);
+  }
+  
   
   // 학습 ID 기준 주차 전체 조회
   @GetMapping("/weeks-by-roadmap")
