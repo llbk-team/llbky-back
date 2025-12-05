@@ -15,7 +15,7 @@ import com.example.demo.interview.entity.InterviewSession;
 import com.example.demo.learning.dao.LearningDao;
 import com.example.demo.learning.entity.Learning;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.entity.Member;
+import com.example.demo.member.entity.Member;
 import com.example.demo.newstrend.dao.SavedKeywordDao;
 import com.example.demo.newstrend.dao.TrendInsightDao;
 import com.example.demo.newstrend.dto.response.GrowthAnalysisResponse;

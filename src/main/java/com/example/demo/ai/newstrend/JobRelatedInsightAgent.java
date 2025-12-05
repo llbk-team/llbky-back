@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.entity.Member;
+import com.example.demo.member.entity.Member;
 import com.example.demo.newstrend.dao.TrendInsightDao;
 import com.example.demo.newstrend.dto.response.InsightJson;
 import com.example.demo.newstrend.dto.response.JobInsightListResponse;

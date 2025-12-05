@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.entity.Member;
+import com.example.demo.member.entity.Member;
 import com.example.demo.resume.dao.ResumeDao;
 import com.example.demo.resume.dto.response.ResumeReportResponse;
 import com.example.demo.resume.entity.Resume;

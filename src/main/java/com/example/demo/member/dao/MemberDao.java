@@ -3,7 +3,7 @@ package com.example.demo.member.dao;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.example.demo.member.dto.entity.Member;
+import com.example.demo.member.entity.Member;
 
 @Mapper
 public interface MemberDao {

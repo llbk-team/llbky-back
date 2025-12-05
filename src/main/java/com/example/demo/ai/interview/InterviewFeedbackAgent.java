@@ -17,7 +17,7 @@ import com.example.demo.interview.entity.InterviewAnswer;
 import com.example.demo.interview.entity.InterviewQuestion;
 import com.example.demo.interview.entity.InterviewSession;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.entity.Member;
+import com.example.demo.member.entity.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 // 면접 최종 피드백을 생성하고 저장하는 에이전트

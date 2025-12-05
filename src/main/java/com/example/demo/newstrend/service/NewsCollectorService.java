@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.entity.Member;
+import com.example.demo.member.entity.Member;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 

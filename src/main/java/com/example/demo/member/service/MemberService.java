@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.entity.Member;
 import com.example.demo.member.dto.request.MemberRegisterRequest;
 import com.example.demo.member.dto.request.MemberUpdateRequest;
+import com.example.demo.member.entity.Member;
 import com.example.demo.newstrend.dao.JobInsightDao;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dao.TrendInsightDao;
@@ -93,6 +93,7 @@ public class MemberService {
     if(jobChanged){
       jobInsightDao.deleteJobInsightByMember(memberId);
       trendInsightDao.deleteTrendInsightByMember(memberId);
+      newsSummaryDao.deleteAllNews(memberId);
     }
 
     // 업데이트 실행

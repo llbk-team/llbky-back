@@ -9,6 +9,8 @@
   </settings>
 
   <typeAliases>
+    <typeAlias type="com.example.demo.member.entity.Member" alias="Member" />
+
     <typeAlias type="com.example.demo.portfolio.entity.Portfolio" alias="Portfolio" />
     <typeAlias type="com.example.demo.portfolio.entity.PortfolioImage" alias="PortfolioImage" />
     <typeAlias type="com.example.demo.portfolio.entity.PortfolioStandard" alias="PortfolioStandard" />

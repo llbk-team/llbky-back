@@ -9,7 +9,7 @@ import com.example.demo.coverletter.dao.CoverLetterDao;
 import com.example.demo.coverletter.dto.response.CoverLetterFinalFeedback;
 import com.example.demo.coverletter.entity.CoverLetter;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.entity.Member;
+import com.example.demo.member.entity.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 // 자소서 최종 피드백 생성하고 저장하는 에이전트
