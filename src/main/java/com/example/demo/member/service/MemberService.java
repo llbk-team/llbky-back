@@ -5,14 +5,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.member.dao.MemberDao;
+import com.example.demo.member.dto.request.MemberLoginRequest;
 import com.example.demo.member.dto.request.MemberRegisterRequest;
 import com.example.demo.member.dto.request.MemberUpdateRequest;
+import com.example.demo.member.dto.response.MemberResponse;
 import com.example.demo.member.entity.Member;
 import com.example.demo.newstrend.dao.JobInsightDao;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dao.TrendInsightDao;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 public class MemberService {
@@ -20,12 +20,12 @@ public class MemberService {
   private MemberDao memberDao;
   @Autowired
   private JobInsightDao jobInsightDao;
-  @Autowired 
+  @Autowired
   private NewsSummaryDao newsSummaryDao;
   @Autowired
   private TrendInsightDao trendInsightDao;
 
-  /**
+  /*
    * 회원가입
    */
   @Transactional
@@ -51,18 +51,37 @@ public class MemberService {
     return memberDao.insert(member);
   }
 
-  /**
-   * 로그인 용 검색
+  /*
+   * 로그인
    */
-  public Member findByLoginId(String loginId) {
-    return memberDao.findByLoginId(loginId);
+  public MemberResponse login(MemberLoginRequest request) {
+    Member member = memberDao.findByLoginId(request.getLoginId());
+
+    if (member == null) {
+      throw new RuntimeException("아이디가 존재하지 않습니다.");
+    }
+
+    if (!member.getMember_password().equals(request.getPassword())) {
+      throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+    }
+    
+    MemberResponse response = new MemberResponse();
+    response.setMemberId(member.getMemberId());
+    response.setMember_name(member.getMember_name());
+    response.setLoginId(member.getLoginId());
+    response.setMember_email(member.getMember_email());
+    response.setJobGroup(member.getJobGroup());
+    response.setJobRole(member.getJobRole());
+    response.setCareerYears(member.getCareerYears());
+
+    return response;
   }
 
-  /**
+  /*
    * 회원 정보 수정
    */
   @Transactional
-  public int updateMember(Integer memberId, MemberUpdateRequest request) {
+  public int modifyMember(Integer memberId, MemberUpdateRequest request) {
 
     // 1) 기존 회원 찾기
     Member member = memberDao.findById(memberId);
@@ -90,7 +109,7 @@ public class MemberService {
     if (request.getCareerYears() != null)
       member.setCareerYears(request.getCareerYears());
 
-    if(jobChanged){
+    if (jobChanged) {
       jobInsightDao.deleteJobInsightByMember(memberId);
       trendInsightDao.deleteTrendInsightByMember(memberId);
       newsSummaryDao.deleteAllNews(memberId);
