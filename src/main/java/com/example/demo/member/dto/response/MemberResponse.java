@@ -5,10 +5,10 @@ import lombok.Data;
 @Data
 public class MemberResponse {
     private Integer memberId;
-    private String member_name;
+    private String memberName;
     private String loginId;
-    private String member_password;
-    private String member_email;
+    private String memberPassword;
+    private String memberEmail;
     private String jobGroup;
     private String jobRole;
     private Integer careerYears;

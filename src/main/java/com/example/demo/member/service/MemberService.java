@@ -67,9 +67,9 @@ public class MemberService {
     
     MemberResponse response = new MemberResponse();
     response.setMemberId(member.getMemberId());
-    response.setMember_name(member.getMemberName());
+    response.setMemberName(member.getMemberName());
     response.setLoginId(member.getLoginId());
-    response.setMember_email(member.getMemberEmail());
+    response.setMemberEmail(member.getMemberEmail());
     response.setJobGroup(member.getJobGroup());
     response.setJobRole(member.getJobRole());
     response.setCareerYears(member.getCareerYears());
