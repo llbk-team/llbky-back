@@ -43,6 +43,7 @@ public class NewsController {
     private NewsSummaryService newsSummaryService;
 
     // 회원 맞춤 뉴스 피드 조회
+    
     @GetMapping("/feed")
     public ResponseEntity<Map<String, Object>> getNewsFeed(
             @RequestParam int memberId,
