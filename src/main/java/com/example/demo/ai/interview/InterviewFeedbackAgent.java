@@ -113,6 +113,23 @@ public class InterviewFeedbackAgent {
             - 강점과 개선점은 실제 면접 대비에 활용 가능한 구체적 문장으로 작성합니다.
             - 개선 제안에는 반드시 ‘이후 행동(Action Plan)’이 포함되어야 합니다.
             - JSON 형식 이외 불필요한 문장 출력 금지.
+            - 답변별 피드백에서 nonLanguageScore가 0이면서 "영상 정보가 없어"로 표시된 경우, 
+            이는 비언어 평가 제외를 의미하며 종합 평가에서 감점 요소로 사용하지 않습니다.
+
+            [세션 전체 점수 계산 규칙]
+            1) languageScore 계산
+            - 모든 답변의 languageScore 값을 수집한다.
+            - 산술 평균을 구해 정수로 반올림한다.
+
+            2) nonLanguageScore 계산
+            - nonLanguageScore가 0이면서 "영상 정보가 없어" 라는 문구가 포함된 답변은 비언어 평균 계산에서 제외한다.
+            - 제외되지 않은 답변들의 nonLanguageScore 값을 평균 내고 정수로 반올림한다.
+            - 계산 대상이 하나도 없다면 nonLanguageScore = 0으로 설정한다.
+
+            3) totalScore 계산
+            - 각 답변(answerFeedback)의 totalScore 값을 모두 수집한다.
+            - 이 값들의 산술 평균을 구하고 정수로 반올림한다.
+            - 이 값이 세션의 최종 totalScore이다.
 
             [부적절한 입력 처리 규칙]
             다음 중 하나라도 포함된 답변은 분석에서 제외하며, 전체 평가에 영향을 주지 않도록 합니다:

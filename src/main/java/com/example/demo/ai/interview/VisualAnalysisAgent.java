@@ -13,9 +13,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MimeType;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.extern.slf4j.Slf4j;
+
 // 영상(이미지 프레임) 분석 에이전트
 
 @Component
+@Slf4j
 public class VisualAnalysisAgent {
 
     /*==============
@@ -96,6 +99,8 @@ public class VisualAnalysisAgent {
             String analysis = analyzeOneFrame(contentType, bytes);
             results.add(analysis);
         }
+
+        log.info("=== Visual feedback result count: {} ===", results.size());
 
         return results;
     }
