@@ -3,14 +3,10 @@ package com.example.demo.interview.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.ai.interview.AnswerFeedbackAgent;
 import com.example.demo.ai.interview.CompanyIdealTalentAgent;
@@ -323,6 +319,8 @@ public class InterviewService {
             MultipartFile audio,
             MultipartFile videoAudio,
             List<MultipartFile> frames) throws Exception {
+
+        log.info("=== Frames received: {} ===", frames != null ? frames.size() : -1);
 
         // 1. DB에 저장된 답변 조회
         InterviewAnswer answer = interviewAnswerDao.selectOneAnswer(answerId);
