@@ -12,6 +12,8 @@ import com.example.demo.coverletter.dao.CoverLetterDao;
 import com.example.demo.coverletter.entity.CoverLetter;
 import com.example.demo.interview.dao.InterviewSessionDao;
 import com.example.demo.interview.entity.InterviewSession;
+import com.example.demo.learning.dao.LearningDao;
+import com.example.demo.learning.entity.Learning;
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.dto.Member;
 import com.example.demo.newstrend.dao.SavedKeywordDao;
@@ -45,6 +47,8 @@ public class GrowthAnalysisAgent {
   private InterviewSessionDao interviewSessionDao;
   @Autowired
   private PortfolioDao portfolioDao;
+  @Autowired
+  private LearningDao learningDao;
 
   public GrowthAnalysisAgent(ChatClient.Builder chatClientBuilder) {
     this.chatClient = chatClientBuilder.build();
@@ -89,16 +93,22 @@ public class GrowthAnalysisAgent {
       coverFeedbackRaw.add(cl.getCoverFeedback());
     }
 
+    List<Portfolio> portfolios = portfolioDao.selectPortfoliosByMemberId(memberId);
+    List<String> portfolioFeedbackRaw = new ArrayList<>();
+    for (Portfolio p : portfolios) {
+      portfolioFeedbackRaw.add(p.getPortfolioFeedback());
+    }
+    
     List<InterviewSession> sessions = interviewSessionDao.selectAllInterviewSessions(memberId);
     List<String> interviewReportsRaw = new ArrayList<>();
     for (InterviewSession s : sessions) {
       interviewReportsRaw.add(s.getReportFeedback());
     }
 
-    List<Portfolio> portfolios = portfolioDao.selectPortfoliosByMemberId(memberId);
-    List<String> portfolioFeedbackRaw = new ArrayList<>();
-    for (Portfolio p : portfolios) {
-      portfolioFeedbackRaw.add(p.getPortfolioFeedback());
+    List<Learning> learningList = learningDao.selectListByMemberId(memberId);
+    List<String> learningRaw = new ArrayList<>();
+    for(Learning l : learningList){
+      learningRaw.add(l.getTitle()+" - "+ l.getStatus());
     }
 
     // 출력 변환기
@@ -158,8 +168,9 @@ public class GrowthAnalysisAgent {
           "coverLetter": %s,
           "interview": %s,
           "portfolio": %s,
-          "insightJson": %s
-          "metaNews": %s
+          "learning": %s,
+          "insightJson": %s,
+          "metaNews": %s,
         }
         """.formatted(
         jobRole,
@@ -169,6 +180,7 @@ public class GrowthAnalysisAgent {
         mapper.writeValueAsString(coverFeedbackRaw),
         mapper.writeValueAsString(interviewReportsRaw),
         mapper.writeValueAsString(portfolioFeedbackRaw),
+        mapper.writeValueAsString(learningRaw),
         mapper.writeValueAsString(insightJson),
         metaNews);
 

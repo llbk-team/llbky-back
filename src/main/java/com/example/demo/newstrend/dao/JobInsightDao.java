@@ -12,6 +12,9 @@ public interface JobInsightDao {
   // 특정 멤버의 최신 직무 인사이트 1개 조회
   public JobInsight selectLatestJobInsight(int memberId);
 
+  // 키워드 저장/삭제 시 성장 제안 수정
+  public int updateAnalysisJson(JobInsight insight);
+
   // 삭제
   public int deleteJobInsight(int insightId);
 
