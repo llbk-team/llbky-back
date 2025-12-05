@@ -1,5 +1,7 @@
 package com.example.demo.newstrend.service;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,16 +30,22 @@ public class JobInsightService {
   @Autowired
   private NewsSecondSummaryAgent newsSecondSummaryAgent;
 
+  // 직무 인사이트 생성
   public JobInsight createJobInsight(int memberId) throws Exception {
+    // 기존 인사이트 모두 삭제
+    JobInsight latest = jobInsightDao.selectLatestJobInsight(memberId);
+    if(latest != null){
+      jobInsightDao.deleteJobInsight(latest.getInsightId());
+    }
 
     // 뉴스 2차 요약 에이전트 호출
     String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 10);
 
     // 성장 제안 생성 에이전트 호출
-    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId,metaNews);
+    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId, metaNews);
 
     // 직무 인사이트 카드 생성하는 에이전트 호출
-    JobInsightListResponse cards = jobRelatedInsightAgent.relatedJobs(memberId,metaNews);
+    JobInsightListResponse cards = jobRelatedInsightAgent.relatedJobs(memberId, metaNews);
 
     // DB 저장
     JobInsight entity = new JobInsight();
@@ -55,14 +63,23 @@ public class JobInsightService {
     return jobInsightDao.selectLatestJobInsight(memberId);
   }
 
-  // 조회 후 없으면 생성
+  // 조회 후 없으면 + 7일마다 재생성
   public JobInsight getOrCreateInsight(int memberId) throws Exception {
     JobInsight latest = jobInsightDao.selectLatestJobInsight(memberId);
-    if (latest != null) {
-      return latest;
+    if (latest == null) {
+      return createJobInsight(memberId);
     }
 
-    return createJobInsight(memberId);
+    // 날짜 체크: created_at 기준 7일 지났으면 갱신
+    LocalDate createdDate = latest.getCreatedAt().toLocalDate();
+    LocalDate today = LocalDate.now();
+
+    if (createdDate.plusDays(7).isBefore(today)) {
+      // 새로 갱신
+      return createJobInsight(memberId);
+    }
+
+    return latest;
   }
 
   // 키워드 저장 / 삭제시 성장 제안 수정
@@ -77,17 +94,14 @@ public class JobInsightService {
     String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 10);
 
     // 성장 제안 생성 에이전트 호출
-    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId,metaNews);
+    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId, metaNews);
 
     // INSERT (직무 카드는 이전 값 그대로)
-    JobInsight entity = new JobInsight();
-    entity.setMemberId(memberId);
-    entity.setAnalysisJson(mapper.writeValueAsString(growthAdviceJson));
-    entity.setRelatedJobsJson(latest.getRelatedJobsJson());
+    latest.setAnalysisJson(mapper.writeValueAsString(growthAdviceJson));
 
-    jobInsightDao.insertJobInsight(entity);
+    jobInsightDao.updateAnalysisJson(latest);
 
-    return entity;
+    return latest;
 
   }
 
