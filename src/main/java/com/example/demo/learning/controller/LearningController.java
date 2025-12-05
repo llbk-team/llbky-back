@@ -130,7 +130,7 @@ public class LearningController {
   @GetMapping("/count")
   public ResponseEntity<Map<String, Integer>> getLearningCount(@RequestParam("memberId") Integer memberId) {
     return ResponseEntity.ok(learningService.getLearningCount(memberId));
-  }
+  } 
   
 
 
