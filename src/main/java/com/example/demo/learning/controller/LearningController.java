@@ -60,8 +60,8 @@ public class LearningController {
   
   // AI 학습 로드맵 DB 저장
   @PostMapping("/roadmap-save")
-  public ResponseEntity<AiCreateRoadmapResponse> saveRoadmap(@RequestBody AiCreateRoadmapResponse roadmap) {
-    AiCreateRoadmapResponse result = learningService.saveRoadmap(roadmap);
+  public ResponseEntity<LearningDetailResponse> saveRoadmap(@RequestBody AiCreateRoadmapResponse roadmap) {
+    LearningDetailResponse result = learningService.saveRoadmap(roadmap);
     return ResponseEntity.ok(result);
   }
   

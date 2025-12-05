@@ -208,9 +208,11 @@
     </select>
 
     <!-- 뉴스 삭제 -->
-    <delete id="deleteNewsSummary">
+    <delete id="deleteAllNews">
         delete from news_summary
-        where summary_id = #{summaryId}
+        where member_id= #{memberId}
     </delete>
+
+    
 
 </mapper>
