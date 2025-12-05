@@ -31,7 +31,7 @@ import com.example.demo.learning.entity.Learning;
 import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.entity.LearningWeek;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.entity.Portfolio;
 import com.example.demo.resume.dao.ResumeDao;

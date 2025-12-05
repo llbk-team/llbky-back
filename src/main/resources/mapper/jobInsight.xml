@@ -41,9 +41,15 @@
     where insight_id = #{insightId}
   </update>
 
-  <!-- 삭제 -->
+  <!-- 단건 삭제 -->
    <delete id="deleteJobInsight">
     delete from job_insight
     where insight_id = #{insightId}
+   </delete>
+
+  <!-- 전체 삭제 -->
+   <delete id="deleteJobInsightByMember">
+    delete from job_insight
+    where member_id = #{memberId}
    </delete>
 </mapper>

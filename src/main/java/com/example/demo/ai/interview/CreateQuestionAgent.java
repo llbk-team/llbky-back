@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import com.example.demo.interview.dto.request.QuestionRequest;
 import com.example.demo.interview.dto.response.AiQuestionResponse;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 
 // 면접 질문 생성 에이전트
 @Component

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResult;

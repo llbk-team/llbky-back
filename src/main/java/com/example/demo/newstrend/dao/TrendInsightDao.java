@@ -12,6 +12,9 @@ public interface TrendInsightDao {
   // 최신 인사이트 조회
   public TrendInsight selectLatestTrendInsight(int memberId);
 
-  // 삭제
+  // 단건 삭제
   public int deleteTrendInsight(int trendId);
+
+  // 전체 삭제
+  public int deleteTrendInsightByMember(int memberId);
 }

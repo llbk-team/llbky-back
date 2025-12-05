@@ -7,7 +7,7 @@ import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 import com.example.demo.portfolio.dao.PortfolioStandardDao;
 import com.example.demo.portfolio.dto.GuideResult;
 import com.example.demo.portfolio.dto.request.GuideRequest;

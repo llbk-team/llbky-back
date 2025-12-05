@@ -15,7 +15,10 @@ public interface JobInsightDao {
   // 키워드 저장/삭제 시 성장 제안 수정
   public int updateAnalysisJson(JobInsight insight);
 
-  // 삭제
+  // 단건 삭제
   public int deleteJobInsight(int insightId);
+
+  // 전체 삭제
+  public int deleteJobInsightByMember(int memberId);
 
 }

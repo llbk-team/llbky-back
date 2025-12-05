@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.example.demo.learning.dto.request.RoadmapRequest;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 
 @Component
 public class CreateRoadmapAgent {
