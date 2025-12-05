@@ -39,10 +39,10 @@ public class MemberService {
 
     // 2) 엔티티 생성 및 값 매핑
     Member member = new Member();
-    member.setMember_name(request.getName());
+    member.setMemberName(request.getName());
     member.setLoginId(request.getLoginId());
-    member.setMember_password(request.getPassword()); // ★ 현재는 평문. 추후 BCrypt 적용 예정
-    member.setMember_email(request.getEmail());
+    member.setMemberPassword(request.getPassword()); // ★ 현재는 평문. 추후 BCrypt 적용 예정
+    member.setMemberEmail(request.getEmail());
     member.setJobGroup(request.getJobGroup());
     member.setJobRole(request.getJobRole());
     member.setCareerYears(request.getCareerYears());
@@ -61,15 +61,15 @@ public class MemberService {
       throw new RuntimeException("아이디가 존재하지 않습니다.");
     }
 
-    if (!member.getMember_password().equals(request.getPassword())) {
+    if (!member.getMemberPassword().equals(request.getPassword())) {
       throw new RuntimeException("비밀번호가 일치하지 않습니다.");
     }
     
     MemberResponse response = new MemberResponse();
     response.setMemberId(member.getMemberId());
-    response.setMember_name(member.getMember_name());
+    response.setMember_name(member.getMemberName());
     response.setLoginId(member.getLoginId());
-    response.setMember_email(member.getMember_email());
+    response.setMember_email(member.getMemberEmail());
     response.setJobGroup(member.getJobGroup());
     response.setJobRole(member.getJobRole());
     response.setCareerYears(member.getCareerYears());
@@ -104,7 +104,7 @@ public class MemberService {
     }
 
     if (request.getEmail() != null)
-      member.setMember_email(request.getEmail());
+      member.setMemberEmail(request.getEmail());
 
     if (request.getCareerYears() != null)
       member.setCareerYears(request.getCareerYears());

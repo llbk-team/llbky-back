@@ -6,7 +6,7 @@
         INSERT INTO member
         (member_name, login_id, member_password, member_email, job_group, job_role, career_years)
         VALUES
-        (#{member_name}, #{loginId}, #{member_password}, #{member_email}, #{jobGroup}, #{jobRole}, #{careerYears})
+        (#{memberName}, #{loginId}, #{memberPassword}, #{memberEmail}, #{jobGroup}, #{jobRole}, #{careerYears})
     </insert>
 
     <select id="findById" parameterType="int" resultType="Member">
@@ -44,7 +44,7 @@
      <update id="update" parameterType="Member">
         UPDATE member
         SET 
-            member_email = #{member_email},
+            member_email = #{memberEmail},
             job_group = #{jobGroup},
             job_role = #{jobRole},
             career_years = #{careerYears},
