@@ -45,17 +45,18 @@ public class NewsController {
     @GetMapping("/feed")
     public ResponseEntity<Map<String, Object>> getNewsFeed(
             @RequestParam int memberId,
-            @RequestParam(defaultValue = "week") String period, 
-            @RequestParam(required = false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastPublishedAt,  // ✅ 추가
-            @RequestParam(required = false) Integer lastSummaryId, 
+            @RequestParam(defaultValue = "week") String period,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastPublishedAt, // ✅
+                                                                                                                               // 추가
+            @RequestParam(required = false) Integer lastSummaryId,
             @RequestParam(defaultValue = "15") int limit) throws Exception {
 
         List<NewsAnalysisResponse> feedList = totalNewsService.getNewsFeed(
-            memberId,
-            period,    
-            lastPublishedAt,   // ✅ 전달
-            lastSummaryId,     // ✅ 전달
-            limit);
+                memberId,
+                period,
+                lastPublishedAt, // ✅ 전달
+                lastSummaryId, // ✅ 전달
+                limit);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
@@ -78,59 +79,58 @@ public class NewsController {
      */
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchNews(
-        @RequestParam(name = "keywords", required = false) List<String> keywords,
-        @RequestParam(name = "memberId", required = false) Integer memberId,
-        @RequestParam(defaultValue = "month") String period,
-        @RequestParam(defaultValue = "15") int limit
+            @RequestParam(name = "keywords", required = false) List<String> keywords,
+            @RequestParam(name = "memberId", required = false) Integer memberId,
+            @RequestParam(defaultValue = "month") String period,
+            @RequestParam(defaultValue = "15") int limit
 
     ) {
 
         log.info("네이버 뉴스 검색 요청 - 키워드: {}, memberId: {}", keywords, memberId);
-    
-    if (keywords == null || keywords.isEmpty()) {
-        Map<String, Object> bad = new HashMap<>();
-        bad.put("status", "error");
-        bad.put("message", "쿼리 파라미터 'keywords'를 하나 이상 전달해야 합니다.");
-        bad.put("data", List.of());  // ✅ 빈 배열
-        bad.put("totalCount", 0);     // ✅ 추가
-        bad.put("analyzed", 0);
-        return ResponseEntity.badRequest().body(bad);
-    }
-    
-    try {
-        // 1. 뉴스 수집 및 분석
-        int analyzed = totalNewsService.searchNews(keywords, memberId,limit);
-        
-        // 2. 수집된 뉴스 조회
-        List<NewsAnalysisResponse> newsList = newsSummaryService.searchNewsByUserKeywords(
-            keywords, 
-            period, 
-            limit
-        );
 
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("status", "success");
-        resp.put("message", "뉴스 검색/수집 완료");
-        resp.put("data", newsList);           
-        resp.put("totalCount", newsList.size()); 
-        resp.put("analyzed", analyzed);       // 추가 정보
-        
-        log.info("네이버 뉴스 검색 완료 - analyzed: {}, 조회: {}건", analyzed, newsList.size());
-        return ResponseEntity.ok(resp);
-        
-    } catch (Exception e) {
-        log.error("뉴스 검색 실패 - keywords: {}, memberId: {}", keywords, memberId, e);
-        
-        Map<String, Object> err = new HashMap<>();
-        err.put("status", "error");
-        err.put("message", "뉴스 수집 중 오류가 발생했습니다: " + e.getMessage());
-        err.put("data", List.of());    
-        err.put("totalCount", 0);    
-        err.put("analyzed", 0);
-        
-        return ResponseEntity.status(500).body(err);
+        if (keywords == null || keywords.isEmpty()) {
+            Map<String, Object> bad = new HashMap<>();
+            bad.put("status", "error");
+            bad.put("message", "쿼리 파라미터 'keywords'를 하나 이상 전달해야 합니다.");
+            bad.put("data", List.of()); // ✅ 빈 배열
+            bad.put("totalCount", 0); // ✅ 추가
+            bad.put("analyzed", 0);
+            return ResponseEntity.badRequest().body(bad);
+        }
+
+        try {
+            // 1. 뉴스 수집 및 분석
+            int analyzed = totalNewsService.searchNews(keywords, memberId, limit);
+
+            // 2. 수집된 뉴스 조회
+            List<NewsAnalysisResponse> newsList = newsSummaryService.searchNewsByUserKeywords(
+                    keywords,
+                    period,
+                    limit);
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("status", "success");
+            resp.put("message", "뉴스 검색/수집 완료");
+            resp.put("data", newsList);
+            resp.put("totalCount", newsList.size());
+            resp.put("analyzed", analyzed); // 추가 정보
+
+            log.info("네이버 뉴스 검색 완료 - analyzed: {}, 조회: {}건", analyzed, newsList.size());
+            return ResponseEntity.ok(resp);
+
+        } catch (Exception e) {
+            log.error("뉴스 검색 실패 - keywords: {}, memberId: {}", keywords, memberId, e);
+
+            Map<String, Object> err = new HashMap<>();
+            err.put("status", "error");
+            err.put("message", "뉴스 수집 중 오류가 발생했습니다: " + e.getMessage());
+            err.put("data", List.of());
+            err.put("totalCount", 0);
+            err.put("analyzed", 0);
+
+            return ResponseEntity.status(500).body(err);
+        }
     }
-}
 
     /**
      * 단일 뉴스 분석 및 저장
@@ -227,7 +227,6 @@ public class NewsController {
         }
     }
 
-
     /**
      * 관련뉴스 네이버 뉴스 검색 (외부 API 호출)
      * 
@@ -297,7 +296,6 @@ public class NewsController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
-
 
     /**
      * 뉴스 수집 요청 DTO

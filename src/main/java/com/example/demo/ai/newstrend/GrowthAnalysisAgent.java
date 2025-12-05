@@ -53,7 +53,7 @@ public class GrowthAnalysisAgent {
   /*
    * 성장 제안 에이전트
    */
-  public GrowthAnalysisResponse generateGrowthAdvice(int memberId) throws Exception {
+  public GrowthAnalysisResponse generateGrowthAdvice(int memberId, String metaNews) throws Exception {
     // 사용자의 직무, 직군 정보 조회
     Member member = memberDao.findById(memberId);
     String jobGroup = member.getJobGroup();
@@ -118,6 +118,7 @@ public class GrowthAnalysisAgent {
         4) 이력서 · 면접 · 학습 조언 모두 ‘트렌드 흐름을 반영한 대비 방향성’을 중심으로 작성한다.
         5) 직무(jobRole)와 직접적으로 연관되지 않은 기술은 언급하지 않는다.
         6) 일반적인 조언이 되지 않도록, 트렌드나 사용자의 관심 키워드에서 파생된 “방향성”만 제시한다.
+        7) metaNews는 뉴스 흐름 요약문으로 참고하여서 성장 제안을 생성해야 한다.(단, "기사에 따르면" 그대로 출력하거나 붙여넣기 금지)
 
         출력 스타일:
         - 확정 금지: “~가 증가하고 있습니다”, “~는 필수입니다”, “시장 수요가 급증하고 있습니다”
@@ -158,6 +159,7 @@ public class GrowthAnalysisAgent {
           "interview": %s,
           "portfolio": %s,
           "insightJson": %s
+          "metaNews": %s
         }
         """.formatted(
         jobRole,
@@ -167,7 +169,8 @@ public class GrowthAnalysisAgent {
         mapper.writeValueAsString(coverFeedbackRaw),
         mapper.writeValueAsString(interviewReportsRaw),
         mapper.writeValueAsString(portfolioFeedbackRaw),
-        mapper.writeValueAsString(insightJson));
+        mapper.writeValueAsString(insightJson),
+        metaNews);
 
     String response = chatClient.prompt()
         .system(systemPrompt)

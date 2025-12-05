@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.ai.newstrend.NewsSecondSummaryAgent;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
@@ -29,6 +31,8 @@ public class NewsSummaryService {
 
     private final NewsSummaryDao newsSummaryDao;
     private final ObjectMapper objectMapper;
+    @Autowired
+    private NewsSecondSummaryAgent newsSecondSummaryAgent;
 
     /**
      * 뉴스 저장

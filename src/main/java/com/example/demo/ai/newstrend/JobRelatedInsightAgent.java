@@ -29,7 +29,7 @@ public class JobRelatedInsightAgent {
     this.chatClient = chatClientBuilder.build();
   }
 
-  public JobInsightListResponse relatedJobs(int memberId) throws Exception {
+  public JobInsightListResponse relatedJobs(int memberId, String metaNews) throws Exception {
 
     // 사용자의 직무, 직군 정보 조회
     Member member = memberDao.findById(memberId);
@@ -64,6 +64,7 @@ public class JobRelatedInsightAgent {
            - 현재 트렌드(InsightJson) 영향이 큰 분야
         7) null 금지, 빈 문자열 또는 빈 배열로 대체
         8) JSON 이외의 어떤 텍스트도 출력 금지
+        9) metaNews는 뉴스 흐름 요약문으로 참고하여서 직무 인사이트를 생성해야 한다.(단, "기사에 따르면" 그대로 출력하거나 붙여넣기 금지)
 
         아래 format JSON 구조를 그대로 따라 출력하세요:
 
@@ -81,6 +82,9 @@ public class JobRelatedInsightAgent {
         [트렌드 분석 데이터 (InsightJson)]
         %s
 
+        [뉴스 요약(metaNews)]
+        %s
+
         요구사항:
         - 총 3개의 insights 항목을 생성하세요.
         - insights 배열의 첫 번째 항목은 반드시 사용자 직무(jobRole) 기반 인사이트여야 합니다.
@@ -92,7 +96,8 @@ public class JobRelatedInsightAgent {
         """.formatted(
         jobGroup,
         jobRole,
-        mapper.writeValueAsString(insightJson));
+        mapper.writeValueAsString(insightJson),
+        metaNews);
 
     String json = chatClient.prompt()
         .system(systemPrompt)

@@ -36,6 +36,9 @@ public class TrendAnalysisAgent {
         너는 채용/기술 트렌드를 분석하는 TrendAnalysisAgent이다.
         입력은 TrendDataContext(JSON)이며, 너는 계산과 분석만 수행한다.
         키워드 생성 또는 원본 데이터 수집은 절대 하지 않는다. (TrendDataAgent 역할)
+        metaNews는 뉴스 흐름 참고용이다. 채용 시장 분위기에는 적극 참고해도 좋다
+
+        metaNews는 참고만 하고, 문장을 그대로 출력하거나 복사하면 안된다.
 
         ⚠ 출력 규칙 (절대 위반 금지)
         - JSON ONLY 출력

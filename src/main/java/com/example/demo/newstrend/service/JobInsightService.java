@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.ai.newstrend.GrowthAnalysisAgent;
 import com.example.demo.ai.newstrend.JobRelatedInsightAgent;
+import com.example.demo.ai.newstrend.NewsSecondSummaryAgent;
 import com.example.demo.newstrend.dao.JobInsightDao;
 import com.example.demo.newstrend.dto.response.GrowthAnalysisResponse;
 import com.example.demo.newstrend.dto.response.JobInsightListResponse;
@@ -24,13 +25,19 @@ public class JobInsightService {
   private JobInsightDao jobInsightDao;
   @Autowired
   private ObjectMapper mapper;
+  @Autowired
+  private NewsSecondSummaryAgent newsSecondSummaryAgent;
 
   public JobInsight createJobInsight(int memberId) throws Exception {
+
+    // 뉴스 2차 요약 에이전트 호출
+    String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 10);
+
     // 성장 제안 생성 에이전트 호출
-    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId);
+    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId,metaNews);
 
     // 직무 인사이트 카드 생성하는 에이전트 호출
-    JobInsightListResponse cards = jobRelatedInsightAgent.relatedJobs(memberId);
+    JobInsightListResponse cards = jobRelatedInsightAgent.relatedJobs(memberId,metaNews);
 
     // DB 저장
     JobInsight entity = new JobInsight();
@@ -66,8 +73,11 @@ public class JobInsightService {
       return createJobInsight(memberId);
     }
 
+    // 뉴스 2차 요약 에이전트 호출
+    String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 10);
+
     // 성장 제안 생성 에이전트 호출
-    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId);
+    GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId,metaNews);
 
     // INSERT (직무 카드는 이전 값 그대로)
     JobInsight entity = new JobInsight();
