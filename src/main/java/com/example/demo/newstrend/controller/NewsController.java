@@ -43,7 +43,7 @@ public class NewsController {
     private NewsSummaryService newsSummaryService;
 
     // 회원 맞춤 뉴스 피드 조회
-    
+
     @GetMapping("/feed")
     public ResponseEntity<Map<String, Object>> getNewsFeed(
             @RequestParam int memberId,
@@ -81,38 +81,14 @@ public class NewsController {
      */
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchNews(
-        @RequestParam(name = "keywords", required = false) String keywords,
-        @RequestParam(name = "memberId", required = false) Integer memberId,
-        @RequestParam(defaultValue = "month") String period,
-        @RequestParam(defaultValue = "15") int limit
+            @RequestParam(name = "keywords", required = false) String keywords,
+            @RequestParam(name = "memberId", required = false) Integer memberId,
+            @RequestParam(defaultValue = "month") String period,
+            @RequestParam(defaultValue = "15") int limit
 
     ) {
 
         log.info("네이버 뉴스 검색 요청 - 키워드: {}, memberId: {}", keywords, memberId);
-    
-    if (keywords == null || keywords.isEmpty()) {
-        Map<String, Object> bad = new HashMap<>();
-        bad.put("status", "error");
-        bad.put("message", "쿼리 파라미터 'keywords'를 하나 이상 전달해야 합니다.");
-        bad.put("data", List.of());  // ✅ 빈 배열
-        bad.put("totalCount", 0);     // ✅ 추가
-        bad.put("analyzed", 0);
-        return ResponseEntity.badRequest().body(bad);
-    }
-    
-    try {
-        //String을 List로 변환
-        List<String> keywordList = Arrays.asList(keywords.split(","));
-
-        // 1. 뉴스 수집 및 분석
-        int analyzed = totalNewsService.searchNews(keywordList, memberId,limit);
-        
-        // 2. 수집된 뉴스 조회
-        List<NewsAnalysisResponse> newsList = newsSummaryService.searchNewsByUserKeywords(
-            keywordList, 
-            period, 
-            limit
-        );
 
         if (keywords == null || keywords.isEmpty()) {
             Map<String, Object> bad = new HashMap<>();
@@ -125,12 +101,15 @@ public class NewsController {
         }
 
         try {
+            // String을 List로 변환
+            List<String> keywordList = Arrays.asList(keywords.split(","));
+
             // 1. 뉴스 수집 및 분석
-            int analyzed = totalNewsService.searchNews(keywords, memberId, limit);
+            int analyzed = totalNewsService.searchNews(keywordList, memberId, limit);
 
             // 2. 수집된 뉴스 조회
             List<NewsAnalysisResponse> newsList = newsSummaryService.searchNewsByUserKeywords(
-                    keywords,
+                    keywordList,
                     period,
                     limit);
 
