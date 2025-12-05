@@ -85,7 +85,7 @@ public class LearningService {
 
     // 학습 로드맵 저장
     @Transactional
-    public AiCreateRoadmapResponse saveRoadmap(AiCreateRoadmapResponse roadmap) {
+    public LearningDetailResponse saveRoadmap(AiCreateRoadmapResponse roadmap) {
         // 1. Learning 저장
         Learning learning = new Learning();
         learning.setMemberId(roadmap.getMemberId());
@@ -122,7 +122,7 @@ public class LearningService {
             }
         }
 
-        return roadmap;
+        return getLearningById(learningId);
     }
 
     // 학습 ID로 상세 조회
