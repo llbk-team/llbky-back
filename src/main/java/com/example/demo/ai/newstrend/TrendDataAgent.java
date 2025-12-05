@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 import com.example.demo.newstrend.dto.response.TrendDataContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

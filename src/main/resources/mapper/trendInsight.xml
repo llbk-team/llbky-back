@@ -43,10 +43,16 @@
     LIMIT 1
   </select>
 
-  <!-- 삭제 -->
+  <!-- 단건 삭제 -->
   <delete id="deleteTrendInsight">
     DELETE FROM trend_insight
     WHERE trend_id = #{trendId}
+  </delete>
+
+  <!-- 전체 삭제 -->
+  <delete id="deleteTrendInsightByMember">
+    DELETE FROM trend_insight
+    WHERE member_id = #{memberId}
   </delete>
 
 </mapper>

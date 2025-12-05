@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.ai.portfolioguide.PortfolioGuideAgent;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 import com.example.demo.portfolio.dao.PortfolioGuideDao;
 import com.example.demo.portfolio.dao.PortfolioStandardDao;
 import com.example.demo.portfolio.dto.GuideResult;

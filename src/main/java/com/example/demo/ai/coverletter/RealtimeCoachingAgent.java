@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.example.demo.coverletter.dto.request.CoverLetterCoachRequest;
 import com.example.demo.coverletter.dto.response.CoverLetterCoachResponse;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 
 import lombok.extern.slf4j.Slf4j;
 

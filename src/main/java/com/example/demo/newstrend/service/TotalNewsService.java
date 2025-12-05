@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
+import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResult;
@@ -58,6 +59,17 @@ public class TotalNewsService {
 
   @Autowired
   private MemberDao memberDao;
+
+  @Autowired
+  private NewsSummaryDao newsSummaryDao;
+
+  //회원 ID 별 전체 삭제
+  public int deleteNews(int memberId){
+   int deleteCount = newsSummaryDao.deleteAllNews(memberId);
+   log.info("회원 {}의 뉴스 {}건 삭제 완료", memberId, deleteCount);
+   return deleteCount;
+
+  }
 
   // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
   @Transactional

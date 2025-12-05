@@ -49,7 +49,7 @@ public interface NewsSummaryDao {
 
 
   // 뉴스 삭제
-  public int deleteNewsSummary(int summaryId);
+  public int deleteAllNews(int memberId);
 
 
   

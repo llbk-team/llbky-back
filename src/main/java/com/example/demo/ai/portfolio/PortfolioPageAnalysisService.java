@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MimeType;
 
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.dao.PortfolioImageDao;
 import com.example.demo.portfolio.dto.response.PortfolioPageFeedbackResponse;

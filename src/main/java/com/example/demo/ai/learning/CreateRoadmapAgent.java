@@ -2,21 +2,17 @@ package com.example.demo.ai.learning;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.learning.dto.request.RoadmapRequest;
 import com.example.demo.learning.dto.response.AiCreateRoadmapResponse;
 import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.dto.Member;
+import com.example.demo.member.dto.entity.Member;
 
 @Component
 public class CreateRoadmapAgent {
 
   private ChatClient chatClient;
-
-  @Autowired
-  private MemberDao memberDao;
 
   public CreateRoadmapAgent(ChatClient.Builder chatClientBuilder) {
     this.chatClient = chatClientBuilder.build();
@@ -32,13 +28,12 @@ public class CreateRoadmapAgent {
 
     // 시스템 프롬프트 구성
     String system = """
-                당신은 모든 분야의 교육을 설계할 수 있는 전문 학습 코치입니다.
-                개발자뿐 아니라, 기획, 디자인, 마케팅, 경영, 자격증, 공무원, 외국어, 취미 등
-                어떤 분야라도 고품질의 맞춤형 학습 로드맵을 설계해야 합니다.
-                학습 플랜은 4주차 기준이며 각 주차는 무조건 7일이어야 합니다. 각 일차별로 계획을 작성하세요.
-                절대로 코드블록(```), 백틱(``) 등을 포함하지 마세요.
+        당신은 모든 분야의 교육을 설계할 수 있는 전문 학습 코치입니다.
+        개발자뿐 아니라, 기획, 디자인, 마케팅, 경영, 자격증, 공무원, 외국어, 취미 등 어떤 분야라도 고품질의 맞춤형 학습 로드맵을 설계해야 합니다.
+        학습 플랜은 4주차 기준이며 각 주차는 무조건 7일이어야 합니다. 각 일차별로 계획을 작성하세요.
+        절대로 코드블록(```), 백틱(``) 등을 포함하지 마세요.
 
-                [학습 로드맵 생성 규칙]
+        [학습 로드맵 생성 규칙]
         1. 사용자가 입력한 직무·분야·목적·기술을 기반으로 맞춤형 로드맵을 구성합니다.
         2. 로드맵은 4주차, 각 주차 7일로 구성합니다.
         3. 주차에는 title, goal, learningWeekSummary를 포함해야 합니다.
@@ -73,8 +68,8 @@ public class CreateRoadmapAgent {
         - 정상적으로 생성된 employees 테이블
 
         형식(JSON만 출력):
-                %s
-                """.formatted(format);
+        %s
+        """.formatted(format);
 
     // 사용자 프롬프트 구성
     String prompt = """

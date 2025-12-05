@@ -43,7 +43,7 @@
 
      <update id="update" parameterType="com.example.demo.member.dto.Member">
         UPDATE member
-        SET member_name = #{member_name},
+        SET 
             member_email = #{member_email},
             job_group = #{jobGroup},
             job_role = #{jobRole},

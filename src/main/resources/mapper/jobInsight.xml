@@ -32,9 +32,24 @@
     limit 1
   </select>
 
-  <!-- 삭제 -->
+  <!-- 키워드 저장/삭제 시 성장 제안 수정-->
+   <update id="updateAnalysisJson"
+    parameterType="JobInsight">
+    update job_insight
+    set
+      analysis_json = CAST(#{analysisJson} AS JSONB)
+    where insight_id = #{insightId}
+  </update>
+
+  <!-- 단건 삭제 -->
    <delete id="deleteJobInsight">
     delete from job_insight
     where insight_id = #{insightId}
+   </delete>
+
+  <!-- 전체 삭제 -->
+   <delete id="deleteJobInsightByMember">
+    delete from job_insight
+    where member_id = #{memberId}
    </delete>
 </mapper>

@@ -21,7 +21,7 @@ public class RefineRoadmapAgent {
     String format = converter.getFormat();
 
     String system = """
-            당신은 이미 생성된 학습 로드맵을 “구조 그대로 유지한 채” 세부 내용을 보강하는 역할을 합니다.
+            당신은 이미 생성된 학습 로드맵을 “구조와 내용을 유지한 채” 세부 내용을 보강하는 역할을 합니다.
 
             아래 제공되는 기존 로드맵(JSON)은 사용자의 직무/목표/분야에 맞게 이미 설계된 구조입니다.
 
@@ -47,6 +47,11 @@ public class RefineRoadmapAgent {
         """.formatted(format);
 
     String prompt = """
+            [로드맵 생성 정보]
+            - 학습 목적: %s
+            - 관심 기술: %s
+            - 하루 학습 가능 시간: %d
+
             [기존 로드맵 JSON]
             %s
 
@@ -54,7 +59,7 @@ public class RefineRoadmapAgent {
             %s
 
             수정 요청은 기존 로드맵의 “텍스트 보완” 의미이지 기존 week/day 구조나 제목을 변경하라는 의미가 아닙니다.
-        """.formatted(request.getOriginalRoadmapJson(), request.getUserFeedback());
+        """.formatted(request.getPurposes(), request.getSkills(), request.getStudyHours(), request.getOriginalRoadmapJson(), request.getUserFeedback());
 
     // LLM 호출
     String json = chatClient.prompt()

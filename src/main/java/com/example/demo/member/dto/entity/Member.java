@@ -1,4 +1,4 @@
-package com.example.demo.member.dto;
+package com.example.demo.member.dto.entity;
 
 import java.time.LocalDateTime;
 
