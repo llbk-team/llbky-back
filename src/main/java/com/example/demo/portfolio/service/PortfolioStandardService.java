@@ -44,15 +44,40 @@ public class PortfolioStandardService {
      */
     public List<PortfolioStandard> getStandardsByJobInfo(String jobGroup, String jobRole) {
         log.info("직군/직무별 평가 기준 조회 - jobGroup: {}, jobRole: {}", jobGroup, jobRole);
-        return portfolioStandardDao.selectStandardsByJobInfo(jobGroup, jobRole);
+        
+       
+        if (jobGroup == null || jobGroup.trim().isEmpty()) {
+            log.warn("직군 정보가 비어있음 - 전체 기준 반환");
+            return getAllStandards();
+        }
+        
+        if (jobRole == null || jobRole.trim().isEmpty()) {
+            log.warn("직무 정보가 비어있음 - 직군별 기준 반환");
+            return getStandardsByJobGroup(jobGroup);
+        }
+        
+        List<PortfolioStandard> result = portfolioStandardDao.selectStandardsByJobInfo(jobGroup, jobRole);
+        log.info("조회 결과 - 개수: {}", result != null ? result.size() : 0);
+        
+        return result;
     }
 
     /**
-     * 직군으로만 평가 기준 조회
+     * 직군으로만 평가 기준 조회 (개선됨)
      */
     public List<PortfolioStandard> getStandardsByJobGroup(String jobGroup) {
         log.info("직군별 평가 기준 조회 - jobGroup: {}", jobGroup);
-        return portfolioStandardDao.selectStandardsByJobGroup(jobGroup);
+        
+        // ⭐ null 체크 추가
+        if (jobGroup == null || jobGroup.trim().isEmpty()) {
+            log.warn("직군 정보가 비어있음 - 전체 기준 반환");
+            return getAllStandards();
+        }
+        
+        List<PortfolioStandard> result = portfolioStandardDao.selectStandardsByJobGroup(jobGroup);
+        log.info("직군별 조회 결과 - 개수: {}", result != null ? result.size() : 0);
+        
+        return result;
     }
 
     /**
