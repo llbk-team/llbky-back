@@ -117,8 +117,6 @@ public class NewsSummaryService {
             Integer lastSummaryId,
             int limit) throws Exception {
 
-       
-
         List<NewsSummary> summaries = newsSummaryDao.findByJobGroupKeywords(
             jobGroupKeywords, 
             memberId, 
