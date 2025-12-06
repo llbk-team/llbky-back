@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.ai.newstrend.GrowthAnalysisAgent;
 import com.example.demo.ai.newstrend.JobRelatedInsightAgent;
@@ -31,6 +32,7 @@ public class JobInsightService {
   private NewsSecondSummaryAgent newsSecondSummaryAgent;
 
   // 직무 인사이트 생성
+  @Transactional
   public JobInsight createJobInsight(int memberId) throws Exception {
     // 기존 인사이트 모두 삭제
     JobInsight latest = jobInsightDao.selectLatestJobInsight(memberId);
