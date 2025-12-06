@@ -100,6 +100,8 @@ public class FeedbackResumeAgent {
                 %s
                 [활동]
                 %s
+                [희망 직군]
+                %s
                 [희망 직무]
                 %s
                 """.formatted(
@@ -109,15 +111,12 @@ public class FeedbackResumeAgent {
                 resume.getSkills(),
                 resume.getCertificates(),
                 resume.getActivities(),
+                member != null ? member.getJobGroup() : "",
                 member != null ? member.getJobRole() : "");
         // LLM 호출
         String json = chatClient.prompt()
                 .system(systemPrompt)
                 .user(prompt)
-                .options(ChatOptions.builder()
-                        .temperature(0.3)
-                        .maxTokens(1500)
-                        .build())
                 .call()
                 .content();
 
