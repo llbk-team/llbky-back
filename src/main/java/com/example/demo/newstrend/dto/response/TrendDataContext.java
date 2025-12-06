@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 public class TrendDataContext {
   private Integer memberId;
+  private String jopGroup;
   private String targetRole;
   private String startDate;
   private String endDate;
