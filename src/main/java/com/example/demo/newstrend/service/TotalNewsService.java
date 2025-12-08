@@ -52,19 +52,19 @@ public class TotalNewsService {
   private JobRelevanceAgent jobRelevanceAgent;// 뉴스 - 직군 관련성 평가
 
   @Autowired
-  private NewsAIService newsAIService; 
+  private NewsAIService newsAIService;  // 뉴스 AI 분석 (요약, 감정, 키워드)
 
   @Autowired
-  private NewsCollectorService newsCollectorService;
+  private NewsCollectorService newsCollectorService; // 네이버 API로 뉴스 수집
 
   @Autowired
-  private NewsSummaryService newsSummaryService;
+  private NewsSummaryService newsSummaryService;// DB 저장/조회
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;  // JSON 직렬화/역직렬화
 
   @Autowired
-  private MemberDao memberDao;
+  private MemberDao memberDao;// 회원 정보 조회
 
   TotalNewsService(JobKeywordGenerationAgent jobKeywordGenerationAgent) {
     this.jobKeywordGenerationAgent = jobKeywordGenerationAgent;
@@ -73,11 +73,12 @@ public class TotalNewsService {
   // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
   @Transactional
   public List<NewsAnalysisResponse> getNewsFeed(
-      int memberId,
-      String period,
-      LocalDateTime lastPublishedAt,
-      Integer lastSummaryId,
-      int limit) throws Exception {
+      int memberId,           // 회원 ID - 개인화된 피드 제공용
+      String period,          // 조회 기간 ("week", "month" 등)
+      LocalDateTime lastPublishedAt,  // 무한 스크롤용 - 마지막 뉴스 발행일
+      Integer lastSummaryId,         // 무한 스크롤용 - 마지막 뉴스 ID  
+      int limit               // 한 번에 가져올 뉴스 개수
+      ) throws Exception {
 
     List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
 
@@ -177,7 +178,7 @@ public class TotalNewsService {
         analysisResult.getAnalysis().getSentiment(),
         analysisResult.getAnalysis().getTrustScore());
 
-    // 엔티티 생성 (NewsAnalysisResult 구조에 맞게 매핑)
+    // 엔티티 생성 (NewsAnalysisResult 구조에 맞게 매핑)  DTO → Entity 변환: API 응답을 DB 저장용 엔티티로 매핑
     NewsSummary entity = new NewsSummary();
     // 요청에 포함된 memberId 사용
     entity.setMemberId(request.getMemberId());
@@ -191,7 +192,7 @@ public class TotalNewsService {
     if (analysisResult.getAnalysis() != null) {
       entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary());
     }
-    // analysisJson / keywordsJson은 ObjectMapper로 직렬화
+    // analysisJson / keywordsJson은 ObjectMapper로 직렬화   복잡한 AI 분석 결과를 JSON으로 저장 (스키마 유연성)
     entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis()));
     entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords()));
 
@@ -280,8 +281,6 @@ public class TotalNewsService {
     // 관련성 높은 뉴스에 대해서만 AI 분석 수행 (비용/시간 절약)
     for (NewsAnalysisRequest newsRequest : relevantNews) {
       try {
-
-
         // 4-1. AI 분석 실행 (NewsAIService)
         log.debug("AI 분석 시작: {}", newsRequest.getTitle());
         NewsAnalysisResult analysisResult = newsAIService.analyzeNews(newsRequest);
@@ -344,21 +343,21 @@ public class TotalNewsService {
     log.info("오늘 뉴스 조회 - memberId: {}, limit: {}", memberId, limit);
 
     List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
-
+      // 1단계: 일주일치 뉴스 먼저 조회
     List<NewsAnalysisResponse> weeklyNews = newsSummaryService.getNewsByJobGroup(
         jobGroupKeywords, memberId, "week", null, null, limit);
 
 
     log.info("저장된 일주일 뉴스 - {}건", weeklyNews != null ? weeklyNews.size() : 0);
-
+    // 2단계: 충분한 뉴스가 있으면 바로 반환
     if (weeklyNews != null && weeklyNews.size() >= Math.min(3, limit)) {
         log.info("저장된 뉴스 충분 - {}건 반환", weeklyNews.size());
         return weeklyNews;
     }
-    // ✅ 3단계: 오늘 뉴스 체크 (기존 메서드 활용)
+    //  3단계: 오늘 뉴스 체크 (기존 메서드 활용)
     List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 15);
 
-    // 2. 데이터 없으면 자동 수집
+    // 4단계 데이터 없으면 자동 수집
     if (todayNews == null || todayNews.isEmpty()) {
       log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
     
@@ -367,13 +366,14 @@ public class TotalNewsService {
 
       log.info("자동 수집 완료 - {}건 분석됨", analyzed);
 
-
+      // 수집 후 다시 일주일치 조회
        List<NewsAnalysisResponse> updatedNews = newsSummaryService.getNewsByJobGroup(
           jobGroupKeywords, memberId, "week", null, null, limit);
         
         return updatedNews != null ? updatedNews : weeklyNews;
 
     }
+    //5단계: 오늘 뉴스가 있으면 일주일치 반환
      log.info("오늘 뉴스 존재 - 저장된 일주일치 뉴스 반환");
     return weeklyNews != null ? weeklyNews : new ArrayList<>();
   }
@@ -414,7 +414,7 @@ public class TotalNewsService {
   }
 
   /**
-   * Response 생성 헬퍼 메서드
+   * Response 생성 헬퍼 메서드 // Entity → DTO 변환 로직
    */
   private NewsAnalysisResponse createResponse(NewsSummary saved, NewsAnalysisResult result) {
     NewsAnalysisResponse response = new NewsAnalysisResponse();
