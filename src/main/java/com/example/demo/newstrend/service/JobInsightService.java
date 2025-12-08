@@ -98,9 +98,8 @@ public class JobInsightService {
     // 성장 제안 생성 에이전트 호출
     GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId, metaNews);
 
-    // INSERT (직무 카드는 이전 값 그대로)
+    // DB 저장
     latest.setAnalysisJson(mapper.writeValueAsString(growthAdviceJson));
-
     jobInsightDao.updateAnalysisJson(latest);
 
     return latest;

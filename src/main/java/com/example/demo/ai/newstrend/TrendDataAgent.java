@@ -55,27 +55,28 @@ public class TrendDataAgent {
 
   @Tool(description = "네이버 데이터랩에서 특정 키워드의 검색량(기간별 ratio)을 가져옵니다.")
   public Map<String, Object> getTrendData(String keyword, String startDate, String endDate) {
-    log.info("🔧 [TOOL CALLED] getTrendData(keyword={}, start={}, end={})",
+    log.info("[TOOL CALLED] getTrendData(keyword={}, start={}, end={})",
         keyword, startDate, endDate);
     try {
+      // 요청 바디 생성(네이버 DataLab 규격)
       Map<String, Object> requestbody = Map.of(
           "startDate", startDate,
           "endDate", endDate,
-          "timeUnit", "date",
-          "keywordGroups", List.of(Map.of(
-              "groupName", "트렌드",
-              "keywords", List.of(keyword))));
+          "timeUnit", "date", // 일간 단위
+          "keywordGroups", List.of(Map.of( 
+              "groupName", "트렌드", // 주제어이며 검색어 묶음을 대표하는 이름
+              "keywords", List.of(keyword)))); // 주제어에 해당하는 검색어
 
       String response = webClient.post()
           .uri(naverTrendUrl)
           .header("X-Naver-Client-Id", naverClientId)
           .header("X-Naver-Client-Secret", naverClientSecret)
-          .bodyValue(requestbody)
-          .retrieve()
+          .bodyValue(requestbody) // 요청 바디 JSON으로 직렬화해서 전송
+          .retrieve() 
           .bodyToMono(String.class)
           .block();
 
-      log.info("📥 [API SUCCESS] 네이버 검색량 수집 완료 keyword={}", keyword);
+      log.info("[API SUCCESS] 네이버 검색량 수집 완료 keyword={}", keyword);
 
       return mapper.readValue(response, Map.class);
     } catch (Exception e) {
@@ -86,13 +87,13 @@ public class TrendDataAgent {
   }
 
   public TrendDataContext collect(Integer memberId) throws Exception {
-    log.info("🚀 [TrendDataAgent] 데이터 수집 시작 memberId={}", memberId);
+    log.info("[TrendDataAgent] 데이터 수집 시작 memberId={}", memberId);
     // 사용자 희망 직무 조회
     Member member = memberDao.findById(memberId);
     String jobGroup = member.getJobGroup();
     String targetRole = member.getJobRole();
 
-    // 수집 날짜 범위
+    // 수집 날짜 범위(7일)
     LocalDate end = LocalDate.now();
     LocalDate start = end.minusDays(7);
 
@@ -180,7 +181,7 @@ public class TrendDataAgent {
         .call()
         .content();
 
-    log.info("📦 [LLM RAW OUTPUT] {}", llmResult);
+    log.info(" [LLM RAW OUTPUT] {}", llmResult);
 
     // JSON -> TrendDataContext(DTO) 변환
     return mapper.readValue(llmResult, TrendDataContext.class);
