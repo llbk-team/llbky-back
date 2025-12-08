@@ -7,7 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +46,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TotalNewsService {
   @Autowired
-  private JobKeywordGenerationAgent jobKeywordGenerationAgent;
+  private JobKeywordGenerationAgent jobKeywordGenerationAgent; //ai로 직군별 키워드 생성
 
   @Autowired
-  private JobRelevanceAgent jobRelevanceAgent;
+  private JobRelevanceAgent jobRelevanceAgent;// 뉴스 - 직군 관련성 평가
 
   @Autowired
-  private NewsAIService newsAIService;
+  private NewsAIService newsAIService; 
 
   @Autowired
   private NewsCollectorService newsCollectorService;
@@ -247,10 +246,10 @@ public class TotalNewsService {
         // 관련성 점수가 15점 이상인 뉴스만 선별 (임계값)
         if (relevanceScore >= 15) {
           relevantNews.add(news); // 관련성 높은 뉴스 리스트에 추가
-          log.debug("관련성 높은 뉴스 선택: {} (점수: {})", news.getTitle(), relevanceScore);
+          // log.debug("관련성 높은 뉴스 선택: {} (점수: {})", news.getTitle(), relevanceScore);
         } else {
           filteredCount++; // 필터링된 뉴스 카운트 증가
-          log.debug("관련성 낮은 뉴스 필터링: {} (점수: {})", news.getTitle(), relevanceScore);
+          // log.debug("관련성 낮은 뉴스 필터링: {} (점수: {})", news.getTitle(), relevanceScore);
         }
 
         // API 호출 제한(Rate Limit) 방지를 위한 짧은 대기
@@ -281,18 +280,13 @@ public class TotalNewsService {
     // 관련성 높은 뉴스에 대해서만 AI 분석 수행 (비용/시간 절약)
     for (NewsAnalysisRequest newsRequest : relevantNews) {
       try {
-        // 4-1. URL 중복 체크 (선택적 활성화)
-        // if (newsSummaryService.existsByUrl(newsRequest.getSourceUrl())) {
-        // log.debug("이미 저장된 뉴스: {}", newsRequest.getSourceUrl());
-        // duplicateCount++;
-        // continue; // 중복이면 건너뛰기
-        // }
 
-        // 4-2. AI 분석 실행 (NewsAIService)
+
+        // 4-1. AI 분석 실행 (NewsAIService)
         log.debug("AI 분석 시작: {}", newsRequest.getTitle());
         NewsAnalysisResult analysisResult = newsAIService.analyzeNews(newsRequest);
 
-        // 4-3. 엔티티 생성 및 AI 분석 결과 매핑
+        // 4-2. 엔티티 생성 및 AI 분석 결과 매핑
         NewsSummary entity = new NewsSummary(); // DB 저장용 엔티티 생성
         entity.setMemberId(newsRequest.getMemberId()); // 회원 ID
         entity.setTitle(newsRequest.getTitle()); // 뉴스 제목
@@ -304,14 +298,14 @@ public class TotalNewsService {
                 ? newsRequest.getPublishedAt()
                 : LocalDateTime.now());
 
-        // 4-4. AI 분석 결과를 JSON으로 직렬화하여 저장
+        // 4-3. AI 분석 결과를 JSON으로 직렬화하여 저장
         entity.setSummaryText(analysisResult.getFinalSummary()); // AI 요약문
         entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary()); // 상세 요약
         // ObjectMapper로 Java 객체 → JSON 문자열 변환
         entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis())); // 감정/신뢰도 등
         entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords())); // 키워드 리스트
 
-        // 4-5. DB에 저장
+        // 4-4. DB에 저장
         newsSummaryService.saveNewsSummary(entity);
         totalAnalyzed++; // 성공 카운트 증가
 
@@ -348,23 +342,40 @@ public class TotalNewsService {
   @Transactional
   public List<NewsAnalysisResponse> getTodayNewsByMember(int memberId, int limit) throws Exception {
     log.info("오늘 뉴스 조회 - memberId: {}, limit: {}", memberId, limit);
-    // 1. db 먼저 조회
-    List<NewsAnalysisResponse> responses = newsSummaryService.getTodayNewsByMember(memberId, limit);
+
+    List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
+
+    List<NewsAnalysisResponse> weeklyNews = newsSummaryService.getNewsByJobGroup(
+        jobGroupKeywords, memberId, "week", null, null, limit);
+
+
+    log.info("저장된 일주일 뉴스 - {}건", weeklyNews != null ? weeklyNews.size() : 0);
+
+    if (weeklyNews != null && weeklyNews.size() >= Math.min(3, limit)) {
+        log.info("저장된 뉴스 충분 - {}건 반환", weeklyNews.size());
+        return weeklyNews;
+    }
+    // ✅ 3단계: 오늘 뉴스 체크 (기존 메서드 활용)
+    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 15);
 
     // 2. 데이터 없으면 자동 수집
-    if (responses == null || responses.isEmpty()) {
+    if (todayNews == null || todayNews.isEmpty()) {
       log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
-      List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
+    
 
       int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit); // ✅ 통합 메소드 호출
 
       log.info("자동 수집 완료 - {}건 분석됨", analyzed);
-      // 3. 수집 후 다시 조회
-      responses = newsSummaryService.getTodayNewsByMember(memberId, limit);
+
+
+       List<NewsAnalysisResponse> updatedNews = newsSummaryService.getNewsByJobGroup(
+          jobGroupKeywords, memberId, "week", null, null, limit);
+        
+        return updatedNews != null ? updatedNews : weeklyNews;
 
     }
-    log.info("오늘 뉴스 조회 완료 {}건 ", responses.size());
-    return responses;
+     log.info("오늘 뉴스 존재 - 저장된 일주일치 뉴스 반환");
+    return weeklyNews != null ? weeklyNews : new ArrayList<>();
   }
 
   /**

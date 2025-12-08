@@ -42,6 +42,47 @@ public class NewsController {
     @Autowired
     private NewsSummaryService newsSummaryService;
 
+    /**
+     * 오늘 뉴스 조회 (없으면 자동 수집)
+     * 
+     * GET /trend/news/today?memberId=10&limit=15
+     * 
+     * @param memberId 회원 ID
+     * @param limit    조회 개수 (기본값: 15)
+     * @return 오늘 뉴스 리스트 (일주일치 포함)
+     */
+    @GetMapping("/today")
+    public ResponseEntity<Map<String, Object>> getTodayNews(
+            @RequestParam int memberId,
+            @RequestParam(defaultValue = "15") int limit) throws Exception {
+
+        log.info("오늘 뉴스 조회 요청 - memberId: {}, limit: {}", memberId, limit);
+
+        try {
+            List<NewsAnalysisResponse> todayNewsList = totalNewsService.getTodayNewsByMember(memberId, limit);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "오늘 뉴스 조회 완료");
+            response.put("data", todayNewsList);
+            response.put("totalCount", todayNewsList.size());
+
+            log.info("오늘 뉴스 조회 완료 - {}건 반환", todayNewsList.size());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("오늘 뉴스 조회 실패 - memberId: {}", memberId, e);
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "오늘 뉴스 조회 중 오류가 발생했습니다: " + e.getMessage());
+            errorResponse.put("data", List.of());
+            errorResponse.put("totalCount", 0);
+
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
     // 회원 맞춤 뉴스 피드 조회
 
     @GetMapping("/feed")
