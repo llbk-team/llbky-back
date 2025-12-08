@@ -149,6 +149,7 @@ public class PortfolioPageAnalysisService {
               [참고 정보]
               - 직군: %s
               - 역할: %s
+              
               - 이전 페이지 요약: %s
               - 현재 페이지 번호: %d
 
