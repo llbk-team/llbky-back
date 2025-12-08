@@ -168,8 +168,8 @@ public class InterviewFeedbackAgent {
         """.formatted(
             session.getInterviewType(),
             session.getTargetCompany(),
-            member != null ? member.getJobGroup() : "정보 없음",
-            member != null ? member.getJobRole() : "정보 없음",
+            member != null ? member.getJobGroup() : "정보 없음",    // 직군
+            member != null ? member.getJobRole() : "정보 없음", // 직무
             qaBuilder.toString()
         );
 

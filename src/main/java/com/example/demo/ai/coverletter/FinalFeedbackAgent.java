@@ -29,14 +29,14 @@ public class FinalFeedbackAgent {
 
     // ChatClient
     private ChatClient chatClient;
-
+    
+    // ChatClientBuilder 주입
     public FinalFeedbackAgent(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder.build();
     }
 
     // 종합 피드백 생성
     public CoverLetterFinalFeedback execute(int coverletterId) throws Exception {
-
         
         // 1. DB에서 자소서 불러오기
         CoverLetter coverLetter = coverLetterDao.selectOneCoverLetter(coverletterId);
@@ -44,6 +44,7 @@ public class FinalFeedbackAgent {
             throw new RuntimeException("CoverLetter not found");
         }
 
+        // 사용자 ID 불러오기
         Member member = memberDao.findById(coverLetter.getMemberId());
 
         // 2. Bean 객체 -> JSON 출력 변환기 생성

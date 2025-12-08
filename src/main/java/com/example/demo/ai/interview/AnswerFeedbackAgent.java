@@ -60,10 +60,10 @@ public class AnswerFeedbackAgent {
         
         // 2. 이미지 분석 리스트 -> 하나의 문자열로 변환
         String visualFeedbackText;
-
         if (visualFeedbackList == null || visualFeedbackList.isEmpty()) {
             visualFeedbackText = "영상 분석 없음";
         } else {
+            // 프레임 별로 나온 피드백을 하나의 문자열로 합치기
             StringBuilder sb = new StringBuilder(); 
             for (int i = 0; i < visualFeedbackList.size(); i++) {
                 sb.append("프레임 ").append(i + 1).append(" 분석: ");

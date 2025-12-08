@@ -20,7 +20,8 @@ public class CreateWritingStyleAgent {
 
     // ChatClient
     private ChatClient chatClient;
-
+    
+    // ChatClientBuilder 주입
     public CreateWritingStyleAgent(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder.build();
     }
@@ -36,6 +37,7 @@ public class CreateWritingStyleAgent {
 
         // 2. 요청된 section만 추출
         String text = null;
+        // 선택된 section의 내용을 text에 대입
         switch (section) {
             case "supportMotive":
                 text = coverLetter.getSupportMotive();

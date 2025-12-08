@@ -64,11 +64,11 @@ public class RewriteMemoAgent {
             - summary: %s
 
         """.formatted(
-            day.getTitle(),
-            origin,
-            checkResult.getIsValid(),
-            checkResult.getReason(),
-            checkResult.getSummary()
+            day.getTitle(), // 제목
+            origin, // 사용자 메모
+            checkResult.getIsValid(),   // 검증 결과
+            checkResult.getReason(),    // 사유
+            checkResult.getSummary()    // 메모 요약
         );
 
         // AI 응답 받기
@@ -94,6 +94,7 @@ public class RewriteMemoAgent {
             day.setStatus("완료");
         }
 
+        // 일일 학습 테이블에서 learningDaySummary랑 status만 업데이트
         learningDayDao.update(day);
 
         return day;
