@@ -31,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NewsCollectorService {
 
-    
-
     private WebClient webClient;
 
     @Autowired
@@ -51,34 +49,34 @@ public class NewsCollectorService {
         this.webClient = webClientBuilder
                 .baseUrl("https://openapi.naver.com/v1/search")
                 .build();
-       
+
     }
-    
+
     public String getNaverNews(String keyword) {
-        return getNaverNews(keyword, 10);  // 기본 10개
+        return getNaverNews(keyword, 10); // 기본 10개
     }
 
     public String getNaverNews(String keyword, int display) {
-    log.info("네이버 뉴스 검색 - 키워드: {}, display: {}", keyword, display);
+        log.info("네이버 뉴스 검색 - 키워드: {}, display: {}", keyword, display);
 
-    String result = webClient.get()
-            .uri(uriBuilder -> uriBuilder
-                    .path("/news.json")
-                    .queryParam("query", keyword)
-                    .queryParam("display", Math.min(display, 50))
-                    .queryParam("sort", "date")
-                    .build())
-            .header("X-Naver-Client-Id", clientId)
-            .header("X-Naver-Client-Secret", clientSecret)
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
+        String result = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/news.json")
+                        .queryParam("query", keyword)
+                        .queryParam("display", Math.min(display, 50))
+                        .queryParam("sort", "date")
+                        .build())
+                .header("X-Naver-Client-Id", clientId)
+                .header("X-Naver-Client-Secret", clientSecret)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
 
-    log.debug("네이버 뉴스 검색 완료 - 응답 길이: {} bytes",
-            result != null ? result.length() : 0);
+        log.debug("네이버 뉴스 검색 완료 - 응답 길이: {} bytes",
+                result != null ? result.length() : 0);
 
-    return result;
-}
+        return result;
+    }
 
     /**
      * 검색 키워드 기반 뉴스 수집 (순수 수집만 담당)
@@ -94,8 +92,8 @@ public class NewsCollectorService {
         Set<String> urls = new HashSet<>();
         int successCount = 0;
         int errorCount = 0;
-        int sessionDuplicateCount = 0;  // ✅ 이번 수집에서 중복
-        int dbDuplicateCount = 0;  // ✅ DB에 이미 있음
+        int sessionDuplicateCount = 0; // ✅ 이번 수집에서 중복
+        int dbDuplicateCount = 0; // ✅ DB에 이미 있음
 
         Member member = memberDao.findById(memberId);
         if (member == null) {
@@ -124,12 +122,12 @@ public class NewsCollectorService {
 
                     String url = newsItem.getSourceUrl();
 
-                    if(urls.contains(url)){
+                    if (urls.contains(url)) {
                         sessionDuplicateCount++;
                         continue;
                     }
 
-                     if (newsSummaryDao.selectNewsSummaryBySourceUrl(url) != null) {
+                    if (newsSummaryDao.selectNewsSummaryBySourceUrl(url) != null) {
                         dbDuplicateCount++;
                         log.debug("DB 중복 제외: {}", newsItem.getTitle());
                         continue;

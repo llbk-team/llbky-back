@@ -187,7 +187,7 @@ public class PortfolioPageAnalysisService {
       feedbackList.add(response);
 
       // 1초간 sleep
-      Thread.sleep(1000);
+      Thread.sleep(5000);
     }
 
     document.close();

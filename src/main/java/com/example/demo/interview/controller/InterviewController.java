@@ -24,8 +24,6 @@ import com.example.demo.interview.entity.InterviewQuestion;
 import com.example.demo.interview.entity.InterviewSession;
 import com.example.demo.interview.service.InterviewService;
 
-import io.micrometer.core.ipc.http.HttpSender.Response;
-
 
 @RestController
 @RequestMapping("/interview")

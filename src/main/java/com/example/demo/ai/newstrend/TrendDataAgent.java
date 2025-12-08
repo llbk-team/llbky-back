@@ -89,6 +89,7 @@ public class TrendDataAgent {
     log.info("🚀 [TrendDataAgent] 데이터 수집 시작 memberId={}", memberId);
     // 사용자 희망 직무 조회
     Member member = memberDao.findById(memberId);
+    String jobGroup = member.getJobGroup();
     String targetRole = member.getJobRole();
 
     // 수집 날짜 범위
@@ -144,6 +145,7 @@ public class TrendDataAgent {
 
         {
           "memberId": number,
+          "jobGroup": string,
           "targetRole": string,
           "startDate": "YYYY-MM-DD",
           "endDate": "YYYY-MM-DD",
@@ -162,13 +164,14 @@ public class TrendDataAgent {
         아래 값들은 그대로 JSON에 넣어라. 절대 수정 금지.
 
         memberId: %d
+        jobGroup: %s
         targetRole: %s
         startDate: %s
         endDate: %s
         metaNews: %s
 
         TrendDataContext JSON을 생성하라.
-        """.formatted(memberId, targetRole, startDate, endDate, metaNews);
+        """.formatted(memberId, jobGroup, targetRole, startDate, endDate, metaNews);
 
     String llmResult = chatClient.prompt()
         .system(systemPrompt)

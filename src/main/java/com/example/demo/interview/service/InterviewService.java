@@ -71,21 +71,18 @@ public class InterviewService {
      * =====================
      */
 
-    // 면접 세션 종료 & 종합 피드백
-    // 생성====================================================================================
+    // 면접 세션 종료 & 종합 피드백 생성====================================================================================
     public SessionFeedbackResponse createInterviewFeedback(int sessionId) throws Exception {
         // AI Agent 호출
         return interviewFeedbackAgent.execute(sessionId);
     }
 
-    // 면접 목록
-    // 조회=====================================================================================================
+    // 면접 목록 조회=====================================================================================================
     public List<InterviewSession> getInterviewSessions(int memberId) {
         return interviewSessionDao.selectAllInterviewSessions(memberId);
     }
 
-    // 면접 상세 조회 (리포트
-    // 상세보기)=====================================================================================
+    // 면접 상세 조회 (리포트 상세보기)=====================================================================================
     public InterviewReportResponse getInterviewReport(int sessionId) throws Exception {
 
         // 1) 세션 정보 조회
@@ -144,8 +141,7 @@ public class InterviewService {
         return response;
     }
 
-    // 면접 세션 질문
-    // 조회=================================================================================================
+    // 면접 세션 질문 조회=================================================================================================
     public List<TotalQuestionResponse> getSessionDetail(Integer sessionId) {
         // 질문 목록 조회
         List<InterviewQuestion> question = interviewQuestionDao.selectInterviewQuestionsBySessionId(sessionId);
@@ -167,8 +163,7 @@ public class InterviewService {
      * =====================
      */
 
-    // AI 면접 질문 생성
-    // ===========================================================================
+    // AI 면접 질문 생성==========================================================================
     public List<AiQuestionResponse> createAiQuestion(Integer memberId, String type, String targetCompany,
             List<String> keywords, MultipartFile documentFile) throws Exception {
 
@@ -201,8 +196,7 @@ public class InterviewService {
         return response;
     }
 
-    // DB에 면접 질문 저장
-    // ===========================================================================
+    // DB에 면접 질문 저장===========================================================================
     public List<SaveSessionResponse> saveSessionAndQuestion(Integer memberId, String type, String targetCompany,
             List<String> keywords, MultipartFile file,
             List<String> aiQuestions, List<String> customQuestions) throws Exception {
@@ -250,8 +244,7 @@ public class InterviewService {
 
     }
 
-    // 사용자별 질문 목록
-    // 조회========================================================================================================
+    // 사용자별 질문 목록 조회========================================================================================================
     public List<InterviewQuestion> getAllQuestionsByMemberId(int memberId) {
         return interviewQuestionDao.selectAllInterviewQuestions(memberId);
     }
@@ -262,8 +255,7 @@ public class InterviewService {
      * =====================
      */
 
-    // 답변
-    // 제출=======================================================================================
+    // 답변 제출=======================================================================================
     public int createInterviewAnswer(
             int questionId,
             MultipartFile audio,
@@ -288,8 +280,7 @@ public class InterviewService {
         return answer.getAnswerId();
     }
 
-    // 답변 다시
-    // 제출===================================================================================
+    // 답변 다시 제출===================================================================================
     public int modifyInterviewAnswer(int answerId, MultipartFile audio, MultipartFile video) throws Exception {
 
         // DB에 답변 원본 파일 업데이트
@@ -311,8 +302,7 @@ public class InterviewService {
         return interviewAnswerDao.updateInterviewAnswer(answer);
     }
 
-    // 답변 분석 + 피드백
-    // 생성===========================================================================
+    // 답변 분석 + 피드백 생성===========================================================================
     @Transactional
     public AnswerFeedbackResponse createAnswerFeedback(
             int answerId,
@@ -380,14 +370,12 @@ public class InterviewService {
         return answerFeedback;
     }
 
-    // 면접 질문 선택 시 해당하는 답변
-    // 조회===================================================================
+    // 면접 질문 선택 시 해당하는 답변 조회===================================================================
     public InterviewAnswer getInterviewAnswersByQuestionId(int questionId) {
         return interviewAnswerDao.selectInterviewAnswerByQuestionId(questionId);
     }
 
-    // 답변 ID로 답변
-    // 조회==================================================================================
+    // 답변 ID로 답변 조회==================================================================================
     public InterviewAnswer getOneInterviewAnswer(int answerId) {
         return interviewAnswerDao.selectOneAnswer(answerId);
     }
