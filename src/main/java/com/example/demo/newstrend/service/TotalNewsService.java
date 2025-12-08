@@ -3,8 +3,13 @@ package com.example.demo.newstrend.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,12 +125,41 @@ public class TotalNewsService {
     if (member == null) {
       return List.of("채용", "취업", "일자리");
     }
-    //회원 있으면 AI 생성
-    return jobKeywordGenerationAgent.generateJobKeywords(
-        member.getJobGroup(),
-        member.getJobRole());
+
+    List<String> baseKeywords= getBaseKeywordsByJobGroup(member.getJobGroup());
+
+    List<String> aiKeywords= jobKeywordGenerationAgent.generateJobKeywords(member.getJobGroup(), member.getJobRole());
+
+    Set<String> allKeywords = new LinkedHashSet<>(baseKeywords);
+    allKeywords.addAll(aiKeywords.stream().filter(k->k.length()<=15).collect(Collectors.toList()));
+
+    List<String> result = new ArrayList<>(allKeywords);
+    log.info("최종 키워드: 기본{}개 + AI{}개 = 총{}개", 
+        baseKeywords.size(), aiKeywords.size(), result.size());
+    return result;
+    
 
   }
+
+ private List<String> getBaseKeywordsByJobGroup(String jobGroup) {
+  Map<String, List<String>> coreKeywords = Map.of(
+      "마케팅", Arrays.asList("마케팅", "브랜드", "광고", "홍보", "캠페인"),
+      "개발", Arrays.asList("개발자", "프로그래밍", "IT", "소프트웨어"),  
+      "디자인", Arrays.asList("디자인", "UI", "UX", "디자이너"),
+      "기획", Arrays.asList("기획", "전략", "사업", "서비스"),
+      "PM", Arrays.asList("PM", "매니저", "프로젝트", "관리"),
+      "AI/데이터", Arrays.asList("AI", "데이터", "분석", "인공지능"),
+      "영업", Arrays.asList("영업", "세일즈", "Sales"),
+      "경영", Arrays.asList("경영", "관리", "전략"),
+      "교육", Arrays.asList("교육", "강의", "트레이닝"),
+      "기타", Arrays.asList("채용", "취업", "인사")
+  );
+  
+  return coreKeywords.getOrDefault(jobGroup, Arrays.asList("채용", "취업", "일자리"));
+}
+ 
+
+
 
   /**
    * 단일 뉴스 분석 및 저장
@@ -210,8 +244,8 @@ public class TotalNewsService {
         // AI Agent를 통해 뉴스-직군 간 관련성 점수 계산 (0-100점)
         int relevanceScore = jobRelevanceAgent.calculateRelevanceScore(news, jobGroup);
 
-        // 관련성 점수가 30점 이상인 뉴스만 선별 (임계값)
-        if (relevanceScore >= 30) {
+        // 관련성 점수가 15점 이상인 뉴스만 선별 (임계값)
+        if (relevanceScore >= 15) {
           relevantNews.add(news); // 관련성 높은 뉴스 리스트에 추가
           log.debug("관련성 높은 뉴스 선택: {} (점수: {})", news.getTitle(), relevanceScore);
         } else {
