@@ -80,7 +80,6 @@ public class GrowthAnalysisAgent {
     }
 
     // 각 종합 피드백 추출
-
     List<Resume> resumes = resumeDao.selectResumesByMemberId(memberId);
     List<String> resumeFeedbackRaw = new ArrayList<>();
     for (Resume r : resumes) {

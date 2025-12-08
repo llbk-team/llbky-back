@@ -101,12 +101,15 @@ public class InterviewService {
         }
 
         // 3) 질문 + 답변 조회
+        // 질문 목록 얻기
         List<InterviewQuestion> questions = interviewQuestionDao.selectInterviewQuestionsBySessionId(sessionId);
+        // 질문 - 답변 목록 얻기
         List<InterviewQAResponse> qaList = new ArrayList<>();
 
         for (InterviewQuestion q : questions) {
+            // 질문 ID를 통해 답변 얻기
             InterviewAnswer answer = interviewAnswerDao.selectInterviewAnswerByQuestionId(q.getQuestionId());
-
+        
             InterviewQAResponse qaResponse = new InterviewQAResponse();
             qaResponse.setQuestionId(q.getQuestionId());
             qaResponse.setQuestionText(q.getQuestionText());
@@ -121,6 +124,7 @@ public class InterviewService {
                     qaResponse.setAnswerFeedback(feedbackObj);
                 }
 
+                // 답변 원본 파일(음성/영상)
                 qaResponse.setAudioFileName(answer.getAudioFileName());
                 qaResponse.setAudioFileType(answer.getAudioFileType());
                 qaResponse.setAudioFileData(answer.getAudioFileData());
@@ -133,10 +137,11 @@ public class InterviewService {
 
         }
 
+        // 면접 상세 정보 얻기
         InterviewReportResponse response = new InterviewReportResponse();
-        response.setSessionInfo(session);
-        response.setFinalFeedback(finalFeedback);
-        response.setQaList(qaList);
+        response.setSessionInfo(session);   // 면접 기본 정보 (유형, 희망 기업 등)
+        response.setFinalFeedback(finalFeedback);   // 종합 피드백
+        response.setQaList(qaList); // 질문-답변 리스트
 
         return response;
     }
@@ -277,6 +282,7 @@ public class InterviewService {
 
         interviewAnswerDao.insertInterviewAnswer(answer);
 
+        // 답변 ID 반환
         return answer.getAnswerId();
     }
 
@@ -350,17 +356,20 @@ public class InterviewService {
 
         // 변환된 텍스트
         String answerText = "음성 입력이 감지되지 않았습니다.";
+        // 영상에서 추출한 오디오일 경우
         if (videoAudio != null && !videoAudio.isEmpty()) {
             answerText = sttAgent.sttSave(
                     answerId,
                     videoAudio.getOriginalFilename(),
                     videoAudio.getBytes());
         } else if (audio != null && !audio.isEmpty()) {
+            // 순수 음성일 경우
             answerText = sttAgent.sttSave(
                     answerId,
                     audio.getOriginalFilename(),
                     audio.getBytes());
         }
+        
         // 3. VisualAnalysis Agent 호출 - 이미지 프레임 분석 리스트 얻기
         List<String> visualFeedback = visualAnalysisAgent.analyzeFrames(frames);
 

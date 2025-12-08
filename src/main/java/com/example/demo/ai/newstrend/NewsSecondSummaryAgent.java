@@ -44,8 +44,8 @@ public class NewsSecondSummaryAgent {
       }
     }
 
-    log.info("📝 [추출된 detailSummary 개수] = {}", details.size());
-    log.debug("📄 [detailSummary 목록] = {}", details);
+    log.info("[추출된 detailSummary 개수] = {}", details.size());
+    log.debug("[detailSummary 목록] = {}", details);
 
     String systemPrompt = """
         당신은 여러 뉴스의 공통 흐름을 짧게 묶어주는 2차 요약기입니다.
@@ -66,11 +66,11 @@ public class NewsSecondSummaryAgent {
         .call()
         .content();
 
-    log.info("📦 [LLM RAW OUTPUT] {}", json);
+    log.info("[LLM RAW OUTPUT] {}", json);
 
     // String -> DTO 변환
     NewsSecondSummaryResponse dto = mapper.readValue(json, NewsSecondSummaryResponse.class);
-    log.info("✨ [최종 metaSummary 생성 완료]");
+    log.info("[최종 metaSummary 생성 완료]");
     log.debug("metaSummary = {}", dto.getMetaSummary());
 
     return dto.getMetaSummary();

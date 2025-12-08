@@ -10,7 +10,6 @@ import com.example.demo.ai.learning.RewriteMemoAgent;
 import com.example.demo.learning.dao.LearningDayDao;
 import com.example.demo.learning.dao.LearningWeekDao;
 import com.example.demo.learning.dto.response.MemoCheckResponse;
-import com.example.demo.learning.entity.Learning;
 import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.entity.LearningWeek;
 
@@ -29,7 +28,7 @@ public class LearningDayService {
     @Autowired
     private RewriteMemoAgent rewriteMemoAgent;
 
-    // 일차 생성
+    // 일일 학습 생성
     public int createDay(LearningDay learningDay) {
         return learningDayDao.insert(learningDay);
     }
@@ -39,12 +38,12 @@ public class LearningDayService {
         return learningDayDao.selectedByDayId(dayId);
     }
 
-    // 특정 주차의 전체 일차 리스트 조회
+    // 특정 주차의 전체 일일 학습 리스트 조회
     public List<LearningDay> getDayListByWeekId(int weekId) {
         return learningDayDao.selectListByWeekId(weekId);
     }
 
-    // 특정 학습 플랜의 전체 일차 목록 조회
+    // 특정 학습 플랜의 전체 일일 학습 목록 조회
     public List<LearningDay> getDayListByLearningId(int learningId) {
         return learningDayDao.selectListByLearningId(learningId);
     }

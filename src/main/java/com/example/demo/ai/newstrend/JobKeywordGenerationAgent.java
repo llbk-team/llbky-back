@@ -170,8 +170,8 @@ public class JobKeywordGenerationAgent {
             // ✅ 참고 키워드도 없으면 기본 키워드 반환 (2차 fallback)
             // List.of()로 즉석에서 불변 리스트 생성
             return List.of(
-                jobGroup + " 채용",   // 문자열 연결 연산자로 동적 키워드 생성
-                jobGroup + " 모집",
+                jobGroup + "",   // 문자열 연결 연산자로 동적 키워드 생성
+                jobGroup + "",
                 jobGroup + " 업계",
                 "기업 전략",          // 모든 직군에 공통으로 유용한 키워드
                 "조직개편"

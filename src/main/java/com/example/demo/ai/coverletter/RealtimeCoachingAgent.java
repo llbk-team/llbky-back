@@ -24,7 +24,8 @@ public class RealtimeCoachingAgent {
 
     // ChatClient
     private ChatClient chatClient;
-
+    
+    // ChatClientBuilder 주입
     public RealtimeCoachingAgent(ChatClient.Builder chatClientBuilder) {
         this.chatClient = chatClientBuilder.build();
     }
@@ -32,6 +33,7 @@ public class RealtimeCoachingAgent {
     // 실시간 코칭
     public CoverLetterCoachResponse execute(CoverLetterCoachRequest request) {
 
+        // 사용자 ID 얻기
         Member member = memberDao.findById(request.getMemberId());
 
         // 1. Bean 객체 -> JSON 출력 변환기 생성
@@ -41,6 +43,7 @@ public class RealtimeCoachingAgent {
 
         // 2. 요청된 section만 추출
         String section = null;
+        // 선택된 section을 section에 대입
         switch (request.getSection()) {
             case "supportMotive":
                 section = "지원동기";
@@ -96,8 +99,8 @@ public class RealtimeCoachingAgent {
             section,
             request.getContent(),
             request.getKeywords(),
-            member != null ? member.getJobGroup() : "정보 없음",
-            member != null ? member.getJobRole() : "정보 없음"
+            member != null ? member.getJobGroup() : "정보 없음",    // 직군 반영
+            member != null ? member.getJobRole() : "정보 없음"  // 직무 반영
         );
 
         log.info("받은 키워드: {}", request.getKeywords());

@@ -3,8 +3,11 @@ package com.example.demo.newstrend.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +18,6 @@ import com.example.demo.ai.newstrend.JobKeywordGenerationAgent;
 import com.example.demo.ai.newstrend.JobRelevanceAgent;
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.entity.Member;
-import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResult;
@@ -45,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TotalNewsService {
   @Autowired
-  private  JobKeywordGenerationAgent jobKeywordGenerationAgent;
+  private JobKeywordGenerationAgent jobKeywordGenerationAgent;
 
   @Autowired
   private JobRelevanceAgent jobRelevanceAgent;
@@ -65,9 +67,9 @@ public class TotalNewsService {
   @Autowired
   private MemberDao memberDao;
 
-    TotalNewsService(JobKeywordGenerationAgent jobKeywordGenerationAgent) {
-        this.jobKeywordGenerationAgent = jobKeywordGenerationAgent;
-    }
+  TotalNewsService(JobKeywordGenerationAgent jobKeywordGenerationAgent) {
+    this.jobKeywordGenerationAgent = jobKeywordGenerationAgent;
+  }
 
   // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
   @Transactional
@@ -118,17 +120,46 @@ public class TotalNewsService {
    * ✅ 사용자 직군에 맞는 키워드 생성
    */
   private List<String> generateJobGroupKeywords(int memberId) {
-  // 1. 회원 정보 조회
+    // 1. 회원 정보 조회
     Member member = memberDao.findById(memberId);
-    if (member != null) {
-      return List.of("채용","취업","일자리");
+    if (member == null) {
+      return List.of("채용", "취업", "일자리");
     }
-    return jobKeywordGenerationAgent.generateJobKeywords(
-        member.getJobGroup(), 
-        member.getJobRole()
-    );
+
+    List<String> baseKeywords= getBaseKeywordsByJobGroup(member.getJobGroup());
+
+    List<String> aiKeywords= jobKeywordGenerationAgent.generateJobKeywords(member.getJobGroup(), member.getJobRole());
+
+    Set<String> allKeywords = new LinkedHashSet<>(baseKeywords);
+    allKeywords.addAll(aiKeywords.stream().filter(k->k.length()<=15).collect(Collectors.toList()));
+
+    List<String> result = new ArrayList<>(allKeywords);
+    log.info("최종 키워드: 기본{}개 + AI{}개 = 총{}개", 
+        baseKeywords.size(), aiKeywords.size(), result.size());
+    return result;
     
+
   }
+
+ private List<String> getBaseKeywordsByJobGroup(String jobGroup) {
+  Map<String, List<String>> coreKeywords = Map.of(
+      "마케팅", Arrays.asList("마케팅", "브랜드", "광고", "홍보", "캠페인"),
+      "개발", Arrays.asList("개발자", "프로그래밍", "IT", "소프트웨어"),  
+      "디자인", Arrays.asList("디자인", "UI", "UX", "디자이너"),
+      "기획", Arrays.asList("기획", "전략", "사업", "서비스"),
+      "PM", Arrays.asList("PM", "매니저", "프로젝트", "관리"),
+      "AI/데이터", Arrays.asList("AI", "데이터", "분석", "인공지능"),
+      "영업", Arrays.asList("영업", "세일즈", "Sales"),
+      "경영", Arrays.asList("경영", "관리", "전략"),
+      "교육", Arrays.asList("교육", "강의", "트레이닝"),
+      "기타", Arrays.asList("채용", "취업", "인사")
+  );
+  
+  return coreKeywords.getOrDefault(jobGroup, Arrays.asList("채용", "취업", "일자리"));
+}
+ 
+
+
 
   /**
    * 단일 뉴스 분석 및 저장
@@ -179,10 +210,10 @@ public class TotalNewsService {
    * 
    * @param keywords 검색 키워드 목록
    * @param memberId 회원 ID
-   * @param limit 수집 제한 개수
+   * @param limit    수집 제한 개수
    * @return 분석된 뉴스 개수
    */
-  @Transactional  // 트랜잭션 처리: 전체 작업이 성공/실패 단위로 처리됨
+  @Transactional // 트랜잭션 처리: 전체 작업이 성공/실패 단위로 처리됨
   public int collectAndAnalyzeNews(List<String> keywords, Integer memberId, int limit) throws Exception {
     // INFO 로그: 처리 시작 시점과 주요 파라미터 기록
     log.info("뉴스 수집 및 분석 통합 처리 시작 - keywords: {}, memberId: {}", keywords, memberId);
@@ -190,71 +221,71 @@ public class TotalNewsService {
     // ========== 1단계: 뉴스 수집 ==========
     // NewsCollectorService를 통해 네이버 API에서 뉴스 수집
     List<NewsAnalysisRequest> collectedNews = newsCollectorService.collectNews(keywords, memberId, limit);
-    log.info("뉴스 수집 완료 - {}건", collectedNews.size());  // 수집된 뉴스 개수 로그
+    log.info("뉴스 수집 완료 - {}건", collectedNews.size()); // 수집된 뉴스 개수 로그
 
     // 수집된 뉴스가 없으면 조기 종료
     if (collectedNews.isEmpty()) {
       log.info("수집된 뉴스가 없습니다.");
-      return 0;  // 분석된 개수 0 반환
+      return 0; // 분석된 개수 0 반환
     }
 
     // ========== 2단계: 회원의 직군 정보 조회 (관련성 평가용) ==========
-    Member member = memberDao.findById(memberId);  // DB에서 회원 정보 조회
+    Member member = memberDao.findById(memberId); // DB에서 회원 정보 조회
     // 직군이 없으면 "기타"로 기본값 설정 (null 안전 처리)
     String jobGroup = (member != null && member.getJobGroup() != null) ? member.getJobGroup() : "기타";
-    
+
     // ========== 3단계: JobRelevanceAgent로 관련성 필터링 ==========
-    List<NewsAnalysisRequest> relevantNews = new ArrayList<>();  // 관련성 높은 뉴스 저장용 리스트
-    int filteredCount = 0;  // 필터링된 뉴스 개수 카운터
-    
+    List<NewsAnalysisRequest> relevantNews = new ArrayList<>(); // 관련성 높은 뉴스 저장용 리스트
+    int filteredCount = 0; // 필터링된 뉴스 개수 카운터
+
     // 수집된 모든 뉴스에 대해 관련성 평가
     for (NewsAnalysisRequest news : collectedNews) {
       try {
         // AI Agent를 통해 뉴스-직군 간 관련성 점수 계산 (0-100점)
         int relevanceScore = jobRelevanceAgent.calculateRelevanceScore(news, jobGroup);
-        
-        // 관련성 점수가 50점 이상인 뉴스만 선별 (임계값)
-        if (relevanceScore >= 50) {
-          relevantNews.add(news);  // 관련성 높은 뉴스 리스트에 추가
+
+        // 관련성 점수가 15점 이상인 뉴스만 선별 (임계값)
+        if (relevanceScore >= 15) {
+          relevantNews.add(news); // 관련성 높은 뉴스 리스트에 추가
           log.debug("관련성 높은 뉴스 선택: {} (점수: {})", news.getTitle(), relevanceScore);
         } else {
-          filteredCount++;  // 필터링된 뉴스 카운트 증가
+          filteredCount++; // 필터링된 뉴스 카운트 증가
           log.debug("관련성 낮은 뉴스 필터링: {} (점수: {})", news.getTitle(), relevanceScore);
         }
-        
+
         // API 호출 제한(Rate Limit) 방지를 위한 짧은 대기
-        Thread.sleep(200);  // 200ms 대기 (초당 최대 5회 호출)
-        
-      } catch (Exception e) {  // AI 평가 실패 시 예외 처리
+        Thread.sleep(200); // 200ms 대기 (초당 최대 5회 호출)
+
+      } catch (Exception e) { // AI 평가 실패 시 예외 처리
         // 평가 실패한 뉴스는 안전하게 포함 (false negative 방지)
         log.warn("관련성 평가 실패, 포함함: {}", news.getTitle(), e);
-        relevantNews.add(news);  // 실패 시 포함 (보수적 접근)
+        relevantNews.add(news); // 실패 시 포함 (보수적 접근)
       }
     }
-    
+
     // 필터링 결과 요약 로그
-    log.info("관련성 필터링 완료 - 전체: {}건, 관련성 높음: {}건, 필터링: {}건", 
-             collectedNews.size(), relevantNews.size(), filteredCount);
+    log.info("관련성 필터링 완료 - 전체: {}건, 관련성 높음: {}건, 필터링: {}건",
+        collectedNews.size(), relevantNews.size(), filteredCount);
 
     // 관련성 높은 뉴스가 없으면 조기 종료
     if (relevantNews.isEmpty()) {
       log.info("관련성 높은 뉴스가 없습니다.");
-      return 0;  // 분석된 개수 0 반환
+      return 0; // 분석된 개수 0 반환
     }
 
     // ========== 4단계: 관련성 높은 뉴스만 AI 분석 및 저장 ==========
-    int totalAnalyzed = 0;   // 성공적으로 분석된 뉴스 개수
-    int duplicateCount = 0;  // 중복된 뉴스 개수
-    int errorCount = 0;      // 에러 발생 개수
+    int totalAnalyzed = 0; // 성공적으로 분석된 뉴스 개수
+    int duplicateCount = 0; // 중복된 뉴스 개수
+    int errorCount = 0; // 에러 발생 개수
 
     // 관련성 높은 뉴스에 대해서만 AI 분석 수행 (비용/시간 절약)
     for (NewsAnalysisRequest newsRequest : relevantNews) {
       try {
         // 4-1. URL 중복 체크 (선택적 활성화)
         // if (newsSummaryService.existsByUrl(newsRequest.getSourceUrl())) {
-        //     log.debug("이미 저장된 뉴스: {}", newsRequest.getSourceUrl());
-        //     duplicateCount++;
-        //     continue;  // 중복이면 건너뛰기
+        // log.debug("이미 저장된 뉴스: {}", newsRequest.getSourceUrl());
+        // duplicateCount++;
+        // continue; // 중복이면 건너뛰기
         // }
 
         // 4-2. AI 분석 실행 (NewsAIService)
@@ -262,57 +293,54 @@ public class TotalNewsService {
         NewsAnalysisResult analysisResult = newsAIService.analyzeNews(newsRequest);
 
         // 4-3. 엔티티 생성 및 AI 분석 결과 매핑
-        NewsSummary entity = new NewsSummary();  // DB 저장용 엔티티 생성
-        entity.setMemberId(newsRequest.getMemberId());      // 회원 ID
-        entity.setTitle(newsRequest.getTitle());            // 뉴스 제목
-        entity.setSourceName(newsRequest.getSourceName());  // 출처 (네이버 등)
-        entity.setSourceUrl(newsRequest.getSourceUrl());    // 원문 URL
+        NewsSummary entity = new NewsSummary(); // DB 저장용 엔티티 생성
+        entity.setMemberId(newsRequest.getMemberId()); // 회원 ID
+        entity.setTitle(newsRequest.getTitle()); // 뉴스 제목
+        entity.setSourceName(newsRequest.getSourceName()); // 출처 (네이버 등)
+        entity.setSourceUrl(newsRequest.getSourceUrl()); // 원문 URL
         // 발행일: 수집된 날짜가 있으면 사용, 없으면 현재 시각
         entity.setPublishedAt(
             newsRequest.getPublishedAt() != null
                 ? newsRequest.getPublishedAt()
                 : LocalDateTime.now());
-                    
+
         // 4-4. AI 분석 결과를 JSON으로 직렬화하여 저장
-        entity.setSummaryText(analysisResult.getFinalSummary());  // AI 요약문
-        entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary());  // 상세 요약
+        entity.setSummaryText(analysisResult.getFinalSummary()); // AI 요약문
+        entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary()); // 상세 요약
         // ObjectMapper로 Java 객체 → JSON 문자열 변환
-        entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis()));  // 감정/신뢰도 등
-        entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords()));  // 키워드 리스트
+        entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis())); // 감정/신뢰도 등
+        entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords())); // 키워드 리스트
 
         // 4-5. DB에 저장
         newsSummaryService.saveNewsSummary(entity);
-        totalAnalyzed++;  // 성공 카운트 증가
+        totalAnalyzed++; // 성공 카운트 증가
 
         // 저장 완료 로그 (주요 분석 결과 포함)
         log.info("뉴스 분석 및 저장 완료: {} (감정: {}, 신뢰도: {})",
             newsRequest.getTitle(),
-            analysisResult.getAnalysis().getSentiment(),      // 감정 분석 결과
-            analysisResult.getAnalysis().getTrustScore());    // 신뢰도 점수
+            analysisResult.getAnalysis().getSentiment(), // 감정 분석 결과
+            analysisResult.getAnalysis().getTrustScore()); // 신뢰도 점수
 
         // API 호출 제한(Rate Limit) 방지를 위한 대기
-        Thread.sleep(1000);  // 1초 대기 (AI 분석은 시간이 걸리므로 여유있게 설정)
+        Thread.sleep(1000); // 1초 대기 (AI 분석은 시간이 걸리므로 여유있게 설정)
 
-      } catch (Exception e) {  // 분석/저장 실패 시 예외 처리
+      } catch (Exception e) { // 분석/저장 실패 시 예외 처리
         log.error("뉴스 분석 및 저장 실패: {}", newsRequest.getTitle(), e);
-        errorCount++;  // 에러 카운트 증가
+        errorCount++; // 에러 카운트 증가
         // continue로 다음 뉴스 처리 (전체 프로세스는 계속 진행)
       }
     }
 
     // ========== 최종 결과 요약 로그 ==========
     log.info("뉴스 수집 및 분석 완료 - 수집: {}건, 관련성 필터: {}건, 분석 성공: {}건, 중복: {}건, 오류: {}건",
-        collectedNews.size(),   // 최초 수집된 뉴스 개수
-        relevantNews.size(),    // 관련성 필터링 통과한 뉴스 개수
-        totalAnalyzed,          // 최종 분석 성공한 뉴스 개수
-        duplicateCount,         // 중복 제거된 개수
-        errorCount);            // 에러 발생 개수
+        collectedNews.size(), // 최초 수집된 뉴스 개수
+        relevantNews.size(), // 관련성 필터링 통과한 뉴스 개수
+        totalAnalyzed, // 최종 분석 성공한 뉴스 개수
+        duplicateCount, // 중복 제거된 개수
+        errorCount); // 에러 발생 개수
 
-    return totalAnalyzed;  // 성공적으로 분석된 뉴스 개수 반환
+    return totalAnalyzed; // 성공적으로 분석된 뉴스 개수 반환
   }
-
-   
-  
 
   /**
    * 오늘 날짜 뉴스 조회(없으면 자동 수집)
@@ -409,48 +437,6 @@ public class TotalNewsService {
     return response;
   }
 
-  // ✅ 직군별 키워드 매핑
-  private static final Map<String, List<String>> JOB_GROUP_KEYWORDS = Map.of(
-      "개발", Arrays.asList(
-          "개발자 채용", "백엔드 채용", "프론트엔드 채용", "풀스택 개발자",
-          "소프트웨어 엔지니어", "프로그래머", "코딩", "Java", "Python", "React", "Spring",
-          "IT", "기술", "소프트웨어", "엔지니어링", "개발", "프로그래밍", "개발자"),
-
-      "AI/데이터", Arrays.asList(
-          "데이터 사이언티스트", "데이터 엔지니어", "AI 개발자", "머신러닝 엔지니어",
-          "빅데이터", "데이터 분석가", "인공지능", "딥러닝", "ML", "IT", "기술", "데이터", "AI", "분석"),
-
-      "디자인", Arrays.asList(
-          "UI 디자이너", "UX 디자이너", "웹디자인", "그래픽 디자이너", "프로덕트 디자이너",
-          "디자인 채용", "포토샵", "피그마", "일러스트", "브랜딩",
-          "디자인", "디자이너", "크리에이티브"),
-
-      "기획", Arrays.asList(
-          "기획자 채용", "서비스 기획", "상품 기획", "사업 기획", "전략 기획",
-          "기획 업무", "기획 직무", "비즈니스 분석"),
-
-      "PM", Arrays.asList(
-          "프로덕트 매니저", "프로젝트 매니저", "PM 채용", "PO", "프로덕트 오너",
-          "애자일", "스크럼", "프로젝트 관리",
-          "기획", "기획자", "PM", "매니저", "관리"),
-
-      "마케팅", Arrays.asList(
-          "마케팅 매니저", "디지털 마케팅", "퍼포먼스 마케팅", "콘텐츠 마케팅",
-          "브랜드 마케팅", "마케팅 기획", "광고", "SNS 마케팅", "SEO",
-          "마케팅", "마케터"),
-
-      "영업", Arrays.asList(
-          "영업 대표", "세일즈", "비즈니스 개발", "B2B 영업", "고객 관리",
-          "영업 기획", "계정 관리", "Sales",
-          "영업", "세일즈"),
-
-      "경영", Arrays.asList( // 경영으로 추정
-          "경영", "경영관리", "경영기획", "전략", "경영지원", "임원", "관리자", "경영", "관리", "임원"),
-
-      "교육", Arrays.asList(
-          "교육 기획", "강사", "교육 콘텐츠", "이러닝", "교육 프로그램", "연수", "교육생", "교육", "강의", "트레이닝", "부트캠프", "양성", "과정"),
-
-      "기타", Arrays.asList(
-          "인사", "총무", "재무", "회계", "법무", "운영", "고객서비스", "품질관리", "지원", "관리"));
+ 
 
 }

@@ -42,9 +42,7 @@ public class CoverLetterService {
     public CoverLetterCreateResponse createCoverLetter(CoverLetter coverLetter, int memberId) throws Exception {
 
         // 1. 자소서 저장
-
         coverLetter.setMemberId(memberId);
-
         // insert
         coverLetterDao.insertCoverLetter(coverLetter);
 
@@ -77,8 +75,7 @@ public class CoverLetterService {
     
 
     // 자소서 문체 버전 생성하기-----------------------------------------------------------------------------
-    public WritingStyle createStyles(int coverletterId, String section) {
-        
+    public WritingStyle createStyles(int coverletterId, String section) {   
         // AI Agent 호출
         return createWritingStyleAgent.execute(coverletterId, section);
     }
@@ -86,7 +83,7 @@ public class CoverLetterService {
 
     // 자소서 문체 버전 적용하기-----------------------------------------------------------------------------
     public int applyStyles(int coverletterId, int memberId, String section, String newContent) {
-        
+
         // 1. 자소서 원본 불러오기
         CoverLetter origin = coverLetterDao.selectOneCoverLetter(coverletterId);
         if (origin == null) {
@@ -99,6 +96,7 @@ public class CoverLetterService {
 
         // 2. 버전 적용하기
         origin.setMemberId(memberId);
+        // 선택된 section에 새 내용 적용
         switch (section) {
             case "supportMotive":
                 origin.setSupportMotive(newContent);
