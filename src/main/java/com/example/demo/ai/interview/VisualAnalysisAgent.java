@@ -93,8 +93,10 @@ public class VisualAnalysisAgent {
         List<String> results = new ArrayList<>();
 
         for (MultipartFile frame : frames) {
+
             // 이미지의 바이트 배열 얻기
             byte[] bytes = frame.getBytes();
+            
             // 이미지의 MIME 타입 얻기
             String contentType = frame.getContentType();
 

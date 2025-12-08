@@ -25,9 +25,11 @@ public class MemoCheckAgent {
         // 구조화된 출력 변환기 생성
         BeanOutputConverter<MemoCheckResponse> converter = new BeanOutputConverter<>(MemoCheckResponse.class);
 
+        // DTO 구조 제공 -> JSON 출력 포맷 지정
         String format = converter.getFormat();
 
         // 프롬프트 구성
+        // 시스템
         String sysPrompt = """
             당신은 전문 학습 코치이며, 사용자가 작성한 메모가
             오늘의 학습 주제와 충분히 관련 있는지를 검증합니다.
@@ -57,6 +59,7 @@ public class MemoCheckAgent {
             %s
         """.formatted(format);
 
+        // 사용자
         String userPrompt = """   
 
             [오늘의 학습 주제]

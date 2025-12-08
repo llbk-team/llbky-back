@@ -82,6 +82,7 @@ public class AnswerFeedbackAgent {
         String format = converter.getFormat();
 
         // 4. 프롬프트 구성
+        // 시스템
         String systemPrompt = """
             당신은 전문 면접관입니다.
             지원자의 면접 답변(언어적 요소)과 이미지 기반 비언어적 분석 결과를 활용하여
@@ -178,6 +179,7 @@ public class AnswerFeedbackAgent {
 
         """.formatted(format);
 
+        // 사용자
         String prompt = """
             다음은 지원자의 면접 답변 내용입니다. 이를 분석하고 피드백을 제공하세요.
             

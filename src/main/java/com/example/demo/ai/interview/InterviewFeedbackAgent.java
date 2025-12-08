@@ -97,6 +97,7 @@ public class InterviewFeedbackAgent {
         String format = converter.getFormat();
 
         // 6. 프롬프트 구성
+        // 시스템
         String systemPrompt = """
             당신은 전문 취업 컨설턴트이며, 문장 분석·직무 역량 평가·논리적 흐름·면접관 관점의 평가에 능숙한 전문가입니다.
             톤은 따뜻하거나 무난한 조언이 아니라, 지원자를 성장시키기 위한 ‘냉정하고 직설적인 전문가 코멘트’ 스타일로 작성합니다.
@@ -151,6 +152,7 @@ public class InterviewFeedbackAgent {
             %s
         """.formatted(format);
 
+        // 사용자
         String userPrompt = """
 
             아래는 면접 세션 전체 기록입니다.

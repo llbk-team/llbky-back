@@ -38,7 +38,6 @@ public class InterviewController {
     public ResponseEntity<SessionFeedbackResponse> createInterviewFinalFeedback(@RequestParam("sessionId") int sessionId) throws Exception {
         return ResponseEntity.ok(interviewService.createInterviewFeedback(sessionId));
     }
-    
 
     // 면접 목록 조회==========================================================================================================================================
     @GetMapping("/list")
@@ -74,7 +73,7 @@ public class InterviewController {
         return ResponseEntity.ok(interviewService.searchCompany(query));
     }
 
-    // 기업의 인재상 요약
+    // 기업의 인재상 요약=====================================================================================================================================
     @GetMapping("/company-ideal")
     public ResponseEntity<CompanySearchResponse> idealTalent(@RequestParam("companyName") String companyName) {
         return ResponseEntity.ok(interviewService.searchCompanyIdealTalent(companyName));
@@ -98,7 +97,6 @@ public class InterviewController {
         return ResponseEntity.ok(response);
     }
     
-
     // 세션별 질문 조회==============================================================================================================================
     @GetMapping("/questions")
     public ResponseEntity<List<TotalQuestionResponse>> getSessionDetail(@RequestParam("sessionId") Integer sessionId) {

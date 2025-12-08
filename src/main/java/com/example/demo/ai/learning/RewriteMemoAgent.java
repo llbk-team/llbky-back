@@ -28,6 +28,7 @@ public class RewriteMemoAgent {
     public LearningDay execute(LearningDay day, String origin, MemoCheckResponse checkResult) {
         
         // 프롬프트 구성
+        // 시스템
         String sysPrompt = """
             당신은 전문 학습 코치입니다.
 
@@ -50,6 +51,7 @@ public class RewriteMemoAgent {
                 사용자가 이해하기 쉽도록 구성한다.
         """.formatted(checkResult.getReason());
 
+        // 사용자
         String userPrompt = """
             
             [오늘의 학습 주제]            

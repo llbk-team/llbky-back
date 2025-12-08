@@ -39,6 +39,7 @@ public class RealtimeCoachingAgent {
         // 1. Bean 객체 -> JSON 출력 변환기 생성
         BeanOutputConverter<CoverLetterCoachResponse> converter = new BeanOutputConverter<>(CoverLetterCoachResponse.class);
 
+        // DTO 구조 제공 -> JSON 출력 포맷 지정
         String format = converter.getFormat();
 
         // 2. 요청된 section만 추출
@@ -62,6 +63,7 @@ public class RealtimeCoachingAgent {
         }
 
         // 3. 프롬프트 구성
+        // 시스템
         String systemPrompt = """
             당신은 취업 준비생의 자기소개서를 첨삭해주는 전문 취업 컨설턴트입니다.
 
@@ -82,6 +84,7 @@ public class RealtimeCoachingAgent {
             %s
         """.formatted(format);
 
+        // 사용자
         String prompt = """
             사용자가 방금 작성한 "%s" 항목을 분석하고 피드백을 제공하세요.
             
