@@ -13,6 +13,7 @@ import com.example.demo.interview.dto.response.CompanySearchResponse;
 @Component
 public class CompanyIdealTalentAgent {
 
+  // ChatClient
   private ChatClient chatClient;
 
   public CompanyIdealTalentAgent(ChatClient.Builder chatClientBuilder) {

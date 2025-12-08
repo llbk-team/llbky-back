@@ -25,7 +25,9 @@ public class CompanySearchAgent {
   @Value("${naver.api.client-secret}")
   private String clientSecret;
 
+  // ChatClient
   private ChatClient chatClient;
+  // 네이버 API 호출
   private WebClient webClient;
 
   public CompanySearchAgent(ChatClient.Builder chatClientBuilder,
@@ -54,21 +56,22 @@ public class CompanySearchAgent {
       .header("X-Naver-Client-Id", clientId)
       .header("X-Naver-Client-Secret", clientSecret)
       .retrieve() // 응답 준비
-      .bodyToMono(String.class) // 응답 JSON을 문자열로 받음
-      .block();
+      .bodyToMono(String.class) // Mono<String> 리턴
+      .block(); // 실제 String으로 변환
 
     if (response == null) { // 응답이 null이면 빈 리스트 리턴
       return new ArrayList<>();
     }
 
-    JSONArray items = new JSONObject(response).getJSONArray("items"); // 네이버 JSON에서 itmes 배열 꺼내기
-    List<String> titles = new ArrayList<>();
+    JSONArray items = new JSONObject(response).getJSONArray("items"); // 문자열을 JSON 객체로 변환 후 itmes 배열 반환
+    List<String> titles = new ArrayList<>(); // 기업명 후보
 
     for (int i = 0; i < items.length(); i++) {
       String title = items.getJSONObject(i).getString("title"); // 각 검색 결과의 title 가져오기
-      titles.add(title.replaceAll("<[^>]*>", "")); // HTML 제거
+      titles.add(title.replaceAll("<[^>]*>", "")); // HTML 제거 후 기업명 후보에 추가
     }
 
+    // 기업명 후보중에서 실제 기업만 추출하기 위한 System Prompt
     String system = """
         당신은 JSON만 출력하는 시스템입니다.
 
@@ -81,8 +84,16 @@ public class CompanySearchAgent {
         반드시 이런 형식이어야 함:
         ["네이버", "카카오", "삼성전자"]
         """;
-    
-    String prompt = String.join("\n", titles);
+
+    // ["삼성전자",
+    // "카카오",
+    // "네이버"]
+  
+    String prompt = String.join("\n", titles); // 원소 사이를 \n으로 연결
+
+    // 삼성전자
+    // 카카오
+    // 네이버
 
     String aiResult = chatClient.prompt()
       .system(system)
@@ -90,9 +101,12 @@ public class CompanySearchAgent {
       .call()
       .content();
 
-    // JSON 배열을 List로 변환
-    List<String> result = new ArrayList<>();
+      
+    // LLM 결과를 JSONArray로 변환
     JSONArray arr = new JSONArray(aiResult);
+
+    List<String> result = new ArrayList<>();
+    // 리스트로 변환
     for (int i = 0; i < arr.length(); i++) {
       result.add(arr.getString(i));
     }

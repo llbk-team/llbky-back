@@ -29,6 +29,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 포트폴리오 페이지별로 분석하는 Agent
+*/
+
 @Component
 @Slf4j
 public class PortfolioPageAnalysisService {
@@ -59,8 +63,7 @@ public class PortfolioPageAnalysisService {
       throws Exception {
 
     // Bean 객체 -> JSON 출력 변환기 생성
-    BeanOutputConverter<PortfolioPageFeedbackResponse> converter = new BeanOutputConverter<>(
-        PortfolioPageFeedbackResponse.class);
+    BeanOutputConverter<PortfolioPageFeedbackResponse> converter = new BeanOutputConverter<>(PortfolioPageFeedbackResponse.class);
 
     // DTO 구조 제공 -> JSON 출력 포맷 지정
     String format = converter.getFormat();
@@ -84,11 +87,11 @@ public class PortfolioPageAnalysisService {
       BufferedImage image = renderer.renderImageWithDPI(i, 96); // 토큰 제한으로 최소 dpi로 최대 효율을 낼 수 있는 96으로 수정
 
       // PNG 형식 byte[] 로 변환
-      // 파일로 저장하면 다시 읽어서 byte[]로 변환 → 비효율적. 메모리에서 바로 byte[] 얻기
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      // 파일로 저장하면 다시 읽어서 byte[]로 변환 → 비효율적. 메모리에서 바로 PNG 변환 후 byte[] 얻기
+      ByteArrayOutputStream baos = new ByteArrayOutputStream(); // 출력 메모리 버퍼
       ImageIO.write(image, "png", baos); // 이미지 파일 저장 기능
 
-      byte[] imageBytes = baos.toByteArray();
+      byte[] imageBytes = baos.toByteArray(); // baos 내부의 메모리 byte들을 실제 바이트 배열로 꺼내기
       int pageNo = i + 1;
 
       // 이전 페이지 피드백 불러오기
@@ -130,12 +133,12 @@ public class PortfolioPageAnalysisService {
       ByteArrayResource resource = new ByteArrayResource(imageBytes) {
         @Override
         public String getFilename() {
-          return "page.png";
+          return "page.png"; // LLM에게 보낼 이미지 이름
         }
       };
 
       // Resource -> Media 객체로 변환
-      Media media = Media.builder()
+      Media media = Media.builder() // LLM에게 보낼 수 있는 멀티모달 데이터 패키지
           .mimeType(MimeType.valueOf("image/png"))
           .data(resource)
           .build();
@@ -186,11 +189,11 @@ public class PortfolioPageAnalysisService {
 
       feedbackList.add(response);
 
-      // 1초간 sleep
+      // 5초간 sleep
       Thread.sleep(5000);
     }
 
-    document.close();
+    document.close(); // 메모리 누수 방지
     return feedbackList;
   }
 

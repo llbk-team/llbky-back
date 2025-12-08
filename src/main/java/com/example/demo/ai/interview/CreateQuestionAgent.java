@@ -18,7 +18,7 @@ import com.example.demo.member.entity.Member;
 public class CreateQuestionAgent {
 
   @Autowired
-  private PdfReader pdfReader;
+  private PdfReader pdfReader; // PDF 파일의 텍스트 추출
 
   @Autowired
   private MemberDao memberDao;
@@ -47,6 +47,7 @@ public class CreateQuestionAgent {
       documentText = pdfReader.read(request.getDocumentFileData());
     }
 
+    // LLM이 JSON 배열을 반환
     // JSON 변환 (JSON 배열을 List로 바로 변환 불가능 -> 배열 변환 -> 리스트 변환)
     BeanOutputConverter<AiQuestionResponse[]> converter = new BeanOutputConverter<>(AiQuestionResponse[].class); 
     String format = converter.getFormat();
@@ -95,7 +96,7 @@ public class CreateQuestionAgent {
 
 
     // JSON -> DTO 배열
-    AiQuestionResponse[] arr = converter.convert(responseJson); // BeanOutputConverter는 JSON 배열을 DTO 배열로만 변환
+    AiQuestionResponse[] arr = converter.convert(responseJson);
 
     // 배열 -> List
     List<AiQuestionResponse> list = Arrays.asList(arr);

@@ -9,7 +9,6 @@ import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.example.demo.coverletter.dto.response.CoverLetterFinalFeedback;
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.entity.Member;
 import com.example.demo.portfolio.dao.PortfolioDao;
@@ -19,6 +18,10 @@ import com.example.demo.portfolio.entity.PortfolioImage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 포트폴리오 종합 피드백 Agent
+*/
 
 @Component
 @Slf4j
@@ -120,6 +123,7 @@ public class PortfolioSummaryAnalysisService {
     PortfolioSummaryResponse response = converter.convert(summary);
     log.info("최종 포트폴리오 분석 결과: {}", response);
 
+    // DTO -> JSON으로 다시 직렬화해서 DB 업데이트
     String summaryJson = objectMapper.writeValueAsString(response);
     portfolioDao.updatePortfolioFeedback(portfolioId, summaryJson);
 
