@@ -53,9 +53,6 @@ public class PortfolioController {
       response.setPages(pages);
       response.setSummary(summary);
 
-      portfolioService.analyzePortfolio(portfolioId); // 포트폴리오 분석
-      portfolioService.generateSummary(portfolioId); // 최종 피드백 생성
-
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       return ResponseEntity.status(500).body(e.toString());

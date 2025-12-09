@@ -23,8 +23,10 @@ import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.entity.Member;
 import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.dao.PortfolioImageDao;
+import com.example.demo.portfolio.dao.PortfolioStandardDao;
 import com.example.demo.portfolio.dto.response.PortfolioPageFeedbackResponse;
 import com.example.demo.portfolio.entity.PortfolioImage;
+import com.example.demo.portfolio.entity.PortfolioStandard;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,9 @@ public class PortfolioPageAnalysisService {
 
   @Autowired
   private PortfolioImageDao portfolioImageDao;
+
+  @Autowired
+  private PortfolioStandardDao portfolioStandardDao;
 
   @Autowired
   private MemberDao memberDao;
@@ -79,12 +84,15 @@ public class PortfolioPageAnalysisService {
     Member member = memberDao.findById(memberId);
     String jobGroup = member.getJobGroup();
     String jobRole = member.getJobRole();
+    
+    List<PortfolioStandard> standards = portfolioStandardDao.selectStandardsByJobInfo(jobGroup, jobRole);
+    String standardsGuidelines = buildStandardsGuidelines(standards);
 
     for (int i = 0; i < pageCount; i++) {
 
       // PDF 페이지를 이미지로 렌더링
       // dpi: 이미지 해상도를 결정하는 숫자. 200-250이 이미지 변환 시 가장 많이 사용
-      BufferedImage image = renderer.renderImageWithDPI(i, 96); // 토큰 제한으로 최소 dpi로 최대 효율을 낼 수 있는 96으로 수정
+      BufferedImage image = renderer.renderImageWithDPI(i, 200); // 토큰 제한으로 최소 dpi로 최대 효율을 낼 수 있는 96으로 수정
 
       // PNG 형식 byte[] 로 변환
       // 파일로 저장하면 다시 읽어서 byte[]로 변환 → 비효율적. 메모리에서 바로 PNG 변환 후 byte[] 얻기
@@ -94,20 +102,10 @@ public class PortfolioPageAnalysisService {
       byte[] imageBytes = baos.toByteArray(); // baos 내부의 메모리 byte들을 실제 바이트 배열로 꺼내기
       int pageNo = i + 1;
 
-      // 이전 페이지 피드백 불러오기
-      PortfolioImage previousFeedback = portfolioImageDao.selectBeforePage(portfolioId, pageNo);
-
-      String previousFeedbackText = "";
-      if (previousFeedback != null) {
-        previousFeedbackText = previousFeedback.getPageFeedback();
-      }
-
       // SystemMessage 생성
       SystemMessage systemMessage = SystemMessage.builder()
           .text("""
                 당신은 다양한 직군의 포트폴리오를 평가하는 전문 분석가입니다. 
-                이미지 기반 디자인 분석뿐 아니라 ‘콘텐츠의 질, 직무 적합성, 정보 전달력, 페이지 목적의 충실도’를 모두 평가해야 합니다.
-
                 분석 시 반드시 아래 네 가지 영역을 구분하여 평가하십시오:
 
                 1) 시각적 구성 분석 (이미지 기반)
@@ -135,11 +133,17 @@ public class PortfolioPageAnalysisService {
                 금지 규칙:
                 - 모호하고 일반적인 표현 금지 (“전반적으로 부족함”, “내용이 약함”, “구성이 아쉬움” 등)
                 - 이미지에 없는 내용을 추측하거나 생성하지 말 것
-                - 이전 페이지 피드백의 표현을 복사하거나 재사용하지 말 것
                 - 감정적·칭찬 위주의 문구 금지
 
-                출력은 반드시 아래 JSON format과 일치해야 하며, JSON 외 용어는 포함하지 않습니다:
+                출력은 반드시 아래 JSON format과 일치해야 하며, JSON 문자열로 출력하세요:
                 %s
+
+                출력 예시:
+                {
+                  "pageSummary": "이 페이지 전체 내용을 한 문단으로 요약",
+                  "pageComment": "분석 및 코멘트 작성"
+                }
+
               """.formatted(format))
           .build();
 
@@ -167,11 +171,6 @@ public class PortfolioPageAnalysisService {
               - 직군: %s
               - 역할: %s
 
-              다음은 이전 페이지의 페이지 분석 결과입니다.
-              이는 단순 참고용이며, 절대 동일하거나 유사한 내용을 반복해서는 안 됩니다.
-              이전 페이지 요약(참고용):
-              %s
-
               아래 기준을 만족하며 이번 페이지에 대한 *새로운* 분석을 생성하세요.
               중복된 조언, 동일 문장 패턴, 같은 논조의 피드백을 생성하지 마십시오.
 
@@ -183,10 +182,12 @@ public class PortfolioPageAnalysisService {
               4) 포함하면 좋을 콘텐츠, 제거하면 좋을 콘텐츠를 명확히 제시하십시오.
               5) 문제점을 반드시 ‘실제 요소를 근거로’ 구체적으로 설명하십시오.
               6) 개선 포인트는 실행 가능해야 하며 단순한 조언이 아니라 구체적 조치로 작성하십시오.
-              7) 이전 페이지와 유사한 표현이나 문장을 반복하지 마십시오.
+
+              ## 직무별 표준 가이드라인 및 평가 지침
+              %s
 
               반드시 JSON만 출력하십시오.
-""".formatted(pageNo, jobGroup, jobRole, previousFeedbackText, pageNo))
+""".formatted(pageNo, jobGroup, jobRole, pageNo, standardsGuidelines))
           .media(media)
           .build();
 
@@ -218,6 +219,35 @@ public class PortfolioPageAnalysisService {
 
     document.close(); // 메모리 누수 방지
     return feedbackList;
+  }
+
+
+  /**
+   * 표준 가이드라인 텍스트 구성
+   */
+  private String buildStandardsGuidelines(List<PortfolioStandard> standards) {
+
+    StringBuilder sb = new StringBuilder();
+      for (PortfolioStandard standard : standards) {
+          sb.append(String.format("### %s\n", standard.getStandardName()));
+          sb.append(String.format("%s\n\n", standard.getStandardDescription()));
+          
+          if (standard.getPromptTemplate() != null && 
+              !standard.getPromptTemplate().isEmpty()) {
+              sb.append(standard.getPromptTemplate());
+              sb.append("\n\n");
+          }
+
+            // PortfolioStandard의 evaluationItems 활용
+          if (standard.getEvaluationItems() != null) {
+              sb.append("**평가 항목:**\n");
+              sb.append(standard.getEvaluationItems());
+              sb.append("\n\n");
+          }
+
+
+      }
+      return sb.toString();
   }
 
 }
