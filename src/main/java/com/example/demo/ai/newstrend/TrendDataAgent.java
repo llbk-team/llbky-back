@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.entity.Member;
+import com.example.demo.newstrend.dto.response.SentimentResponse;
 import com.example.demo.newstrend.dto.response.TrendDataContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -32,6 +33,10 @@ public class TrendDataAgent {
   private WebClient webClient;
   @Autowired
   private MemberDao memberDao;
+
+  @Autowired
+  private SentimetalAnalysisAgent sentimetalAnalysisAgent;
+
   @Autowired
   private ObjectMapper mapper;
   @Autowired
@@ -101,7 +106,8 @@ public class TrendDataAgent {
     String endDate = end.toString();
 
     // 뉴스 2차 요약 자동 호출
-    String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 10);
+    // String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 10);
+    SentimentResponse metaNews = sentimetalAnalysisAgent.excute(memberId, 50);
 
     String systemPrompt = """
         너는 검색 트렌드 수집을 위한 데이터 수집 에이전트이다.
@@ -128,8 +134,7 @@ public class TrendDataAgent {
            - 직무 설명 문장 (예: 웹 개발, 백엔드 아키텍처)
            - 모호한 용어 (예: 기술, 인터넷, AI 기술, 보안)
            - 문장형/두 단어 조합 (예: 브라우저 보안, 서버 성능 튜닝)
-        4) metaNews는 “참고만” 할 수 있지만,
-           targetRole 과 무관한 힌트는 무시해야 한다.
+        4) targetRole 과 무관한 힌트는 무시해야 한다.
         5) 키워드는 반드시 기술 스택/언어/도구여야 한다.
 
         ────────────────────────────────────────────

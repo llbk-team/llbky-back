@@ -38,8 +38,6 @@ public class TrendAnalysisAgent {
         키워드 생성 또는 원본 데이터 수집은 절대 하지 않는다. (TrendDataAgent 역할)
         metaNews는 뉴스 흐름 참고용이다. 채용 시장 분위기에는 적극 참고해도 좋다
 
-        metaNews는 참고만 하고, 문장을 그대로 출력하거나 복사하면 안된다.
-
         ⚠ 출력 규칙 (절대 위반 금지)
         - JSON ONLY 출력
         - '{' 로 시작하고 '}' 로 끝나야 함
@@ -116,8 +114,56 @@ public class TrendAnalysisAgent {
         ────────────────────────────────────────
         ★ industrySentiment
         ────────────────────────────────────────
-        - 6개 산업군
-        - positive + neutral + negative = 100
+        industrySentiment 배열은 반드시 6개의 산업군으로 구성해야 한다.
+        “산업군 이름, 감정 비율, 산업군 구성 방식”은 아래 규칙을 100% 따라야 한다.
+
+        ────────────────────────────────────────
+        ■ 1) 산업군 이름 생성 규칙 (고정 리스트 금지)
+        ────────────────────────────────────────
+
+        산업군 이름은 TrendDataContext 안의 다음 정보를 바탕으로
+        LLM이 "적절하고 의미 있는 산업군"을 직접 생성해야 한다:
+
+        1) jobGroup (사용자가 선택한 직군)
+
+        2) targetRole (사용자가 선택한 직무)
+
+        3) keywords (기술/도메인 관련 키워드)
+
+        4) metaNews (뉴스 기반 산업 흐름 및 감정)
+
+        위 4가지 정보를 종합하여  
+        **사용자 직무/산업 맥락과 실제 시장 흐름을 반영한 6개의 산업군을 생성해야 한다.**
+
+        6개의 산업군은 서로 겹치지 않고, 의미적으로 구분되어야 한다.
+
+        ────────────────────────────────────────
+        ■ 2) 감정 비율 생성 규칙 (positive/neutral/negative = 100)
+        ────────────────────────────────────────
+
+        각 산업군의 감정 비율은 아래 기준으로 반드시 다르게 계산해야 한다:
+
+        1) metaNews 내 industrySentiment 또는 issue 기반 감정 경향 반영  
+          - AI 관련 긍정 기사 ↑ → AI 산업군 positive 비중 증가  
+          - 보안 사고, 채용 축소 뉴스 ↑ → 관련 산업군 negative 비중 증가  
+
+        2) 각 산업군의 positive + neutral + negative = 100 유지
+
+        ────────────────────────────────────────
+        ■ 3) 출력 형태
+        ────────────────────────────────────────
+
+        industrySentiment 배열은 반드시 아래 구조의 6개 항목으로 구성되어야 한다:
+
+        {
+          "industry": "산업군 이름",
+          "positive": number,
+          "neutral": number,
+          "negative": number
+        }
+
+        순서 변경 금지, null 금지, 생략 금지.
+
 
         ────────────────────────────────────────
         ★ wordCloud
@@ -126,10 +172,15 @@ public class TrendAnalysisAgent {
         - score 20~100
 
         ────────────────────────────────────────
-        ★ marketInsight / finalSummary
+        ★ marketInsight
         ────────────────────────────────────────
         평균 관심도(counts 평균), 주요 키워드산업, 분위기 기반으로 작성
         최소 3문장이상 작성
+        
+        ────────────────────────────────────────
+        ★ finalSummary
+        ────────────────────────────────────────
+        산업의 전체 분위기와 왜 그런 결과가 나왔는지를 ‘구체적 사건 기반’으로 요약하여 작성
 
         ==================================================
         이제 주어진 TrendDataContext(JSON)를 기반으로
@@ -154,6 +205,7 @@ public class TrendAnalysisAgent {
         .content();
 
     TrendAnalyzeResponse response = mapper.readValue(llmResult, TrendAnalyzeResponse.class);
+    log.info("[FINAL SUMMARY] {}", response.getInsightJson().getFinalSummary());
 
     return response;
   }
