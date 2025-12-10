@@ -2,7 +2,7 @@ package com.example.demo.portfolio.entity;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 import lombok.Data;
 
@@ -19,6 +19,8 @@ public class PortfolioGuide {
     private String guideContent;    // 단계별 가이드 작성 내용 (JSONB) - GuideStepData[] 구조
     private String guideFeedback;    // AI 코칭 결과 (JSONB) - GuideResult 구조
     
+
+
     //===== 진행 상태 필드 =====
     private Integer completionPercentage = 0;  // 전체 진행률 (0-100)
     private Boolean isCompleted = false;       // 완료 여부

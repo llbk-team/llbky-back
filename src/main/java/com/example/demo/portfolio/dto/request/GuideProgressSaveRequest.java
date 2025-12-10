@@ -1,12 +1,10 @@
 package com.example.demo.portfolio.dto.request;
 
-import com.example.demo.portfolio.dto.GuideStepData;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
+
+import com.example.demo.portfolio.dto.GuideStepData;
+
+import lombok.Data;
 
 /**
  * 전체 가이드 진행상황 저장 요청 DTO
@@ -24,4 +22,10 @@ public class GuideProgressSaveRequest {
     private Integer currentStep;//현재 진행 중인 단계 번호
 
     private List<GuideStepData> guideContent;//전체 가이드 내용 (모든 단계와 항목)
+
+    private List<GuideStepData> guideSteps;
+
+    public List<GuideStepData> getGuideSteps() {
+        return guideSteps;
+    }
 }

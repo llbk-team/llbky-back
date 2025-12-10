@@ -15,6 +15,8 @@ public class GuideRequest {
     private Integer guideId;//가이드 ID
    
     private Integer memberId;// 회원 ID
+
+    private String title;
     
     private Integer standardId;//평가 기준 ID (어떤 standard로 평가할지)
 

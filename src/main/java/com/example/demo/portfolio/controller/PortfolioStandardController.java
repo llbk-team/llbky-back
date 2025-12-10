@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @RequestMapping("/portfolio-standard")
-@RequiredArgsConstructor
 @Slf4j
 public class PortfolioStandardController {
 
