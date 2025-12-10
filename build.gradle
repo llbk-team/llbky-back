@@ -52,6 +52,15 @@ dependencies {
 
 	//html 파싱할때
 	implementation 'org.jsoup:jsoup:1.17.2'
+
+	// https://mvnrepository.com/artifact/com.itextpdf/itext7-core
+	implementation 'com.itextpdf:itext7-core:7.2.5'
+// https://mvnrepository.com/artifact/com.itextpdf/layout
+implementation 'com.itextpdf:layout:7.2.5'
+// https://mvnrepository.com/artifact/com.itextpdf/kernel
+implementation 'com.itextpdf:kernel:7.2.5'
+implementation 'com.itextpdf:io:7.2.5'
+
 }
 
 dependencyManagement {
