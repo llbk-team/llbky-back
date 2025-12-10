@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class PortfolioPageAnalysisService {
+public class PortfolioPageAnalysisAgent {
 
   // 필드
   private ChatClient chatClient;
@@ -59,7 +59,7 @@ public class PortfolioPageAnalysisService {
   private ObjectMapper objectMapper;
 
   // 생성자
-  public PortfolioPageAnalysisService(ChatClient.Builder chatClientBuilder) {
+  public PortfolioPageAnalysisAgent(ChatClient.Builder chatClientBuilder) {
     this.chatClient = chatClientBuilder.build();
   }
 

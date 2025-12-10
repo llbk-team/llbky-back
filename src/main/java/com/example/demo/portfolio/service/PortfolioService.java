@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.demo.ai.portfolio.PortfolioPageAnalysisService;
-import com.example.demo.ai.portfolio.PortfolioSummaryAnalysisService;
+import com.example.demo.ai.portfolio.PortfolioPageAnalysisAgent;
+import com.example.demo.ai.portfolio.PortfolioSummaryAnalysisAgent;
 import com.example.demo.portfolio.dao.PortfolioDao;
 import com.example.demo.portfolio.dao.PortfolioImageDao;
 import com.example.demo.portfolio.dto.request.PortfolioCreateRequest;
@@ -28,10 +28,10 @@ public class PortfolioService {
   private PortfolioImageDao portfolioImageDao;
 
   @Autowired
-  private PortfolioPageAnalysisService portfolioPageAnalysisService;
+  private PortfolioPageAnalysisAgent portfolioPageAnalysisService;
 
   @Autowired
-  private PortfolioSummaryAnalysisService portfolioSummaryAnalysisService;
+  private PortfolioSummaryAnalysisAgent portfolioSummaryAnalysisService;
 
   @Transactional
   public Integer createPortfolio(PortfolioCreateRequest request) throws Exception {
