@@ -235,7 +235,7 @@ public class NewsSummaryService {
         defaultScores.setNegative(0);
         defaultScores.setNeutral(100);
         defaultAnalysis.setSentimentScores(defaultScores);
-        defaultAnalysis.setTrustScore(50);
+        
         // 신뢰도 점수 기본값을 50으로 세팅(0~100 스케일을 가정)
 
         defaultAnalysis.setBiasDetected(false);
@@ -312,8 +312,7 @@ public class NewsSummaryService {
         // 파싱된(또는 기본) 분석 데이터에서 감성 결과를 꺼내서 응답에 넣음
         response.setSentimentScores(analysisData.getSentimentScores());
 
-        response.setTrustScore(analysisData.getTrustScore());
-        // 신뢰도 점수 설정
+       
 
         response.setBiasDetected(analysisData.getBiasDetected());
         // 편향 탐지 여부 설정

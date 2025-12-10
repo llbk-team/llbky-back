@@ -17,7 +17,7 @@ public class NewsSummaryResponse {
     private String detailSummary;  
     private String sentiment;
     private SentimentScores sentimentScores;
-    private Integer trustScore;
+    
     private Boolean biasDetected;
     private String biasType;
     private String category;

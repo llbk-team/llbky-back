@@ -202,10 +202,9 @@ public class NewsController {
 
         NewsAnalysisResponse response = totalNewsService.analyzeAndSaveNews(request);
 
-        log.info("뉴스 분석 완료 - summaryId: {}, 감정: {}, 신뢰도: {}",
+        log.info("뉴스 분석 완료 - summaryId: {}, 감정: {}",
                 response.getSummaryId(),
-                response.getSentiment(),
-                response.getTrustScore());
+                response.getSentiment());
 
         return response;
     }
@@ -240,7 +239,7 @@ public class NewsController {
             detailData.put("summaryId", news.getSummaryId());
             detailData.put("sentiment", news.getSentiment());
             detailData.put("sentimentScores", news.getSentimentScores());
-            detailData.put("trustScore", news.getTrustScore());
+            
             detailData.put("title", news.getTitle());
             detailData.put("sourceName", news.getSourceName());
             detailData.put("sourceUrl", news.getSourceUrl());

@@ -14,7 +14,7 @@ import lombok.Data;
 
     detailSummary
 
-    analysisJson → sentiment, trustScore 등
+    analysisJson → sentiment 등
 
     keywordsJson → List<NewsKeywordResponse>
     등을 변환하여 구성됨.
@@ -35,7 +35,7 @@ public class NewsAnalysisResponse {
     // AI 분석 결과
     private String sentiment;
     private SentimentScores sentimentScores;
-    private Integer trustScore;
+    
     private Boolean biasDetected;
     private String biasType;
     private String category;
