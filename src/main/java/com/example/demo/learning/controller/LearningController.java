@@ -23,8 +23,6 @@ import com.example.demo.learning.service.LearningDayService;
 import com.example.demo.learning.service.LearningService;
 import com.example.demo.learning.service.LearningWeekService;
 
-import io.micrometer.core.ipc.http.HttpSender.Response;
-
 
 @RestController
 @RequestMapping("/learning")
@@ -49,12 +47,12 @@ public class LearningController {
       return ResponseEntity.ok(result);
     }
 
-    // 학습 로드맵 수정
-    @PostMapping("/roadmap-refine")
-    public ResponseEntity<AiCreateRoadmapResponse> refineRoadmap(@RequestBody RoadmapRefineRequest request) {
-      AiCreateRoadmapResponse result = learningService.refineRoadmap(request);
-      return ResponseEntity.ok(result);
-    }
+  // 학습 로드맵 수정
+  @PostMapping("/roadmap-refine")
+  public ResponseEntity<AiCreateRoadmapResponse> refineRoadmap(@RequestBody RoadmapRefineRequest request) {
+    AiCreateRoadmapResponse result = learningService.refineRoadmap(request);
+    return ResponseEntity.ok(result);
+  }
     
 
   
