@@ -28,10 +28,10 @@ public class NewsSecondSummaryAgent {
   }
 
   public String summarizeNews(int memberId, int limit) throws Exception {
-    // 1) DB에서 최신 뉴스 10개 조회
+    // 1) DB에서 최신 뉴스 50개 조회
     List<NewsSummary> newsList = newsSummaryDao.selectLatestNewsByMemberId(memberId, limit);
 
-    // 뉴스 긴 요약문만 10개 추출
+    // 뉴스 긴 요약문만 50개 추출
     List<String> details = new ArrayList<>();
 
     for (NewsSummary n : newsList) {
@@ -39,7 +39,7 @@ public class NewsSecondSummaryAgent {
       if (s != null && !s.isBlank()) {
         details.add(s);
       }
-      if (details.size() == 10) {
+      if (details.size() == 50) {
         break;
       }
     }

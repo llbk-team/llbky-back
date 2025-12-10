@@ -41,7 +41,7 @@ public class JobInsightService {
     }
 
     // 뉴스 2차 요약 에이전트 호출
-    String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 10);
+    String metaNews = newsSecondSummaryAgent.summarizeNews(memberId, 50);
 
     // 성장 제안 생성 에이전트 호출
     GrowthAnalysisResponse growthAdviceJson = growthAnalysisAgent.generateGrowthAdvice(memberId, metaNews);
