@@ -22,7 +22,6 @@ import com.example.demo.newstrend.dto.response.NewsAnalysisResult;
 import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
 import com.example.demo.newstrend.dto.response.NewsSummaryResponse;
 import com.example.demo.newstrend.entity.NewsSummary;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -242,7 +241,7 @@ public class NewsAIService {
 
         response.setSentiment(analysisData.getSentiment());
         response.setSentimentScores(analysisData.getSentimentScores());
-        response.setTrustScore(analysisData.getTrustScore());
+        
         response.setBiasDetected(analysisData.getBiasDetected());
         response.setBiasType(analysisData.getBiasType());
         response.setCategory(analysisData.getCategory());

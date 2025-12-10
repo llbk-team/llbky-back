@@ -174,9 +174,9 @@ public class TotalNewsService {
 
     // AI 분석 수행
     NewsAnalysisResult analysisResult = newsAIService.analyzeNews(request);
-    log.info("AI 분석 완료 - 감정: {}, 신뢰도: {}",
-        analysisResult.getAnalysis().getSentiment(),
-        analysisResult.getAnalysis().getTrustScore());
+    log.info("AI 분석 완료 - 감정: {}",
+        analysisResult.getAnalysis().getSentiment()
+       );
 
     // 엔티티 생성 (NewsAnalysisResult 구조에 맞게 매핑)  DTO → Entity 변환: API 응답을 DB 저장용 엔티티로 매핑
     NewsSummary entity = new NewsSummary();
@@ -309,10 +309,10 @@ public class TotalNewsService {
         totalAnalyzed++; // 성공 카운트 증가
 
         // 저장 완료 로그 (주요 분석 결과 포함)
-        log.info("뉴스 분석 및 저장 완료: {} (감정: {}, 신뢰도: {})",
+        log.info("뉴스 분석 및 저장 완료: {} (감정: {})",
             newsRequest.getTitle(),
-            analysisResult.getAnalysis().getSentiment(), // 감정 분석 결과
-            analysisResult.getAnalysis().getTrustScore()); // 신뢰도 점수
+            analysisResult.getAnalysis().getSentiment() // 감정 분석 결과
+            ); // 신뢰도 점수
 
         // API 호출 제한(Rate Limit) 방지를 위한 대기
         Thread.sleep(1000); // 1초 대기 (AI 분석은 시간이 걸리므로 여유있게 설정)
@@ -434,7 +434,7 @@ public class TotalNewsService {
     NewsSummaryResponse analysis = result.getAnalysis();
     response.setSentiment(analysis.getSentiment());
     response.setSentimentScores(analysis.getSentimentScores());
-    response.setTrustScore(analysis.getTrustScore());
+    
     response.setBiasDetected(analysis.getBiasDetected());
     response.setBiasType(analysis.getBiasType());
     response.setCategory(analysis.getCategory());

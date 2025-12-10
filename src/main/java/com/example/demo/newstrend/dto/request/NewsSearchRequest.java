@@ -8,7 +8,7 @@ public class NewsSearchRequest {
     
     private String category;        // IT, 경제, 사회, 정치
     private String sentiment;       // positive, neutral, negative
-    private Integer minTrustScore;  // 최소 신뢰도
+    
     private Boolean biasOnly;       // 편향된 뉴스만
     private Integer limit = 15;     // 기본 10개
 }

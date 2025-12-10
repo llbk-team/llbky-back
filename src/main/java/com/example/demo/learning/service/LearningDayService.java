@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.ai.learning.MemoCheckAgent;
 import com.example.demo.ai.learning.RewriteMemoAgent;
+import com.example.demo.learning.dao.LearningDao;
 import com.example.demo.learning.dao.LearningDayDao;
 import com.example.demo.learning.dao.LearningWeekDao;
 import com.example.demo.learning.dto.response.MemoCheckResponse;
+import com.example.demo.learning.entity.Learning;
 import com.example.demo.learning.entity.LearningDay;
 import com.example.demo.learning.entity.LearningWeek;
 
@@ -21,6 +23,8 @@ public class LearningDayService {
     private LearningDayDao learningDayDao;
     @Autowired
     private LearningWeekDao learningWeekDao;
+    @Autowired
+    private LearningDao learningDao;
 
     // AI Agent
     @Autowired
@@ -55,7 +59,7 @@ public class LearningDayService {
 
     // 일일 학습 메모 저장
     public LearningDay submitMemo(int dayId, String learningDaySummary) {
-        
+
         // 1. 일일 학습 정보 조회
         LearningDay day = learningDayDao.selectedByDayId(dayId);
         if (day == null) {
@@ -75,7 +79,7 @@ public class LearningDayService {
     }
 
     // 일일 학습 결과를 주차 진행률에 반영
-    private void updateWeekStatus(int weekId)  {
+    private void updateWeekStatus(int weekId) {
 
         // 1. 해당 주차의 모든 Day 가져오기
         List<LearningDay> days = learningDayDao.selectListByWeekId(weekId);
@@ -98,6 +102,25 @@ public class LearningDayService {
 
         // 5. DB 업데이트
         learningWeekDao.update(week);
+
+        // -----------------------------
+        // Learning 전체 완료 체크
+        // -----------------------------
+
+        int learningId = week.getLearningId();
+        List<LearningWeek> weekList = learningWeekDao.selectListByLearningId(learningId);
+
+        boolean allWeeksComplete = weekList.stream()
+                .allMatch(w -> "완료".equals(w.getStatus()));
+
+        if (allWeeksComplete) {
+            // learning 상태 완료로 변경
+            Learning learning = new Learning();
+            learning.setLearningId(learningId);
+            learning.setStatus("완료");
+
+            learningDao.update(learning);
+        }
     }
 
     // 일차 업데이트

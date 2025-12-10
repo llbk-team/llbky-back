@@ -74,25 +74,13 @@ public class NewsAnalysisAgent {
             - 세 값의 합은 반드시 100이어야 함
             - null 불가
                
-            5. trustScore (Integer, 필수)
-               - 0~100 사이의 정수
-               - 객관성, 사실 확인 가능성, 출처 명확성 기준
-               - null 불가
-               
+          
                            
-            6. category (String, 필수)
+            5. category (String, 필수)
                - 반드시 다음 중 하나: "IT", "경제", "사회", "정치", "기타"
                - null 불가
             
-            ======================================== 
-            신뢰도 점수 산출 기준
-            ======================================== 
-            - 90~100점: 공식 발표, 1차 출처, 구체적 수치
-            - 70~89점: 복수 출처 확인, 전문가 의견 포함
-            - 50~69점: 단일 출처, 일부 추측 포함
-            - 30~49점: 출처 불명확, 과장 표현 있음
-            - 0~29점: 루머성, 검증 불가능
-
+            
 
             ======================================== 
             감정 분석 기준
@@ -109,7 +97,7 @@ public class NewsAnalysisAgent {
                 "summary": "삼성전자가 3분기 영업이익 10조원을 기록했다. 반도체 부문 회복이 주요 원인으로 분석된다. 4분기에도 긍정적 전망이 이어질 것으로 보인다.",
                 "detailSummary": "삼성전자가 2024년 3분기 실적을 발표했다. 영업이익은 전년 동기 대비 30퍼센트 증가한 10조원을 기록했다. 메모리 반도체 가격 상승과 수요 회복이 주요 원인이다. HBM3 등 AI 반도체 수요가 급증하면서 실적 개선을 이끌었다. 파운드리 부문도 손익분기점을 넘어섰다. 4분기에는 계절적 비수기 영향이 있을 전망이다. 하지만 AI 반도체 수요 지속으로 양호한 실적이 예상된다.",
                 "sentiment": "positive",
-                "trustScore": 85,
+                
                 "biasDetected": false,
                 "biasType": null,
                 "category": "IT",
@@ -124,7 +112,7 @@ public class NewsAnalysisAgent {
             - null 값은 biasType에만 허용됨 (biasDetected=false일 때)
             - 모든 필수 필드는 반드시 값이 있어야 함
             - sentiment, category는 정해진 값 외 사용 불가
-            - trustScore는 반드시 0~100 사이 정수
+            
             - JSON 형식 외 다른 텍스트 출력 금지
             
             출력 형식:
@@ -160,9 +148,9 @@ public class NewsAnalysisAgent {
         
         NewsSummaryResponse  result = converter.convert(jsonResponse);
         
-        log.info("뉴스 분석 완료 - 감정: {}, 신뢰도: {}, 편향: {}, 카테고리: {}, 키워드 수: {}", 
+        log.info("뉴스 분석 완료 - 감정: {},  편향: {}, 카테고리: {}, 키워드 수: {}", 
             result.getSentiment(), 
-            result.getTrustScore(), 
+            
             result.getBiasDetected(), 
             result.getCategory());
         
