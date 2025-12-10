@@ -7,14 +7,24 @@
     <!-- 포트폴리오 가이드 생성 -->
     <insert id="insertGuide" parameterType="PortfolioGuide"
             useGeneratedKeys="true" keyProperty="guideId">
+
         INSERT INTO portfolio_guide(
-            member_id, title, standard_id, guide_content, 
-            completion_percentage, is_completed, current_step, total_steps,
-            appropriateness_score, progress_percentage, coaching_message,
-            suggestions, examples, next_step_guide
-        ) 
+            member_id,
+            title,
+            standard_id,
+            guide_content,
+            completion_percentage,
+            is_completed,
+            current_step,
+            total_steps,
+            guide_feedback
+        )
         VALUES(
-            #{memberId}, #{title}, #{standardId}, 
+            #{memberId},
+            #{title},
+            #{standardId},
+
+            <!-- guide_content JSONB -->
             <choose>
                 <when test="guideContent != null">
                     CAST(#{guideContent} AS JSONB)
@@ -23,25 +33,21 @@
                     NULL
                 </otherwise>
             </choose>,
-            #{completionPercentage}, #{isCompleted}, #{currentStep}, #{totalSteps},
-            #{appropriatenessScore}, #{progressPercentage}, #{coachingMessage},
+
+            #{completionPercentage},
+            #{isCompleted},
+            #{currentStep},
+            #{totalSteps},
+
+            <!-- guide_feedback JSONB -->
             <choose>
-                <when test="suggestions != null">
-                    CAST(#{suggestions} AS JSONB)
+                <when test="guideFeedback != null">
+                    CAST(#{guideFeedback} AS JSONB)
                 </when>
                 <otherwise>
                     NULL
                 </otherwise>
-            </choose>,
-            <choose>
-                <when test="examples != null">
-                    CAST(#{examples} AS JSONB)
-                </when>
-                <otherwise>
-                    NULL
-                </otherwise>
-            </choose>,
-            #{nextStepGuide}
+            </choose>
         )
     </insert>
 
@@ -88,7 +94,7 @@
     <update id="updateGuideContent" parameterType="map">
         UPDATE portfolio_guide 
         SET 
-            guide_content = CAST(#{guideContent} AS JSONB),
+            guide_content = CAST(#{guideContent, jdbcType=VARCHAR} AS JSONB),
             <if test="completionPercentage != null">
             completion_percentage = #{completionPercentage},
             </if>
@@ -103,7 +109,7 @@
     <update id="updateGuideProgress" parameterType="map">
         UPDATE portfolio_guide 
         SET 
-            guide_content = CAST(#{guideContent} AS JSONB),
+            guide_content = CAST(#{guideContent, jdbcType=VARCHAR} AS JSONB),
             completion_percentage = #{completionPercentage},
             current_step = #{currentStep},
             
@@ -118,7 +124,8 @@
     <update id="updateGuideFeedback" parameterType="map">
         UPDATE portfolio_guide 
         SET 
-            guide_feedback = CAST(#{guideFeedback} AS JSONB),
+            guide_feedback = CAST(#{guideFeedback, jdbcType=VARCHAR} AS JSONB),
+
             updated_at = NOW()
 
         WHERE guide_id = #{guideId}
