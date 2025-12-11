@@ -51,9 +51,6 @@ public class PortfolioGuidePdfService {
     @Autowired // 스프링이 ObjectMapper 인스턴스를 자동으로 주입해줌
     private ObjectMapper objectMapper; // JSON 파싱을 위한 Jackson 라이브러리 객체
     
-    private PdfFont koreanFont; // 한글 표시를 위한 일반 폰트 객체
-    private PdfFont koreanBoldFont; // 한글 표시를 위한 굵은 폰트 객체
-    
     // 색상 팔레트 - PDF 전체에서 일관된 색상 사용을 위해 상수로 정의
     private static final Color PRIMARY_COLOR = new DeviceRgb(41, 128, 185);      // 메인 색상: 진한 파랑 (RGB 값으로 정의)
     private static final Color SECONDARY_COLOR = new DeviceRgb(52, 73, 94);      // 보조 색상: 진한 회색
@@ -61,20 +58,17 @@ public class PortfolioGuidePdfService {
     private static final Color LIGHT_BG = new DeviceRgb(236, 240, 241);          // 배경색: 연한 회색
     private static final Color SECTION_BG = new DeviceRgb(189, 195, 199);        // 섹션 배경색
     
+
     /**
-     * 한글 폰트 초기화 - PDF에서 한글을 제대로 표시하기 위해 필요
+     * 한글 폰트 생성 - PDF 생성 시마다 새로운 폰트 인스턴스 생성
      */
-    private void initFonts() throws Exception {
-        if (koreanFont == null) { // 폰트가 아직 로드되지 않았을 때만 실행 (중복 로드 방지)
-            ClassPathResource fontResource = new ClassPathResource("fonts/NanumGothic.ttf"); // resources/fonts 폴더에서 나눔고딕 폰트 파일 로드
-            koreanFont = PdfFontFactory.createFont( // iText에서 사용할 폰트 객체 생성
-                fontResource.getInputStream().readAllBytes(), // 폰트 파일을 바이트 배열로 읽어옴
-                PdfEncodings.IDENTITY_H, // 한글 등 유니코드 문자를 올바르게 인코딩하기 위한 설정
-                PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED // 폰트를 PDF에 내장하여 어떤 환경에서도 동일하게 표시되도록 함
-            );
-            koreanBoldFont = koreanFont; // 별도의 볼드 폰트가 없으면 일반 폰트 사용 (실제로는 별도 볼드 폰트 파일 사용 권장)
-            log.info("✅ 한글 폰트 로드 성공"); // 폰트 로드 성공 로그 출력
-        }
+    private PdfFont createKoreanFont() throws Exception {
+        ClassPathResource fontResource = new ClassPathResource("fonts/NanumGothic.ttf");
+        return PdfFontFactory.createFont(
+            fontResource.getInputStream().readAllBytes(),
+            PdfEncodings.IDENTITY_H,
+            PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED
+        );
     }
 
     /**
@@ -86,7 +80,8 @@ public class PortfolioGuidePdfService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream(); // PDF 데이터를 메모리에 저장할 스트림 객체
         
         try {
-            initFonts(); // 한글 폰트 초기화 (PDF에서 한글이 깨지지 않도록)
+            PdfFont koreanFont = createKoreanFont();
+            PdfFont koreanBoldFont = koreanFont;
             
             PdfWriter writer = new PdfWriter(baos); // PDF를 바이트 스트림에 쓸 수 있는 writer 객체 생성
 
@@ -104,10 +99,10 @@ public class PortfolioGuidePdfService {
                 new PortfolioHeaderFooterHandler(guide.getTitle(), koreanFont)); // 프로젝트 제목과 폰트를 전달
             
             // PDF 내용 구성 - 순서대로 추가
-            addPortfolioCover(document, guide); // 1. 표지 페이지 추가
-            addDynamicContentsPage(document, guide); 
+            addPortfolioCover(document, guide, koreanFont, koreanBoldFont); // 1. 표지 페이지 추가
+            addDynamicContentsPage(document, guide, koreanFont, koreanBoldFont); 
             // 2. 프로젝트 개요 페이지 추가
-            addPortfolioContent(document, guide); // 3. 실제 가이드 내용 추가
+            addPortfolioContent(document, guide, koreanFont, koreanBoldFont); // 3. 실제 가이드 내용 추가
             
             document.close(); // PDF 문서 생성 완료 및 리소스 정리
             
@@ -134,8 +129,20 @@ public class PortfolioGuidePdfService {
     /**
      * 포트폴리오 표지 페이지 생성 - PPT 스타일의 깔끔한 표지
      */
-    private void addPortfolioCover(Document document, PortfolioGuide guide) {
-       
+    private void addPortfolioCover(Document document, PortfolioGuide guide,
+                                    PdfFont koreanFont, PdfFont koreanBoldFont) {
+        // 상단 장식 바 - 디자인적 요소로 전문성 부여
+        Table topBar = new Table(UnitValue.createPercentArray(1)) // 1개 컬럼의 테이블 생성 (장식용)
+            .setWidth(UnitValue.createPercentValue(100)) // 페이지 전체 너비 사용
+            .setMarginTop(100); // 위쪽 여백으로 중앙 배치 효과
+        
+        Cell topCell = new Cell() // 테이블 셀 생성
+            .add(new Paragraph("")) // 빈 내용 (색상만 표시)
+            .setHeight(10) // 바의 높이 설정
+            .setBackgroundColor(PRIMARY_COLOR) // 메인 색상으로 칠하기
+            .setBorder(null); // 테두리 제거
+        topBar.addCell(topCell); // 테이블에 셀 추가
+        document.add(topBar); // 문서에 테이블 추가
         
         // 메인 제목 "PORTFOLIO" - 임팩트 있는 대문자 제목
         Paragraph title = new Paragraph("PORTFOLIO")
@@ -176,7 +183,8 @@ public class PortfolioGuidePdfService {
     /**
      * 포트폴리오의 핵심 콘텐츠 처리 - JSON 형태로 저장된 가이드 내용을 파싱하여 표시
      */
-    private void addPortfolioContent(Document document, PortfolioGuide guide) {
+    private void addPortfolioContent(Document document, PortfolioGuide guide,
+                                      PdfFont koreanFont, PdfFont koreanBoldFont) {
         if (guide.getGuideContent() == null || guide.getGuideContent().trim().isEmpty()) { // 내용이 없는 경우 처리
             Paragraph emptyMsg = new Paragraph("작성된 내용이 없습니다.")
                 .setFont(koreanFont)
@@ -200,7 +208,7 @@ public class PortfolioGuidePdfService {
                     document.add(new AreaBreak(AreaBreakType.NEXT_PAGE)); // 새 페이지에서 시작
                 }
                 
-                addStepSection(document, step); // 단계별 섹션 추가
+                addStepSection(document, step, koreanFont, koreanBoldFont); // 단계별 섹션 추가
             }
             
         } catch (Exception e) { // JSON 파싱 실패 시 예외 처리
@@ -215,14 +223,15 @@ public class PortfolioGuidePdfService {
     /**
      * 개별 단계의 섹션 생성 - PPT처럼 단계별로 구성
      */
-    private void addStepSection(Document document, GuideStepData step) {
-        addStepDividerPage(document, step); // 단계 구분 페이지 먼저 추가
+    private void addStepSection(Document document, GuideStepData step,
+                                 PdfFont koreanFont, PdfFont koreanBoldFont) {
+        addStepDividerPage(document, step, koreanFont, koreanBoldFont); // 단계 구분 페이지 먼저 추가
         
         // 해당 단계의 모든 항목들을 각각 별도 페이지로 처리
         if (step.getItems() != null && !step.getItems().isEmpty()) {
             for (int i = 0; i < step.getItems().size(); i++) {
                 document.add(new AreaBreak(AreaBreakType.NEXT_PAGE)); // 항목마다 새 페이지
-                addPPTStyleItemPage(document, step, step.getItems().get(i), i + 1); // PPT 스타일로 항목 표시
+                addPPTStyleItemPage(document, step, step.getItems().get(i), i + 1, koreanFont, koreanBoldFont); // PPT 스타일로 항목 표시
             }
         }
     }
@@ -230,7 +239,8 @@ public class PortfolioGuidePdfService {
     /**
      * 단계 구분 페이지 생성 - 새로운 단계가 시작됨을 시각적으로 표현
      */
-    private void addStepDividerPage(Document document, GuideStepData step) {
+    private void addStepDividerPage(Document document, GuideStepData step,
+                                     PdfFont koreanFont, PdfFont koreanBoldFont) {
         // 왼쪽에 큰 단계 번호 표시
         Paragraph bigNumber = new Paragraph(String.format("%02d", step.getStepNumber())) // 01, 02 형태로 0 패딩
             .setFont(koreanBoldFont)
@@ -280,7 +290,8 @@ public class PortfolioGuidePdfService {
      * PPT 스타일의 개별 항목 페이지 생성 - 각 항목을 슬라이드처럼 표시
      */
     private void addPPTStyleItemPage(Document document, GuideStepData step, 
-                                      GuideItemData item, int itemNumber) {
+                                      GuideItemData item, int itemNumber,
+                                      PdfFont koreanFont, PdfFont koreanBoldFont) {
         
         // 우측 상단 네비게이션 - 현재 위치 표시
         Paragraph navigation = new Paragraph(String.format("%02d %s", 
@@ -427,7 +438,8 @@ public class PortfolioGuidePdfService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         
         try {
-            initFonts(); // 한글 폰트 초기화
+            PdfFont koreanFont = createKoreanFont();
+            PdfFont koreanBoldFont = koreanFont;
             
             PdfWriter writer = new PdfWriter(baos);
             // ⭐ 16:9 와이드스크린 크기 설정
@@ -437,7 +449,7 @@ public class PortfolioGuidePdfService {
             pdfDocument.setDefaultPageSize(widescreen);
             document.setMargins(30,30,40,30);
             
-            addMemberCoverPage(document, guides.size()); // 통합 표지 (총 프로젝트 수 표시)
+            addMemberCoverPage(document, guides.size(), koreanFont, koreanBoldFont); // 통합 표지 (총 프로젝트 수 표시)
             
             // 각 프로젝트를 순차적으로 PDF에 추가
             for (int i = 0; i < guides.size(); i++) {
@@ -447,9 +459,9 @@ public class PortfolioGuidePdfService {
                 
                 PortfolioGuide guide = guides.get(i);
                 
-                addProjectDividerPage(document, i + 1, guide); // 프로젝트 구분 페이지 (PROJECT 1, PROJECT 2...)
+                addProjectDividerPage(document, i + 1, guide, koreanFont, koreanBoldFont); // 프로젝트 구분 페이지 (PROJECT 1, PROJECT 2...)
                  // 각 프로젝트의 개요
-                addPortfolioContent(document, guide); // 각 프로젝트의 상세 내용
+                addPortfolioContent(document, guide, koreanFont, koreanBoldFont); // 각 프로젝트의 상세 내용
             }
             
             document.close();
@@ -477,7 +489,8 @@ public class PortfolioGuidePdfService {
     /**
      * 여러 프로젝트 통합 표지 페이지
      */
-    private void addMemberCoverPage(Document document, int projectCount) {
+    private void addMemberCoverPage(Document document, int projectCount,
+                                     PdfFont koreanFont, PdfFont koreanBoldFont) {
         Paragraph title = new Paragraph("PROJECT PORTFOLIO") // 복수 프로젝트임을 명시
             .setFont(koreanBoldFont)
             .setFontSize(36)
@@ -509,7 +522,8 @@ public class PortfolioGuidePdfService {
     /**
      * 개별 프로젝트 구분 페이지 - PROJECT 1, PROJECT 2 형태로 구분
      */
-    private void addProjectDividerPage(Document document, int projectNumber, PortfolioGuide guide) {
+    private void addProjectDividerPage(Document document, int projectNumber, PortfolioGuide guide,
+                                        PdfFont koreanFont, PdfFont koreanBoldFont) {
         Paragraph projectLabel = new Paragraph(String.format("PROJECT %d", projectNumber)) // 프로젝트 순번 표시
             .setFont(koreanBoldFont)
             .setFontSize(48)
@@ -533,7 +547,8 @@ public class PortfolioGuidePdfService {
 /**
  * 가이드 내용 기반 동적 목차 생성
  */
-private void addDynamicContentsPage(Document document, PortfolioGuide guide) throws Exception {
+private void addDynamicContentsPage(Document document, PortfolioGuide guide,
+                                     PdfFont koreanFont, PdfFont koreanBoldFont) throws Exception {
     Paragraph title = new Paragraph("CONTENTS")
         .setFont(koreanBoldFont)
         .setFontSize(48)
