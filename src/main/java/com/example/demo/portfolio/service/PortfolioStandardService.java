@@ -73,63 +73,13 @@ public class PortfolioStandardService {
         }
 
         if (jobRole == null || jobRole.trim().isEmpty()) {
-            log.warn("직무 정보가 비어있음 - 직군별 기준 반환");
-            return getStandardsByJobGroup(jobGroup);
+            log.warn("직무 정보가 비어있음 - 전체 기준 반환");
+            return getAllStandards();
         }
 
         List<PortfolioStandard> result = portfolioStandardDao.selectStandardsByJobInfo(jobGroup, jobRole);
         log.info("조회 결과 - 개수: {}", result != null ? result.size() : 0);
 
         return result;
-    }
-
-    /**
-     * 직군으로만 평가 기준 조회 (개선됨)
-     */
-    public List<PortfolioStandard> getStandardsByJobGroup(String jobGroup) {
-        log.info("직군별 평가 기준 조회 - jobGroup: {}", jobGroup);
-
-        // ⭐ null 체크 추가
-        if (jobGroup == null || jobGroup.trim().isEmpty()) {
-            log.warn("직군 정보가 비어있음 - 전체 기준 반환");
-            return getAllStandards();
-        }
-
-        List<PortfolioStandard> result = portfolioStandardDao.selectStandardsByJobGroup(jobGroup);
-        log.info("직군별 조회 결과 - 개수: {}", result != null ? result.size() : 0);
-
-        return result;
-    }
-
-    /**
-     * 평가 기준명으로 조회
-     */
-    public PortfolioStandard getStandardByName(String standardName) {
-        log.info("평가 기준명으로 조회 - name: {}", standardName);
-        return portfolioStandardDao.selectStandardByName(standardName);
-    }
-
-    /**
-     * 최소 가중치 이상의 평가 기준 조회
-     */
-    public List<PortfolioStandard> getStandardsByMinWeight(int minWeight) {
-        log.info("최소 가중치 이상 평가 기준 조회 - minWeight: {}", minWeight);
-        return portfolioStandardDao.selectStandardsByMinWeight(minWeight);
-    }
-
-    /**
-     * 평가 기준 총 개수 조회
-     */
-    public int getStandardsCount() {
-        log.info("평가 기준 총 개수 조회");
-        return portfolioStandardDao.countStandards();
-    }
-
-    /**
-     * 평가 기준명 중복 체크
-     */
-    public boolean isStandardNameExists(String standardName) {
-        log.info("평가 기준명 중복 체크 - name: {}", standardName);
-        return portfolioStandardDao.existsStandardByName(standardName);
     }
 }
