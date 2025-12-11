@@ -40,7 +40,7 @@ public class ResumeController {
     public ResponseEntity<Integer> createResume(@RequestBody Resume resume) throws Exception {
         int newId = resumeService.createResume(resume);
         return ResponseEntity.ok(newId);
-    }
+    } 
 
     // 이력서 상세 조회
     @GetMapping("/{resumeId}")

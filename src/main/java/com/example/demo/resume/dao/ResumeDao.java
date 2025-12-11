@@ -24,9 +24,4 @@ public interface ResumeDao {
 
   public int deleteResume(int resumeId);//이력서 삭제
 
-  public List<Resume> searchResumes(@Param("memberId") Integer memberId,
-      @Param("keyword") String keyword);//이력서 검색 (제목, 내용)
-
-  public String selectResumeFeedback(int resumeId);
-
 }
