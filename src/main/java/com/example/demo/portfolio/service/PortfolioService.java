@@ -28,10 +28,10 @@ public class PortfolioService {
   private PortfolioImageDao portfolioImageDao;
 
   @Autowired
-  private PortfolioPageAnalysisAgent portfolioPageAnalysisService;
+  private PortfolioPageAnalysisAgent portfolioPageAnalysisAgent;
 
   @Autowired
-  private PortfolioSummaryAnalysisAgent portfolioSummaryAnalysisService;
+  private PortfolioSummaryAnalysisAgent portfolioSummaryAnalysisAgent;
 
   @Transactional
   public Integer createPortfolio(PortfolioCreateRequest request) throws Exception {
@@ -54,13 +54,13 @@ public class PortfolioService {
   // 페이지별로 분석하는 에이전트 호출
   public List<PortfolioPageFeedbackResponse> analyzePortfolio(Integer portfolioId) throws Exception {
     Portfolio portfolio = portfolioDao.selectPortfolioById(portfolioId);
-    return portfolioPageAnalysisService.analyzePortfolio(portfolio.getPdfFile(), portfolioId, portfolio.getMemberId());
+    return portfolioPageAnalysisAgent.analyzePortfolio(portfolio.getPdfFile(), portfolioId, portfolio.getMemberId());
   }
 
   // 최종 피드백 생성
   public PortfolioSummaryResponse  generateSummary(Integer portfolioId) throws Exception {
     Portfolio portfolio = portfolioDao.selectPortfolioById(portfolioId);
-    return portfolioSummaryAnalysisService.generateSummary(portfolioId, portfolio.getMemberId());
+    return portfolioSummaryAnalysisAgent.generateSummary(portfolioId, portfolio.getMemberId());
   }
 
   // PDF 조회
