@@ -1,7 +1,5 @@
 package com.example.demo.newstrend.service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jsoup.Jsoup;
@@ -10,19 +8,14 @@ import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.ai.newstrend.BiasNeutralizationAgent;
 import com.example.demo.ai.newstrend.KeywordExtractionAgent;
 import com.example.demo.ai.newstrend.NewsAnalysisAgent;
-import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.request.NewsAnalysisRequest;
-import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResult;
 import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
 import com.example.demo.newstrend.dto.response.NewsSummaryResponse;
-import com.example.demo.newstrend.entity.NewsSummary;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,10 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NewsAIService {
 
-    // Optional WebClient builder (example exception constructor)
-     private WebClient webClient;
-
-    // AI Agents (field injection as requested)
+    // AI Agents
     @Autowired
     private NewsAnalysisAgent analysisAgent;
 
@@ -49,18 +39,6 @@ public class NewsAIService {
     @Autowired
     private BiasNeutralizationAgent neutralizationAgent;
 
-    // 데이터베이스 저장
-    @Autowired
-    private NewsSummaryDao newsSummaryDao;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    // 예외 케이스: WebClient.Builder를 직접 주입받는 public 생성자 허용
-    public NewsAIService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.build();
-    }
-    
     /**
      * 뉴스 분석  (AI Agent 활용)
      * @param request 뉴스 분석 요청 (제목, 본문, URL 등)
@@ -181,80 +159,6 @@ public class NewsAIService {
             log.error("웹 스크래핑 오류 - URL: {}, 오류: {}", url, e.getMessage());
             return null;
         }
-    }
-
-
-
-    // ===== CRUD / 조회 헬퍼 메서드 =====
-
-    public List<NewsAnalysisResponse> getLatestNewsByMember(int memberId, int limit) throws com.fasterxml.jackson.core.JsonProcessingException {
-    List<NewsSummary> summaries = newsSummaryDao.selectLatestNewsByMemberId(memberId, limit);
-    // DAO에서 해당 회원의 최신 뉴스 summary를 조회
-
-    List<NewsAnalysisResponse> responses = new ArrayList<>();
-    if (summaries != null) {
-        for (NewsSummary s : summaries) {
-            responses.add(convertEntityToResponse(s));
-            // 각 NewsSummary 엔티티를 DTO로 변환 후 리스트에 추가
-        }
-    }
-    return responses;
-    }
-
-    public List<NewsAnalysisResponse> getNewsByMemberAndDate(int memberId, LocalDateTime date, int limit) throws com.fasterxml.jackson.core.JsonProcessingException {
-    List<NewsSummary> summaries = newsSummaryDao.selectNewsByMemberAndDate(memberId, date, limit);
-    // DAO에서 특정 회원 + 날짜 기준 뉴스 조회
-
-    List<NewsAnalysisResponse> responses = new ArrayList<>();
-    if (summaries != null) {
-        for (NewsSummary s : summaries) {
-            responses.add(convertEntityToResponse(s));
-            // 엔티티 → DTO 변환
-        }
-    }
-    return responses;
-    }
-
-
-    // 엔티티 → 클라이언트용 DTO 변환
-    private NewsAnalysisResponse convertEntityToResponse(NewsSummary summary) throws com.fasterxml.jackson.core.JsonProcessingException {
-        NewsSummaryResponse analysisData = objectMapper.readValue(summary.getAnalysisJson(), NewsSummaryResponse.class);
-        // DB에 저장된 analysisJson 문자열(JSON) → NewsSummaryResponse 객체로 역직렬화
-
-        List<NewsKeywordResponse> keywords = objectMapper.readValue(
-            summary.getKeywordsJson(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, NewsKeywordResponse.class)
-        );
-        // DB에 저장된 keywordsJson → List<NewsKeywordResponse>로 변환
-
-        NewsAnalysisResponse response = new NewsAnalysisResponse();
-        // 최종 반환 DTO 생성
-
-        response.setSummaryId(summary.getSummaryId());
-        response.setTitle(summary.getTitle());
-        response.setSourceName(summary.getSourceName());
-        response.setSourceUrl(summary.getSourceUrl());
-        response.setPublishedAt(summary.getPublishedAt());
-        response.setSummaryText(summary.getSummaryText());
-        response.setDetailSummary(summary.getDetailSummary());
-        // 기본 정보 세팅 (원문/제목/출처/발행일/요약)
-
-        response.setSentiment(analysisData.getSentiment());
-        response.setSentimentScores(analysisData.getSentimentScores());
-        
-        response.setBiasDetected(analysisData.getBiasDetected());
-        response.setBiasType(analysisData.getBiasType());
-        response.setCategory(analysisData.getCategory());
-        // AI 분석 결과 세팅 (감정/신뢰도/편향/카테고리)
-
-        response.setKeywords(keywords);
-        // 키워드 리스트 세팅
-
-        response.setCreatedAt(summary.getCreatedAt());
-        // 생성일 세팅
-
-        return response;
-        // 완성된 DTO 반환
     }
 
 }

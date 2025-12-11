@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.demo.ai.newstrend.NewsSecondSummaryAgent;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.response.NewsAnalysisResponse;
 import com.example.demo.newstrend.dto.response.NewsKeywordResponse;
@@ -31,8 +30,6 @@ public class NewsSummaryService {
 
     private final NewsSummaryDao newsSummaryDao;
     private final ObjectMapper objectMapper;
-    @Autowired
-    private NewsSecondSummaryAgent newsSecondSummaryAgent;
 
     /**
      * 뉴스 저장
@@ -139,30 +136,6 @@ public class NewsSummaryService {
 
     public boolean existsByUrl(String sourceUrl) {
         return newsSummaryDao.selectNewsSummaryBySourceUrl(sourceUrl) != null;
-    }
-
-    /**
-     * 특정 회원의 최신 뉴스 조회
-     * 
-     * @param memberId 회원 ID
-     * @param limit    조회 개수
-     * @return 뉴스 분석 결과 리스트
-     * @throws com.fasterxml.jackson.core.JsonProcessingException JSON 파싱 실패 시
-     */
-    public List<NewsAnalysisResponse> getLatestNewsByMember(int memberId, int limit)
-            throws com.fasterxml.jackson.core.JsonProcessingException {
-        log.info("회원별 최신 뉴스 조회 - memberId: {}, limit: {}", memberId, limit);
-
-        List<NewsSummary> summaries = newsSummaryDao.selectLatestNewsByMemberId(memberId, limit);
-        log.info("조회된 뉴스 수: {}", summaries.size());
-
-        List<NewsAnalysisResponse> responses = new ArrayList<>();
-        for (NewsSummary summary : summaries) {
-            NewsAnalysisResponse response = convertToResponse(summary);
-            responses.add(response);
-        }
-
-        return responses;
     }
 
     /**

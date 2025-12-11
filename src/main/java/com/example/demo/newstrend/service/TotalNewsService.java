@@ -158,9 +158,6 @@ public class TotalNewsService {
   return coreKeywords.getOrDefault(jobGroup, Arrays.asList("채용", "취업", "일자리"));
 }
  
-
-
-
   /**
    * 단일 뉴스 분석 및 저장
    */
@@ -376,16 +373,6 @@ public class TotalNewsService {
     //5단계: 오늘 뉴스가 있으면 일주일치 반환
      log.info("오늘 뉴스 존재 - 저장된 일주일치 뉴스 반환");
     return weeklyNews != null ? weeklyNews : new ArrayList<>();
-  }
-
-  /**
-   * 회원별 최신 뉴스 조회
-   */
-  public List<NewsAnalysisResponse> getLatestNewsByMember(int memberId, int limit) throws JsonProcessingException {
-    List<NewsAnalysisResponse> responses = newsSummaryService.getLatestNewsByMember(memberId, limit);
-
-    log.info("최신 뉴스 조회 완료 - {}건", responses.size());
-    return responses;
   }
 
   /**

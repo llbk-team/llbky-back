@@ -341,28 +341,4 @@ public class NewsController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
-
-    /**
-     * 뉴스 수집 요청 DTO
-     */
-    public static class CollectNewsRequest {
-        private List<String> keywords;
-        private Integer memberId;
-
-        public List<String> getKeywords() {
-            return keywords;
-        }
-
-        public void setKeywords(List<String> keywords) {
-            this.keywords = keywords;
-        }
-
-        public Integer getMemberId() {
-            return memberId;
-        }
-
-        public void setMemberId(Integer memberId) {
-            this.memberId = memberId;
-        }
-    }
 }

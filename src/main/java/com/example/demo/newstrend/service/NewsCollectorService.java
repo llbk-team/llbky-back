@@ -1,17 +1,14 @@
 package com.example.demo.newstrend.service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -307,123 +304,6 @@ public class NewsCollectorService {
             return LocalDateTime.now();
         }
     }
-
-    // /**
-    // * NewsAPI.org API 응답 파싱
-    // * @param jsonResponse NewsAPI JSON 응답
-    // * @return 뉴스 요청 목록
-    // */
-    // private List<NewsAnalysisRequest> parseNewsApi(String jsonResponse) {
-    // List<NewsAnalysisRequest> newsList = new ArrayList<>();
-
-    // try {
-    // JSONObject json = new JSONObject(jsonResponse);
-
-    // // status 체크
-    // String status = json.optString("status", "");
-    // if (!"ok".equals(status)) {
-    // log.warn("NewsAPI 응답 상태 오류: {}", status);
-    // return newsList;
-    // }
-
-    // JSONArray articles = json.optJSONArray("articles");
-    // if (articles == null) {
-    // return newsList;
-    // }
-
-    // for (int i = 0; i < articles.length(); i++) {
-    // JSONObject article = articles.getJSONObject(i);
-
-    // NewsAnalysisRequest news = new NewsAnalysisRequest();
-    // news.setTitle(article.optString("title", ""));
-    // news.setContent(article.optString("description", ""));
-    // news.setSourceUrl(article.optString("url", ""));
-
-    // // source 객체에서 이름 추출
-    // JSONObject source = article.optJSONObject("source");
-    // if (source != null) {
-    // news.setSourceName(source.optString("name", "NewsAPI"));
-    // } else {
-    // news.setSourceName("NewsAPI");
-    // }
-
-    // // 유효한 뉴스만 추가
-    // if (news.getSourceUrl() != null && !news.getSourceUrl().isEmpty()) {
-    // newsList.add(news);
-    // }
-    // }
-
-    // } catch (Exception e) {
-    // log.error("NewsAPI 파싱 오류", e);
-    // }
-
-    // return newsList;
-    // }
-
-    // /**
-    // * ✅ 직군별 특화 관련성 판단
-    // */
-    // private boolean isJobGroupRelated(String title, String content, String
-    // jobGroup) {
-    // if (title == null)
-    // return false;
-    // // 제목이 없으면 직군 관련성을 판단할 수 없으므로 false 반환
-
-    // String text = (title + " " + (content != null ? content : "")).toLowerCase();
-    // // 제목 + 내용(본문)을 하나의 문자열로 합치고 모두 소문자로 변환해서 비교를 쉽게 만듦
-
-    // // 1. 공통 제외 키워드 체크
-    // for (String excludeKeyword : COMMON_EXCLUDE_KEYWORDS) {
-    // if (text.contains(excludeKeyword.toLowerCase())) {
-    // return false;
-    // }
-    // }
-    // // 공통 제외 키워드 목록에 있는 단어가 포함되어 있으면 이 뉴스는 직군과 무관하다고 판단하여 즉시 false
-
-    // // 2. 해당 직군 필터링 키워드 점수 계산
-    // Set<String> jobFilters = JOB_GROUP_FILTERS.getOrDefault(jobGroup, Set.of());
-    // // 직군(jobGroup)별 필터링 키워드 목록을 가져옴. 없으면 빈 Set 반환
-
-    // int score = 0;
-    // // 관련성 점수를 계산하기 위한 변수
-
-    // for (String filter : jobFilters) {
-    // if (text.contains(filter.toLowerCase())) {
-    // // 뉴스 텍스트에 해당 직군의 필터 단어가 포함되면
-
-    // if (title.toLowerCase().contains(filter.toLowerCase())) {
-    // score += 2;
-    // } else {
-    // score += 1;
-    // }
-    // // 제목에 포함되면 가중치 2점, 본문에만 있으면 1점 추가
-    // }
-    // }
-
-    // // 3. 채용 관련 키워드 가산점
-    // if (text.matches(".*채용|구인|모집|입사|취업|면접.*")) {
-    // score += 2;
-    // }
-    // // 텍스트 안에 '채용, 구인, 모집, 입사, 취업, 면접' 같은 단어가 있으면 +2점 추가
-    // // 즉 "채용 관련 뉴스" 가능성이 있으면 강하게 가산점
-
-    // // 4. 직군별 임계점 설정 (개발직군은 더 까다롭게)
-    // int threshold = "개발".equals(jobGroup) ? 3 : 2;
-    // // 개발 직군이면 임계점을 3점으로 설정해 더 엄격하게,
-    // // 그 외 직군은 2점 이상이면 관련된 것으로 판단
-
-    // boolean isRelated = score >= threshold;
-    // // 최종 점수가 임계값 이상이면 직군 관련 뉴스라고 판단
-
-    // log.debug("'{}' 직군 관련성 판단 - 제목: '{}', 점수: {}/{}, 결과: {}",
-    // jobGroup,
-    // title.length() > 40 ? title.substring(0, 40) + "..." : title,
-    // score, threshold, isRelated);
-    // // 디버깅용 로그: 어떤 직군으로 평가했는지, 제목 일부, 점수/임계치, 최종결과 출력
-
-    // return isRelated;
-    // // 최종 판단 결과 반환
-    // }
 
     /**
      * HTML 태그 제거 및 특수 문자 변환
