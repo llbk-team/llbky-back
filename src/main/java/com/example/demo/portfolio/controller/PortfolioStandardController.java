@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.member.dao.MemberDao;
-import com.example.demo.member.entity.Member;
 import com.example.demo.portfolio.entity.PortfolioStandard;
 import com.example.demo.portfolio.service.PortfolioStandardService;
 
@@ -28,8 +26,6 @@ public class PortfolioStandardController {
     @Autowired
     private PortfolioStandardService portfolioStandardService;
 
-    @Autowired 
-    private MemberDao memberDao;
     /**
      * 모든 평가 기준 조회
      * GET /portfolio-standard
@@ -40,37 +36,27 @@ public class PortfolioStandardController {
         List<PortfolioStandard> standards = portfolioStandardService.getAllStandards();
         return ResponseEntity.ok(standards);
     }
-    
 
-    //회원별 평가 기준
+    // 회원별 평가 기준
     @GetMapping("/member")
     public ResponseEntity<List<PortfolioStandard>> getStandardsByMember(@RequestParam("memberId") int memberId) {
-        Member member = memberDao.findById(memberId);
-        if(member==null){
-            return ResponseEntity.notFound().build();
-        }
-        String jobGroup = member.getJobGroup();
-        String jobRole = member.getJobRole();
-
-        List<PortfolioStandard> standards = portfolioStandardService.getStandardsByJobInfo(jobGroup, jobRole);
+        List<PortfolioStandard> standards = portfolioStandardService.getStandardsByMemberId(memberId);
         return ResponseEntity.ok(standards);
     }
-    
-
 
     /**
      * 직군 + 직무로 평가 기준 조회
-     * /portfolio-standard/by-job?jobGroup=백엔드&jobRole=백엔드 
+     * /portfolio-standard/by-job?jobGroup=백엔드&jobRole=백엔드
      */
     @GetMapping("/by-job")
     public ResponseEntity<List<PortfolioStandard>> getStandardsByJob(
             @RequestParam("jobGroup") String jobGroup,
             @RequestParam("jobRole") String jobRole) {
-        
-            // 직군/직무 정보가 모두 있는 경우
-            List<PortfolioStandard> standards = portfolioStandardService.getStandardsByJobInfo(jobGroup, jobRole);
-            
-            return ResponseEntity.ok(standards);
-        }
-        
+
+        // 직군/직무 정보가 모두 있는 경우
+        List<PortfolioStandard> standards = portfolioStandardService.getStandardsByJobInfo(jobGroup, jobRole);
+
+        return ResponseEntity.ok(standards);
+    }
+
 }

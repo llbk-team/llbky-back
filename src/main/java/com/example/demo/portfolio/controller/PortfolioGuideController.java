@@ -40,9 +40,7 @@ public class PortfolioGuideController {
     /**
      * ⭐ 새 가이드 생성
      * POST http://localhost:8080/portfolio-guide/create
-     * Content-Type: application/json
-     * Body: {"memberId": 1, "title": "백엔드 포트폴리오", "standardId": 1}
-     * 
+
      * @param request 가이드 생성 요청 (JSON → @RequestBody로 매핑)
      * @return 생성된 PortfolioGuide 엔티티
      */
