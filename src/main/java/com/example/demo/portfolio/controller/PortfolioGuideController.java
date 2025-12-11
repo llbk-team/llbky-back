@@ -25,9 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 포트폴리오 가이드 코칭 컨트롤러
- * ⭐ 기존 DB 스키마 유지 + 올바른 어노테이션 사용
- * - GET (PathVariable) → @ModelAttribute 사용
- * - POST/PUT → @RequestBody 사용
+ * 
  * - guide_feedback 필드는 선택적 사용
  * - PDF 다운로드 지원
  */

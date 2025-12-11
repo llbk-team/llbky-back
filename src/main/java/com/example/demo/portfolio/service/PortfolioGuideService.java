@@ -303,23 +303,23 @@ public class PortfolioGuideService {
 
         // ========== AI 에이전트 호출 ==========
         // 실제 구현: portfolioGuideAgent.provideCoaching(request)
-        // GuideResult result = provideCoaching(request);
+        GuideResult result = provideCoaching(request);
 
         // ========== 임시 더미 응답 (개발 중) ==========
         // 실제로는 AI 에이전트에서 생성
-        GuideResult result = GuideResult.builder()
-                .success(true) // 코칭 성공 여부
-                .coachingMessage("입력하신 내용이 프로젝트명으로 적절합니다.") // AI 피드백 메시지
-                .appropriatenessScore(85) // 적절성 점수 (0-100)
-                .progressPercentage(20) // 전체 진행률
-                .suggestions(List.of( // AI 제안사항 리스트
-                        "더 구체적인 기술스택을 포함해보세요",
-                        "프로젝트의 목표를 명확히 해보세요"))
-                .examples(List.of( // 예시 리스트
-                        "AI 기반 포트폴리오 코칭 플랫폼 (Vue.js + Spring Boot)",
-                        "실시간 AI 피드백 시스템"))
-                .nextStepGuide("다음으로 프로젝트 기간을 입력해주세요.") // 다음 단계 안내
-                .build();
+        // GuideResult result = GuideResult.builder()
+        //         .success(true) // 코칭 성공 여부
+        //         .coachingMessage("입력하신 내용이 프로젝트명으로 적절합니다.") // AI 피드백 메시지
+        //         .appropriatenessScore(85) // 적절성 점수 (0-100)
+        //         .progressPercentage(20) // 전체 진행률
+        //         .suggestions(List.of( // AI 제안사항 리스트
+        //                 "더 구체적인 기술스택을 포함해보세요",
+        //                 "프로젝트의 목표를 명확히 해보세요"))
+        //         .examples(List.of( // 예시 리스트
+        //                 "AI 기반 포트폴리오 코칭 플랫폼 (Vue.js + Spring Boot)",
+        //                 "실시간 AI 피드백 시스템"))
+        //         .nextStepGuide("다음으로 프로젝트 기간을 입력해주세요.") // 다음 단계 안내
+        //         .build();
 
         // ⭐ 기본적으로는 DB에 저장하지 않고 실시간으로만 반환
         // 필요한 경우에만 optionalSaveFeedback() 호출하여 저장
