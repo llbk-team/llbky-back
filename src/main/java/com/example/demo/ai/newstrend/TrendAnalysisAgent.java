@@ -25,8 +25,7 @@ public class TrendAnalysisAgent {
   @Autowired
   private ObjectMapper mapper;
 
-  public TrendAnalysisAgent(ChatClient.Builder chatClientBuilder, TrendInsightDao trendInsightDao, MemberDao memberDao,
-      WebClient.Builder webClientBuilder) {
+  public TrendAnalysisAgent(ChatClient.Builder chatClientBuilder, TrendInsightDao trendInsightDao, MemberDao memberDao) {
     this.chatClient = chatClientBuilder.build();
   }
 

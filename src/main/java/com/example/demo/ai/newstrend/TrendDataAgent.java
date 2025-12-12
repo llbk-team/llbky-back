@@ -39,8 +39,6 @@ public class TrendDataAgent {
 
   @Autowired
   private ObjectMapper mapper;
-  @Autowired
-  private NewsSecondSummaryAgent newsSecondSummaryAgent;
 
   public TrendDataAgent(ChatClient.Builder chatClientBuilder, WebClient.Builder webClientBuilder) {
     this.chatClient = chatClientBuilder.build();

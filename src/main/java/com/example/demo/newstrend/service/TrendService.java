@@ -26,16 +26,23 @@ public class TrendService {
   private TrendInsightDao trendInsightDao;
   @Autowired
   private ObjectMapper mapper;
-
-  // 트렌드 분석 실행
-  @Transactional
-  public TrendAnalyzeResponse analyzeTrend(Integer memberId) throws Exception {
+  
+  // 오늘 데이터 조회 없으면 자동 분석
+  public TrendAnalyzeResponse getAnalyzeToday(Integer memberId) throws Exception {
+    LocalDate today = LocalDate.now();
+    TrendInsight latest = trendInsightDao.selectLatestTrendInsight(memberId);
+    
+    // 오늘 분석 데이터가 있으면 DB값 반환
+    if (latest != null && latest.getCreatedAt() != null && latest.getCreatedAt().toLocalDate().isEqual(today)) {
+      return entityToResponse(latest);
+    }
+    // 오늘 데이터 없을시 분석
     // 트렌드 원본 데이터 수집
     TrendDataContext context = trendDataAgent.collect(memberId);
-
+  
     // 원본 데이터 넘겨서 LLM 분석 실행
     TrendAnalyzeResponse response = trendAnalysisAgent.analyze(context);
-
+  
     // DB 저장
     TrendInsight entity = new TrendInsight();
     entity.setMemberId(context.getMemberId());
@@ -43,29 +50,10 @@ public class TrendService {
     entity.setEndDate(LocalDate.parse(context.getEndDate()));
     entity.setTrendJson(mapper.writeValueAsString(response.getTrendJson()));
     entity.setInsightJson(mapper.writeValueAsString(response.getInsightJson()));
-
+  
     trendInsightDao.insertTrendInsight(entity);
-
+  
     return response;
-  }
-
-  // 최신 트렌드 데이터 조회
-  public TrendInsight getLatestTrend(Integer memberId) {
-    return trendInsightDao.selectLatestTrendInsight(memberId);
-  }
-
-  // 오늘 데이터 조회 없으면 자동 분석
-  public TrendAnalyzeResponse getAnalyzeToday(Integer memberId) throws Exception {
-    LocalDate today = LocalDate.now();
-    TrendInsight latest = trendInsightDao.selectLatestTrendInsight(memberId);
-
-    // 오늘 분석 데이터가 있으면 DB값 반환
-    if (latest != null && latest.getCreatedAt() != null && latest.getCreatedAt().toLocalDate().isEqual(today)) {
-      return entityToResponse(latest);
-    }
-
-    // 오늘 데이터 없을시 분석
-    return analyzeTrend(memberId);
   }
 
   // DB entity -> DTO 변환
