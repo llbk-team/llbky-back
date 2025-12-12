@@ -132,8 +132,6 @@ public class NewsSummaryService {
         return responses;
     }
 
-
-
     public boolean existsByUrl(String sourceUrl) {
         return newsSummaryDao.selectNewsSummaryBySourceUrl(sourceUrl) != null;
     }
@@ -284,8 +282,6 @@ public class NewsSummaryService {
         response.setSentiment(analysisData.getSentiment());
         // 파싱된(또는 기본) 분석 데이터에서 감성 결과를 꺼내서 응답에 넣음
         response.setSentimentScores(analysisData.getSentimentScores());
-
-       
 
         response.setBiasDetected(analysisData.getBiasDetected());
         // 편향 탐지 여부 설정
