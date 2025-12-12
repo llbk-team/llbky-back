@@ -34,20 +34,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PortfolioGuideService {
 
-   @Autowired
-    private  PortfolioGuideDao portfolioGuideDao;
     @Autowired
-    private  PortfolioGuideAgent portfolioGuideAgent;
+    private PortfolioGuideDao portfolioGuideDao;
     @Autowired
-    private  ObjectMapper objectMapper;
+    private PortfolioGuideAgent portfolioGuideAgent;
     @Autowired
-    private  MemberDao memberDao;
+    private ObjectMapper objectMapper;
     @Autowired
-    private  PortfolioStandardDao portfolioStandardDao;
+    private MemberDao memberDao;
+    @Autowired
+    private PortfolioStandardDao portfolioStandardDao;
 
     @Autowired
     private PortfolioGuidePdfService pdfService;
-
 
     /**
      * 메인 코칭 메서드
@@ -132,7 +131,7 @@ public class PortfolioGuideService {
     }
 
     /**
-     * ⭐ 수정: 저장된 피드백 조회 (JSONB → GuideResult 변환)
+     * ⭐ 저장된 피드백 조회 (JSONB → GuideResult 변환)
      */
     public GuideResult getGuideFeedback(Integer guideId) throws com.fasterxml.jackson.core.JsonProcessingException {
 
@@ -257,15 +256,14 @@ public class PortfolioGuideService {
             throw new IllegalArgumentException("존재하지 않는 가이드입니다: " + request.getGuideId());
         }
 
-        
         GuideContentData contentData = new GuideContentData();
         contentData.setSteps(request.getGuideSteps()); // ← 이게 List<GuideStepData>임
         contentData.setLastUpdated(LocalDateTime.now().toString());
         String contentJson = objectMapper.writeValueAsString(contentData);
-        
-       int completionPercentage = request.getCompletionPercentage() != null 
-    ? request.getCompletionPercentage() 
-    : 0;
+
+        int completionPercentage = request.getCompletionPercentage() != null
+                ? request.getCompletionPercentage()
+                : 0;
 
         Map<String, Object> updateParams = new HashMap<>();
         updateParams.put("guideId", request.getGuideId());
@@ -300,60 +298,9 @@ public class PortfolioGuideService {
         // INFO 로그: AI 코칭 요청 시작
         log.info("AI 코칭 요청 - memberId: {}, fieldType: {}",
                 request.getMemberId(), request.getInputFieldType());
-
         // ========== AI 에이전트 호출 ==========
-        // 실제 구현: portfolioGuideAgent.provideCoaching(request)
         GuideResult result = provideCoaching(request);
-
-        // ========== 임시 더미 응답 (개발 중) ==========
-        // 실제로는 AI 에이전트에서 생성
-        // GuideResult result = GuideResult.builder()
-        //         .success(true) // 코칭 성공 여부
-        //         .coachingMessage("입력하신 내용이 프로젝트명으로 적절합니다.") // AI 피드백 메시지
-        //         .appropriatenessScore(85) // 적절성 점수 (0-100)
-        //         .progressPercentage(20) // 전체 진행률
-        //         .suggestions(List.of( // AI 제안사항 리스트
-        //                 "더 구체적인 기술스택을 포함해보세요",
-        //                 "프로젝트의 목표를 명확히 해보세요"))
-        //         .examples(List.of( // 예시 리스트
-        //                 "AI 기반 포트폴리오 코칭 플랫폼 (Vue.js + Spring Boot)",
-        //                 "실시간 AI 피드백 시스템"))
-        //         .nextStepGuide("다음으로 프로젝트 기간을 입력해주세요.") // 다음 단계 안내
-        //         .build();
-
-        // ⭐ 기본적으로는 DB에 저장하지 않고 실시간으로만 반환
-        // 필요한 경우에만 optionalSaveFeedback() 호출하여 저장
-
         return result; // AI 코칭 결과 반환
-    }
-
-    /**
-     * ⭐ 선택적 AI 피드백 저장 (필요시에만 사용)
-     * - 특정 가이드의 AI 피드백을 guide_feedback 필드에 저장
-     * - 일반적으로는 실시간 코칭만 사용하고 저장하지 않음
-     * 
-     * @param guideId  가이드 ID
-     * @param feedback 저장할 AI 피드백 (GuideResult 객체)
-     * @throws Exception JSON 변환 실패 시
-     */
-    @Transactional // 트랜잭션 처리
-    public void optionalSaveFeedback(Integer guideId, GuideResult feedback) throws Exception {
-        // INFO 로그: 피드백 저장 시작
-        log.info("AI 피드백 선택적 저장 - guideId: {}", guideId);
-
-        // ========== GuideResult 객체 → JSON 문자열 변환 ==========
-        String feedbackJson = objectMapper.writeValueAsString(feedback);
-
-        // ========== DB 업데이트 파라미터 설정 ==========
-        Map<String, Object> updateParams = new HashMap<>();
-        updateParams.put("guideId", guideId);
-        updateParams.put("guideFeedback", feedbackJson); // guide_feedback 필드만 업데이트
-
-        // MyBatis Dao를 통해 UPDATE 실행
-        portfolioGuideDao.updateGuideFeedback(updateParams);
-
-        // 저장 완료 로그
-        log.info("피드백 저장 완료 - guideId: {}", guideId);
     }
 
     /**
@@ -514,8 +461,6 @@ public class PortfolioGuideService {
         // ========== 실제 구현은 PortfolioGuidePdfService 사용 ==========
         pdfService.generateMemberGuidesPdf(guides, response);
 
-        
     }
 
-  
 }

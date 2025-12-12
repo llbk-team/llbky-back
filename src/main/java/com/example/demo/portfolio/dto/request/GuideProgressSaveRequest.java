@@ -25,7 +25,5 @@ public class GuideProgressSaveRequest {
 
     private List<GuideStepData> guideSteps;
 
-    public List<GuideStepData> getGuideSteps() {
-        return guideSteps;
-    }
+   
 }
