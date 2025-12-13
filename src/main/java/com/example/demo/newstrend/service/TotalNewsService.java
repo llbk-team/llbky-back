@@ -300,14 +300,16 @@ public class TotalNewsService {
         entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords())); // 키워드 리스트
 
         // 4-4. DB에 저장
-        newsSummaryService.saveNewsSummary(entity);
-        totalAnalyzed++; // 성공 카운트 증가
-
-        // 저장 완료 로그 (주요 분석 결과 포함)
-        log.info("뉴스 분석 및 저장 완료: {} (감정: {})",
-            newsRequest.getTitle(),
-            analysisResult.getAnalysis().getSentiment() // 감정 분석 결과
-        ); // 신뢰도 점수
+        NewsSummary savedSummary = newsSummaryService.saveNewsSummary(entity);
+        if (savedSummary == entity) {
+          totalAnalyzed++;
+          log.info("뉴스 분석 및 저장 완료: {} (감정: {})",
+              newsRequest.getTitle(),
+              analysisResult.getAnalysis().getSentiment());
+        } else {
+          duplicateCount++;
+          log.debug("중복 뉴스 스킵: {}", newsRequest.getTitle());
+        }
 
         // API 호출 제한(Rate Limit) 방지를 위한 대기
         Thread.sleep(1000); // 1초 대기 (AI 분석은 시간이 걸리므로 여유있게 설정)
@@ -339,28 +341,28 @@ public class TotalNewsService {
 
     List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
 
-     //  1단계: 오늘 뉴스 체크 (기존 메서드 활용)
-    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId,15);
+    // 1단계: 오늘 뉴스 체크 (기존 메서드 활용)
+    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 15);
 
     // 2단계 데이터 없으면 자동 수집
     if (todayNews == null || todayNews.isEmpty()) {
       log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
-    
+
       int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit); // ✅ 통합 메소드 호출
 
       log.info("자동 수집 완료 - {}건 분석됨", analyzed);
-    }else{
+    } else {
       log.info("오늘 뉴스 이미 존재 - {}건", todayNews.size());
     }
 
-      // 3단계: 일주일치 뉴스 먼저 조회
-     List<NewsAnalysisResponse> weeklyNews = newsSummaryService.getNewsByJobGroup(
+    // 3단계: 일주일치 뉴스 먼저 조회
+    List<NewsAnalysisResponse> weeklyNews = newsSummaryService.getNewsByJobGroup(
         jobGroupKeywords, memberId, "week", null, null, limit);
-    
+
     log.info("일주일치 뉴스 반환 - {}건", weeklyNews != null ? weeklyNews.size() : 0);
-    
+
     return weeklyNews != null ? weeklyNews : new ArrayList<>();
-}
+  }
 
   /**
    * 뉴스 검색 및 수집 (API 엔드포인트용)
