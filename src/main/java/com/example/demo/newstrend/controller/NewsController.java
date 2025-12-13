@@ -54,7 +54,7 @@ public class NewsController {
     @GetMapping("/today")
     public ResponseEntity<Map<String, Object>> getTodayNews(
             @RequestParam int memberId,
-            @RequestParam(defaultValue = "15") int limit) throws Exception {
+            @RequestParam(defaultValue = "50") int limit) throws Exception {
 
         log.info("오늘 뉴스 조회 요청 - memberId: {}, limit: {}", memberId, limit);
 

@@ -46,13 +46,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TotalNewsService {
   @Autowired
-  private JobKeywordGenerationAgent jobKeywordGenerationAgent; //ai로 직군별 키워드 생성
+  private JobKeywordGenerationAgent jobKeywordGenerationAgent; // ai로 직군별 키워드 생성
 
   @Autowired
   private JobRelevanceAgent jobRelevanceAgent;// 뉴스 - 직군 관련성 평가
 
   @Autowired
-  private NewsAIService newsAIService;  // 뉴스 AI 분석 (요약, 감정, 키워드)
+  private NewsAIService newsAIService; // 뉴스 AI 분석 (요약, 감정, 키워드)
 
   @Autowired
   private NewsCollectorService newsCollectorService; // 네이버 API로 뉴스 수집
@@ -61,7 +61,7 @@ public class TotalNewsService {
   private NewsSummaryService newsSummaryService;// DB 저장/조회
 
   @Autowired
-  private ObjectMapper objectMapper;  // JSON 직렬화/역직렬화
+  private ObjectMapper objectMapper; // JSON 직렬화/역직렬화
 
   @Autowired
   private MemberDao memberDao;// 회원 정보 조회
@@ -73,12 +73,12 @@ public class TotalNewsService {
   // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
   @Transactional
   public List<NewsAnalysisResponse> getNewsFeed(
-      int memberId,           // 회원 ID - 개인화된 피드 제공용
-      String period,          // 조회 기간 ("week", "month" 등)
-      LocalDateTime lastPublishedAt,  // 무한 스크롤용 - 마지막 뉴스 발행일
-      Integer lastSummaryId,         // 무한 스크롤용 - 마지막 뉴스 ID  
-      int limit               // 한 번에 가져올 뉴스 개수
-      ) throws Exception {
+      int memberId, // 회원 ID - 개인화된 피드 제공용
+      String period, // 조회 기간 ("week", "month" 등)
+      LocalDateTime lastPublishedAt, // 무한 스크롤용 - 마지막 뉴스 발행일
+      Integer lastSummaryId, // 무한 스크롤용 - 마지막 뉴스 ID
+      int limit // 한 번에 가져올 뉴스 개수
+  ) throws Exception {
 
     List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
 
@@ -126,38 +126,36 @@ public class TotalNewsService {
       return List.of("채용", "취업", "일자리");
     }
 
-    List<String> baseKeywords= getBaseKeywordsByJobGroup(member.getJobGroup());
+    List<String> baseKeywords = getBaseKeywordsByJobGroup(member.getJobGroup());
 
-    List<String> aiKeywords= jobKeywordGenerationAgent.generateJobKeywords(member.getJobGroup(), member.getJobRole());
+    List<String> aiKeywords = jobKeywordGenerationAgent.generateJobKeywords(member.getJobGroup(), member.getJobRole());
 
     Set<String> allKeywords = new LinkedHashSet<>(baseKeywords);
-    allKeywords.addAll(aiKeywords.stream().filter(k->k.length()<=15).collect(Collectors.toList()));
+    allKeywords.addAll(aiKeywords.stream().filter(k -> k.length() <= 15).collect(Collectors.toList()));
 
     List<String> result = new ArrayList<>(allKeywords);
-    log.info("최종 키워드: 기본{}개 + AI{}개 = 총{}개", 
+    log.info("최종 키워드: 기본{}개 + AI{}개 = 총{}개",
         baseKeywords.size(), aiKeywords.size(), result.size());
     return result;
-    
 
   }
 
- private List<String> getBaseKeywordsByJobGroup(String jobGroup) {
-  Map<String, List<String>> coreKeywords = Map.of(
-      "마케팅", Arrays.asList("마케팅", "브랜드", "광고", "홍보", "캠페인"),
-      "개발", Arrays.asList("개발자", "프로그래밍", "IT", "소프트웨어"),  
-      "디자인", Arrays.asList("디자인", "UI", "UX", "디자이너"),
-      "기획", Arrays.asList("기획", "전략", "사업", "서비스"),
-      "PM", Arrays.asList("PM", "매니저", "프로젝트", "관리"),
-      "AI/데이터", Arrays.asList("AI", "데이터", "분석", "인공지능"),
-      "영업", Arrays.asList("영업", "세일즈", "Sales"),
-      "경영", Arrays.asList("경영", "관리", "전략"),
-      "교육", Arrays.asList("교육", "강의", "트레이닝"),
-      "기타", Arrays.asList("채용", "취업", "인사")
-  );
-  
-  return coreKeywords.getOrDefault(jobGroup, Arrays.asList("채용", "취업", "일자리"));
-}
- 
+  private List<String> getBaseKeywordsByJobGroup(String jobGroup) {
+    Map<String, List<String>> coreKeywords = Map.of(
+        "마케팅", Arrays.asList("마케팅", "브랜드", "광고", "홍보", "캠페인"),
+        "개발", Arrays.asList("개발자", "프로그래밍", "IT", "소프트웨어"),
+        "디자인", Arrays.asList("디자인", "UI", "UX", "디자이너"),
+        "기획", Arrays.asList("기획", "전략", "사업", "서비스"),
+        "PM", Arrays.asList("PM", "매니저", "프로젝트", "관리"),
+        "AI/데이터", Arrays.asList("AI", "데이터", "분석", "인공지능"),
+        "영업", Arrays.asList("영업", "세일즈", "Sales"),
+        "경영", Arrays.asList("경영", "관리", "전략"),
+        "교육", Arrays.asList("교육", "강의", "트레이닝"),
+        "기타", Arrays.asList("채용", "취업", "인사"));
+
+    return coreKeywords.getOrDefault(jobGroup, Arrays.asList("채용", "취업", "일자리"));
+  }
+
   /**
    * 단일 뉴스 분석 및 저장
    */
@@ -172,10 +170,9 @@ public class TotalNewsService {
     // AI 분석 수행
     NewsAnalysisResult analysisResult = newsAIService.analyzeNews(request);
     log.info("AI 분석 완료 - 감정: {}",
-        analysisResult.getAnalysis().getSentiment()
-       );
+        analysisResult.getAnalysis().getSentiment());
 
-    // 엔티티 생성 (NewsAnalysisResult 구조에 맞게 매핑)  DTO → Entity 변환: API 응답을 DB 저장용 엔티티로 매핑
+    // 엔티티 생성 (NewsAnalysisResult 구조에 맞게 매핑) DTO → Entity 변환: API 응답을 DB 저장용 엔티티로 매핑
     NewsSummary entity = new NewsSummary();
     // 요청에 포함된 memberId 사용
     entity.setMemberId(request.getMemberId());
@@ -189,7 +186,8 @@ public class TotalNewsService {
     if (analysisResult.getAnalysis() != null) {
       entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary());
     }
-    // analysisJson / keywordsJson은 ObjectMapper로 직렬화   복잡한 AI 분석 결과를 JSON으로 저장 (스키마 유연성)
+    // analysisJson / keywordsJson은 ObjectMapper로 직렬화 복잡한 AI 분석 결과를 JSON으로 저장 (스키마
+    // 유연성)
     entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis()));
     entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords()));
 
@@ -309,7 +307,7 @@ public class TotalNewsService {
         log.info("뉴스 분석 및 저장 완료: {} (감정: {})",
             newsRequest.getTitle(),
             analysisResult.getAnalysis().getSentiment() // 감정 분석 결과
-            ); // 신뢰도 점수
+        ); // 신뢰도 점수
 
         // API 호출 제한(Rate Limit) 방지를 위한 대기
         Thread.sleep(1000); // 1초 대기 (AI 분석은 시간이 걸리므로 여유있게 설정)
@@ -340,40 +338,29 @@ public class TotalNewsService {
     log.info("오늘 뉴스 조회 - memberId: {}, limit: {}", memberId, limit);
 
     List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
-      // 1단계: 일주일치 뉴스 먼저 조회
-    List<NewsAnalysisResponse> weeklyNews = newsSummaryService.getNewsByJobGroup(
-        jobGroupKeywords, memberId, "week", null, null, limit);
 
+     //  1단계: 오늘 뉴스 체크 (기존 메서드 활용)
+    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId,50 );
 
-    log.info("저장된 일주일 뉴스 - {}건", weeklyNews != null ? weeklyNews.size() : 0);
-    // 2단계: 충분한 뉴스가 있으면 바로 반환
-    if (weeklyNews != null && weeklyNews.size() >= Math.min(3, limit)) {
-        log.info("저장된 뉴스 충분 - {}건 반환", weeklyNews.size());
-        return weeklyNews;
-    }
-    //  3단계: 오늘 뉴스 체크 (기존 메서드 활용)
-    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 15);
-
-    // 4단계 데이터 없으면 자동 수집
+    // 2단계 데이터 없으면 자동 수집
     if (todayNews == null || todayNews.isEmpty()) {
       log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
     
-
       int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit); // ✅ 통합 메소드 호출
 
       log.info("자동 수집 완료 - {}건 분석됨", analyzed);
-
-      // 수집 후 다시 일주일치 조회
-       List<NewsAnalysisResponse> updatedNews = newsSummaryService.getNewsByJobGroup(
-          jobGroupKeywords, memberId, "week", null, null, limit);
-        
-        return updatedNews != null ? updatedNews : weeklyNews;
-
+    }else{
+      log.info("오늘 뉴스 이미 존재 - {}건", todayNews.size());
     }
-    //5단계: 오늘 뉴스가 있으면 일주일치 반환
-     log.info("오늘 뉴스 존재 - 저장된 일주일치 뉴스 반환");
+
+      // 3단계: 일주일치 뉴스 먼저 조회
+     List<NewsAnalysisResponse> weeklyNews = newsSummaryService.getNewsByJobGroup(
+        jobGroupKeywords, memberId, "week", null, null, limit);
+    
+    log.info("일주일치 뉴스 반환 - {}건", weeklyNews != null ? weeklyNews.size() : 0);
+    
     return weeklyNews != null ? weeklyNews : new ArrayList<>();
-  }
+}
 
   /**
    * 뉴스 검색 및 수집 (API 엔드포인트용)
@@ -421,7 +408,7 @@ public class TotalNewsService {
     NewsSummaryResponse analysis = result.getAnalysis();
     response.setSentiment(analysis.getSentiment());
     response.setSentimentScores(analysis.getSentimentScores());
-    
+
     response.setBiasDetected(analysis.getBiasDetected());
     response.setBiasType(analysis.getBiasType());
     response.setCategory(analysis.getCategory());
@@ -434,7 +421,5 @@ public class TotalNewsService {
 
     return response;
   }
-
- 
 
 }
