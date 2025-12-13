@@ -18,4 +18,5 @@ public class TrendDataContext {
   private Map<String, Object> rawTrendData; // 트렌드 원본 데이터
 
   private String metaNews; // 뉴스 2차 요약
+  private Map<String, Integer> keywordFrequency; // 뉴스 키워드 빈도
 }
