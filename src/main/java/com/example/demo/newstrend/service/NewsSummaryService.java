@@ -190,7 +190,7 @@ public class NewsSummaryService {
      * @throws com.fasterxml.jackson.core.JsonProcessingException JSON 파싱 실패 시
      * 
      */
-    private NewsAnalysisResponse convertToResponse(NewsSummary summary)
+    public NewsAnalysisResponse convertToResponse(NewsSummary summary)
             throws com.fasterxml.jackson.core.JsonProcessingException {
         // summary 엔티티(또는 DTO)를 받아서 API용 응답 DTO인 NewsAnalysisResponse로 변환하는 메서드
         // JSON 파싱 과정에서 Jackson의 JsonProcessingException이 발생할 수 있으므로 throws로 선언함

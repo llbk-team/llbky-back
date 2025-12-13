@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ import com.example.demo.newstrend.service.NewsSummaryService;
 import com.example.demo.newstrend.service.TotalNewsService;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 /**
  * 뉴스 트렌드 컨트롤러
@@ -50,7 +52,25 @@ public class NewsController {
      * @param memberId 회원 ID
      * @param limit    조회 개수 (기본값: 15)
      * @return 오늘 뉴스 리스트 (일주일치 포함)
+     * 
      */
+    @GetMapping(value = "/today/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<NewsAnalysisResponse> streamTodayNews(
+            @RequestParam("memberId") int memberId,
+            @RequestParam(value = "limit", defaultValue = "100") int limit) {
+        
+        log.info("SSE 스트리밍 요청 - memberId: {}, limit: {}", memberId, limit);
+        
+        return totalNewsService.streamTodayNews(memberId, limit)
+            .doOnComplete(() -> log.info("SSE 스트리밍 완료 - memberId: {}", memberId))
+            .doOnError(error -> log.error("SSE 스트리밍 에러 - memberId: {}", memberId, error))
+            .onErrorResume(error -> {
+                log.error("SSE 에러 복구 시도", error);
+                return Flux.empty();
+            });
+    }
+
+
     @GetMapping("/today")
     public ResponseEntity<Map<String, Object>> getTodayNews(
             @RequestParam int memberId,

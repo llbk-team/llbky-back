@@ -60,7 +60,7 @@ public class NewsCollectorService {
                 .uri(uriBuilder -> uriBuilder
                         .path("/news.json")
                         .queryParam("query", keyword)
-                        .queryParam("display", Math.min(display, 50))
+                        .queryParam("display", Math.min(display, 100))
                         .queryParam("sort", "date")
                         .build())
                 .header("X-Naver-Client-Id", clientId)
@@ -249,6 +249,7 @@ public class NewsCollectorService {
      */
     private List<NewsAnalysisRequest> parseNaverNews(String jsonResponse) {
         List<NewsAnalysisRequest> newsList = new ArrayList<>();
+        int filteredByLanguage = 0;
 
         try {
             JSONObject json = new JSONObject(jsonResponse);
@@ -258,10 +259,20 @@ public class NewsCollectorService {
                 JSONObject item = items.getJSONObject(i);
 
                 NewsAnalysisRequest news = new NewsAnalysisRequest();
-                news.setTitle(cleanHtml(item.optString("title", "")));
-                news.setContent(cleanHtml(item.optString("description", "")));
+                String title = cleanHtml(item.optString("title", ""));
+                String content = cleanHtml(item.optString("description", ""));
+                
+                news.setTitle(title);
+                news.setContent(content);
                 news.setSourceUrl(item.optString("link", ""));
                 news.setSourceName("네이버뉴스");
+
+                // ✅ 영어 기사 필터링 (제목 기준으로 영어 비율 체크)
+                if (isEnglishArticle(title)) {
+                    filteredByLanguage++;
+                    log.debug("영어 기사 제외: {}", title);
+                    continue;
+                }
 
                 // ✅ 날짜 파싱 및 저장
                 String pubDate = item.optString("pubDate", "");
@@ -280,12 +291,46 @@ public class NewsCollectorService {
                     newsList.add(news);
                 }
             }
+            
+            if (filteredByLanguage > 0) {
+                log.info("영어 기사 필터링: {}건 제외", filteredByLanguage);
+            }
 
         } catch (Exception e) {
             log.error("네이버 뉴스 파싱 오류", e);
         }
 
         return newsList;
+    }
+    
+    /**
+     * 영어 기사 판별 (제목 기준)
+     * - 영문자 비율이 50% 이상이면 영어 기사로 판단
+     */
+    private boolean isEnglishArticle(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        
+        // 공백 제거
+        String cleanText = text.replaceAll("\\s+", "");
+        int totalChars = cleanText.length();
+        
+        if (totalChars == 0) {
+            return false;
+        }
+        
+        // 영문자 개수 카운트
+        int englishChars = 0;
+        for (char c : cleanText.toCharArray()) {
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+                englishChars++;
+            }
+        }
+        
+        // 영문자 비율이 50% 이상이면 영어 기사로 판단
+        double englishRatio = (double) englishChars / totalChars;
+        return englishRatio >= 0.5;
     }
 
     private LocalDateTime parsePubDate(String pubDateStr) {

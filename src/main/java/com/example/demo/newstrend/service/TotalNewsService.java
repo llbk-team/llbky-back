@@ -1,5 +1,6 @@
 package com.example.demo.newstrend.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 
 /**
  * 뉴스 통합 서비스
@@ -70,6 +74,137 @@ public class TotalNewsService {
     this.jobKeywordGenerationAgent = jobKeywordGenerationAgent;
   }
 
+  /**
+   * SSE 스트리밍으로 뉴스 제공
+   * 1. 기존 DB 데이터 먼저 빠르게 스트리밍 (50ms 간격)
+   * 2. 데이터 부족 시 실시간 수집 + 분석 + 스트리밍
+   */
+  public Flux<NewsAnalysisResponse> streamTodayNews(int memberId, int limit) {
+    log.info("SSE 스트리밍 시작 - memberId: {}, limit: {}", memberId, limit);
+    
+    return Flux.<NewsAnalysisResponse>create(emitter -> {
+        CompletableFuture.runAsync(() -> {
+            try {
+                List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
+                
+                // 1단계: 기존 DB 데이터 먼저 스트리밍
+                List<NewsAnalysisResponse> existing = newsSummaryService.getNewsByJobGroup(
+                    jobGroupKeywords, memberId, "week", null, null, 50);
+                
+                if (existing != null && existing.size() >= 20) {
+                    // 충분한 데이터가 있으면 기존 데이터만 스트리밍
+                    log.info("기존 데이터 충분 - {}건 스트리밍", existing.size());
+                    for (NewsAnalysisResponse news : existing) {
+                        emitter.next(news);
+                        Thread.sleep(50);
+                    }
+                    emitter.complete();
+                    return;
+                }
+                
+                // 2단계: 기존 데이터 먼저 전송
+                log.info("데이터 부족({})건 - 실시간 수집 시작", existing != null ? existing.size() : 0);
+                if (existing != null && !existing.isEmpty()) {
+                    for (NewsAnalysisResponse news : existing) {
+                        emitter.next(news);
+                        Thread.sleep(50);
+                    }
+                }
+                
+                // 3단계: 실시간 수집 + 분석 + 스트리밍
+                streamCollectAndAnalyze(jobGroupKeywords, memberId, limit, emitter);
+                
+            } catch (Exception e) {
+                log.error("스트리밍 중 오류 발생", e);
+                emitter.error(e);
+            }
+        });
+    })
+    .doOnNext(news -> log.debug("스트리밍: {}", news.getTitle()))
+    .doOnComplete(() -> log.info("스트리밍 완료"))
+    .doOnError(error -> log.error("스트리밍 에러", error));
+  }
+
+  /**
+   * 실시간 뉴스 수집 + AI 분석 + SSE 스트리밍
+   * - 수집한 뉴스를 하나씩 분석하면서 즉시 클라이언트에 전송
+   * - 관련성 낮은 뉴스는 필터링
+   */
+  private void streamCollectAndAnalyze(
+      List<String> keywords, 
+      int memberId, 
+      int limit,
+      FluxSink<NewsAnalysisResponse> emitter)  {
+ try {
+        log.info("실시간 수집 시작 - keywords: {}, limit: {}", keywords.size(), limit);
+        
+        // 뉴스 수집
+        List<NewsAnalysisRequest> collected = newsCollectorService.collectNews(keywords, memberId, limit);
+        log.info("수집 완료 - {}건", collected.size());
+        
+        if (collected.isEmpty()) {
+            log.warn("수집된 뉴스 없음");
+            emitter.complete();
+            return;
+        }
+        
+        Member member = memberDao.findById(memberId);
+        String jobGroup = (member != null && member.getJobGroup() != null) ? member.getJobGroup() : "기타";
+        
+        int streamedCount = 0;
+        int filteredCount = 0;
+        
+        for (NewsAnalysisRequest newsRequest : collected) {
+            try {
+                int relevanceScore = jobRelevanceAgent.calculateRelevanceScore(newsRequest, jobGroup);
+                if (relevanceScore < 15) {
+                    filteredCount++;
+                    continue;
+                }
+                
+                NewsAnalysisResult analysisResult = newsAIService.analyzeNews(newsRequest);
+                
+                NewsSummary entity = new NewsSummary();
+                entity.setMemberId(newsRequest.getMemberId());
+                entity.setTitle(newsRequest.getTitle());
+                entity.setSourceName(newsRequest.getSourceName());
+                entity.setSourceUrl(newsRequest.getSourceUrl());
+                entity.setPublishedAt(newsRequest.getPublishedAt() != null 
+                    ? newsRequest.getPublishedAt() : LocalDateTime.now());
+                entity.setSummaryText(analysisResult.getFinalSummary());
+                entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary());
+                entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis()));
+                entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords()));
+                
+                NewsSummary saved = newsSummaryService.saveNewsSummary(entity);
+                
+                if (saved == entity) {
+                    NewsAnalysisResponse response = newsSummaryService.convertToResponse(saved);
+                    emitter.next(response);
+                    streamedCount++;
+                    log.info("스트리밍 전송: {} ({}/{})", newsRequest.getTitle(), streamedCount, collected.size());
+                }
+                
+                Thread.sleep(1000);
+                
+            } catch (Exception e) {
+                log.error("뉴스 분석 실패: {}", newsRequest.getTitle(), e);
+            }
+        }
+        
+        log.info("실시간 스트리밍 완료 - 전송: {}건, 필터링: {}건", streamedCount, filteredCount);
+        emitter.complete();
+        
+    } catch (Exception e) {  // ✅ 전체 예외 처리
+        log.error("streamCollectAndAnalyze 전체 실패", e);
+        emitter.error(e);
+    }
+}
+
+
+
+
+
   // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
   @Transactional
   public List<NewsAnalysisResponse> getNewsFeed(
@@ -96,19 +231,28 @@ public class TotalNewsService {
         lastSummaryId,
         limit);
 
-    if (feedList == null || feedList.isEmpty()) {
-      log.info("{}기간  피드 데이터 없음 - 자동 수집 시작", period);
+    // ✅ 무한 스크롤 요청인지 확인
+    boolean isInfiniteScroll = (lastPublishedAt != null || lastSummaryId != null);
 
+    if (feedList == null || feedList.isEmpty()) {
+      // 무한 스크롤이면 그냥 빈 배열 반환 (더 이상 없음)
+      if (isInfiniteScroll) {
+        log.info("무한 스크롤 - 추가 데이터 없음");
+        return new ArrayList<>();
+      }
+
+      // 초기 로딩이고 데이터 없으면 자동 수집
+      log.info("초기 피드 데이터 없음 - 자동 수집 시작");
       int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit);
       log.info("자동 수집 완료 - {}건 분석됨", analyzed);
 
-      // 4. 수집 후 다시 조회
+      // 수집 후 다시 조회
       feedList = newsSummaryService.getNewsByJobGroup(
           jobGroupKeywords,
           memberId,
           period,
-          lastPublishedAt,
-          lastSummaryId,
+          null,
+          null,
           limit);
     }
 
@@ -128,14 +272,36 @@ public class TotalNewsService {
 
     List<String> baseKeywords = getBaseKeywordsByJobGroup(member.getJobGroup());
 
-    List<String> aiKeywords = jobKeywordGenerationAgent.generateJobKeywords(member.getJobGroup(), member.getJobRole());
+    List<String> aiKeywords = jobKeywordGenerationAgent.generateJobKeywords
+    (member.getJobGroup(),
+     member.getJobRole());
 
-    Set<String> allKeywords = new LinkedHashSet<>(baseKeywords);
-    allKeywords.addAll(aiKeywords.stream().filter(k -> k.length() <= 15).collect(Collectors.toList()));
+     // ✅ 1단계: AI 키워드 필터링 (15자 이하만)
+    List<String> filteredAiKeywords = aiKeywords.stream()
+        .filter(k -> k.length() <= 15)
+        .collect(Collectors.toList());
 
-    List<String> result = new ArrayList<>(allKeywords);
-    log.info("최종 키워드: 기본{}개 + AI{}개 = 총{}개",
-        baseKeywords.size(), aiKeywords.size(), result.size());
+    // ✅ 2단계: 모든 키워드 토큰화
+    Set<String> tokenizedKeywords = new LinkedHashSet<>();
+    
+    // 기본 키워드 토큰화
+    baseKeywords.forEach(keyword -> {
+        Arrays.stream(keyword.split("\\s+"))
+            .filter(token -> !token.isEmpty())
+            .forEach(tokenizedKeywords::add);
+    });
+    
+    // AI 키워드 토큰화
+    filteredAiKeywords.forEach(keyword -> {
+        Arrays.stream(keyword.split("\\s+"))
+            .filter(token -> !token.isEmpty())
+            .forEach(tokenizedKeywords::add);
+    });
+
+    List<String> result = new ArrayList<>(tokenizedKeywords);
+    log.info("최종 토큰화 키워드: 기본{}개 + 필터AI{}개 → 총{}개 토큰 생성", 
+        baseKeywords.size(), filteredAiKeywords.size(), result.size());
+    
     return result;
 
   }
@@ -355,14 +521,30 @@ public class TotalNewsService {
       log.info("오늘 뉴스 이미 존재 - {}건", todayNews.size());
     }
 
-    // 3단계: 일주일치 뉴스 먼저 조회
+    // 3단계: 일주일치 뉴스 조회
+
     List<NewsAnalysisResponse> weeklyNews = newsSummaryService.getNewsByJobGroup(
         jobGroupKeywords, memberId, "week", null, null, limit);
 
-    log.info("일주일치 뉴스 반환 - {}건", weeklyNews != null ? weeklyNews.size() : 0);
+    if (weeklyNews == null || weeklyNews.size() < 20) { // ✅ 최소 20개 확보
+      log.info("데이터 부족({} 건) - 대량 수집 시작", weeklyNews != null ? weeklyNews.size() : 0);
 
+      // 대량 수집 (100개 요청)
+      int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, 100); // ✅ 100개
+      log.info("대량 수집 완료 - {}건 분석됨", analyzed);
+
+      // 수집 후 다시 조회
+      weeklyNews = newsSummaryService.getNewsByJobGroup(
+          jobGroupKeywords, memberId, "week", null, null, limit);
+    } else {
+      log.info("충분한 데이터 존재 - {}건", weeklyNews.size());
+    }
+
+    log.info("일주일치 뉴스 반환 - {}건", weeklyNews != null ? weeklyNews.size() : 0);
     return weeklyNews != null ? weeklyNews : new ArrayList<>();
   }
+
+  
 
   /**
    * 뉴스 검색 및 수집 (API 엔드포인트용)

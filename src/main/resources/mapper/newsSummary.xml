@@ -177,34 +177,36 @@
         from news_summary
         where member_id = #{memberId}
        
-        <!-- 날짜 필터 -->
-            <if test="period == 'today'">
-                AND DATE(published_at) = CURRENT_DATE
-            </if>
-            <if test="period == 'week'">
-                AND published_at >= CURRENT_DATE - INTERVAL '7 days'
-            </if>
-            <if test="period == 'month'">
-                AND published_at >= CURRENT_DATE - INTERVAL '1 month'
-            </if>
-            <!-- period가 'all'이거나 null이면 날짜 필터 없음 -->
+        <!-- ✅ 무한 스크롤 아닐 때만 날짜 필터 적용 -->
+      <if test="lastPublishedAt == null and lastSummaryId == null">
+          <if test="period == 'today'">
+              AND DATE(published_at) = CURRENT_DATE
+          </if>
+          <if test="period == 'week'">
+              AND published_at >= CURRENT_DATE - INTERVAL '7 days'
+          </if>
+          <if test="period == 'month'">
+              AND published_at >= CURRENT_DATE - INTERVAL '1 month'
+          </if>
+      </if>
 
-        <if test="lastPublishedAt != null and lastSummaryId != null">
-          AND (
-              published_at &lt; #{lastPublishedAt}
-              OR (published_at = #{lastPublishedAt} AND summary_id &lt; #{lastSummaryId})
-          )
-        </if>
-
+      <!-- ✅ 무한 스크롤 커서 -->
+      <if test="lastPublishedAt != null and lastSummaryId != null">
         AND (
-            <foreach collection="keywords" item="keyword" separator=" OR ">
-                title ILIKE CONCAT('%', #{keyword}, '%')
-                OR detail_summary ILIKE CONCAT('%', #{keyword}, '%')
-                OR CAST(keywords_json AS TEXT) ILIKE CONCAT('%', #{keyword}, '%')
-            </foreach>
+            published_at &lt; #{lastPublishedAt}
+            OR (published_at = #{lastPublishedAt} AND summary_id &lt; #{lastSummaryId})
         )
-        order by published_at DESC, created_at DESC
-        limit #{limit}
+      </if>
+
+      AND (
+          <foreach collection="keywords" item="keyword" separator=" OR ">
+              title ILIKE CONCAT('%', #{keyword}, '%')
+              OR detail_summary ILIKE CONCAT('%', #{keyword}, '%')
+              OR CAST(keywords_json AS TEXT) ILIKE CONCAT('%', #{keyword}, '%')
+          </foreach>
+      )
+      order by published_at DESC, created_at DESC
+      limit #{limit}
     </select>
 
     <!-- 뉴스 삭제 -->

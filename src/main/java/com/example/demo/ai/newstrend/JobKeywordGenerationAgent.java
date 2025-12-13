@@ -23,9 +23,7 @@ public class JobKeywordGenerationAgent {
     private final ChatClient chatClient;  // Spring AI의 ChatClient (AI 모델과 통신)
 
     // ✅ 기존 검증된 직군별 키워드 매핑 (AI 참고용)
-    // - AI가 실패하거나 참고할 때 사용할 fallback 키워드 저장
-    // - Map.of()로 불변(immutable) Map 생성 (Java 9+)
-    private static final Map<String, List<String>> REFERENCE_JOB_KEYWORDS = Map.of(
+       private static final Map<String, List<String>> REFERENCE_JOB_KEYWORDS = Map.of(
         "개발", Arrays.asList(  // Arrays.asList()로 List 생성
             "개발자 채용", "백엔드 채용", "프론트엔드 채용", "풀스택 개발자",
             "소프트웨어 엔지니어", "프로그래머", "코딩", "Java", "Python", "React", "Spring",
@@ -45,9 +43,10 @@ public class JobKeywordGenerationAgent {
             "기획 업무", "기획 직무", "비즈니스 분석"),
 
         "PM", Arrays.asList(
-            "프로덕트 매니저", "프로젝트 매니저", "PM 채용", "PO", "프로덕트 오너",
-            "애자일", "스크럼", "프로젝트 관리",
-            "기획", "기획자", "PM", "매니저", "관리"),
+            "PM 채용", "프로젝트 매니저 채용", "프로덕트 매니저 채용",
+            "PO 채용", "프로덕트 오너", "PMO", "애자일 코치",
+            "스크럼 마스터", "프로젝트 관리", "애자일", "스크럼",
+            "칸반", "백로그", "스프린트"),
 
         "마케팅", Arrays.asList(
             "마케팅 매니저", "디지털 마케팅", "퍼포먼스 마케팅", "콘텐츠 마케팅",
@@ -76,10 +75,7 @@ public class JobKeywordGenerationAgent {
 
     /**
      * 직군과 직무에 맞는 뉴스 검색 키워드 생성
-     * 
-     * @param jobGroup 직군 (예: "기획", "개발", "마케팅")
-     * @param jobRole  세부 직무 (예: "서비스 기획자", "백엔드 개발자")
-     * @return 생성된 키워드 리스트 (15-25개)
+    
      */
     public List<String> generateJobKeywords(String jobGroup, String jobRole) {
         
@@ -101,16 +97,18 @@ public class JobKeywordGenerationAgent {
         String system = """
             당신은 JSON만 출력하는 시스템입니다.
 
-            주어진 직군과 직무에 맞는 뉴스 검색 키워드를 15-25개 생성하세요.
+            주어진 직군과 직무에 맞는 뉴스 검색 키워드를 5개 생성하세요.
+            
+            **핵심 원칙**:
+            - 키워드는 반드시 해당 직군/직무의 특화된 영역에만 집중
+            - 너무 일반적인 키워드(관리, 계획, 팀 등)는 피하세요
+            - 다른 직군의 키워드는 절대 포함하지 마세요
             
             포함해야 할 키워드 유형:
-            1. 직접 채용 관련: "기획자 채용", "기획 모집" 등
-            2. 업무 관련 용어: "사업 기획", "전략 기획", "서비스 기획" 등  
-            3. 업계 동향: "조직개편", "임원인사", "기업 전략" 등
-            4. 관련 기술/트렌드: 해당 직무의 핵심 기술이나 도구
-            5. 회사/산업 유형: 관련 업계나 대표 기업군
-            
-            기존 검증된 키워드들을 참고하되, 더 다양하고 포괄적인 키워드를 추가로 생성하세요.
+            1. 직접 채용: "[직군명] 채용", "[직군명] 모집", "[직무명] 채용" 등
+            2. 전문 용어: 해당 직군만의 고유한 실무 용어, 도구, 방법론
+            3. 업계 동향: 해당 직군과 직접 관련된 "조직개편", "임원인사" 등
+            4. 관련 기업: 해당 직군이 활동하는 대표 산업/기업
             
             반드시 JSON 배열 형식 ONLY로 출력하세요:
             ["키워드1", "키워드2", "키워드3"]
@@ -124,15 +122,16 @@ public class JobKeywordGenerationAgent {
             직군: %s
             세부 직무: %s
             
-            기존 검증된 키워드 참고:
+            기존 검증된 키워드 (이 범위와 성격을 유지):
             %s
             
-            이 직군/직무에 종사하는 사람이 관심가질만한 뉴스를 찾기 위한 
-            검색 키워드들을 생성해주세요. 기존 키워드를 참고하되 더 포괄적이고 
-            다양한 관련 키워드들을 추가해주세요.
-            """, jobGroup,  // 첫 번째 %s에 들어갈 값
-                 jobRole != null ? jobRole : "없음",  // 두 번째 %s (삼항 연산자로 null 처리)
-                 referenceKeywordsStr.isEmpty() ? "없음" : referenceKeywordsStr);  // 세 번째 %s
+            
+            '%s' 직무에 맞는 전문적인 키워드를 생성하세요.
+            """, jobGroup,  // 첫 번째 %s
+                 jobRole != null ? jobRole : "없음",  // 두 번째 %s
+                 referenceKeywordsStr.isEmpty() ? "없음" : referenceKeywordsStr
+            );  // 세 번째 %s
+                 
 
         try {
             // Spring AI ChatClient를 사용한 AI 호출

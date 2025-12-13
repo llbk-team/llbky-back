@@ -56,7 +56,7 @@ public class JobRelevanceAgent {
         // formatted()로 동적 값 삽입 (Java 15+ String formatting)
         String userPrompt = """
             다음 뉴스가 '%s' 직군과 얼마나 관련있는지 평가하세요.
-            
+            한국어로 기사를 찾아주세요
             제목: %s
             내용: %s
             출처: %s
