@@ -340,7 +340,7 @@ public class TotalNewsService {
     List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
 
      //  1단계: 오늘 뉴스 체크 (기존 메서드 활용)
-    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId,50 );
+    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId,15);
 
     // 2단계 데이터 없으면 자동 수집
     if (todayNews == null || todayNews.isEmpty()) {
