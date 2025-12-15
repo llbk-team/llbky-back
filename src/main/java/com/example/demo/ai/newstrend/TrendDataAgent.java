@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.annotation.Tool;
@@ -18,6 +19,8 @@ import com.example.demo.member.entity.Member;
 import com.example.demo.newstrend.dao.NewsSummaryDao;
 import com.example.demo.newstrend.dto.response.SentimentResponse;
 import com.example.demo.newstrend.dto.response.TrendDataContext;
+import com.example.demo.newstrend.dto.response.TrendKeywordItem;
+import com.example.demo.newstrend.dto.response.TrendKeywordResponse;
 import com.example.demo.newstrend.entity.NewsSummary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,6 +43,8 @@ public class TrendDataAgent {
 
   @Autowired
   private SentimetalAnalysisAgent sentimetalAnalysisAgent;
+  @Autowired
+  private TrendKeywordExtractionAgent trendKeywordExtractionAgent;
 
   @Autowired
   private ObjectMapper mapper;
@@ -110,44 +115,22 @@ public class TrendDataAgent {
     String startDate = start.toString();
     String endDate = end.toString();
 
-    // 1) 뉴스 50개 조회
-    List<NewsSummary> newsList = newsSummaryDao.selectLatestNewsByMemberId(memberId, 50);
-
-    // 2) 키워드 후보 풀 생성
-    List<String> keywordPool = new ArrayList<>();
-
-    for (NewsSummary n : newsList) {
-      if (n.getKeywordsJson() == null)
-        continue;
-
-      // JSON 파싱
-      List<Map<String, String>> list = mapper.readValue(n.getKeywordsJson(), List.class);
-
-      for (Map<String, String> k : list) {
-        keywordPool.add(k.get("keyword"));
-      }
-    }
-
-    Map<String, Integer> freq = new HashMap<>();
-
-    for (String k : keywordPool) {
-      freq.put(k, freq.getOrDefault(k, 0) + 1);
-    }
-
-    StringBuilder keywordStats = new StringBuilder();
-
-    // 키워드 빈도 리스트 문자열 (ex -AI: 11회) LLM에게 계산 줄이게 하기 위해
-    freq.entrySet().stream()
-        .sorted((a, b) -> b.getValue() - a.getValue())
-        .forEach(e -> {
-          keywordStats.append("- ")
-              .append(e.getKey())
-              .append(": ")
-              .append(e.getValue())
-              .append("회\n");
-        });
-
     SentimentResponse metaNews = sentimetalAnalysisAgent.excute(memberId, 50);
+
+    // 뉴스에서 추출한 키워드 후보들
+    TrendKeywordResponse keywordResponse = trendKeywordExtractionAgent.execute(memberId);
+
+    List<String> trendKeywords = keywordResponse.getKeywords().stream()
+        .map(TrendKeywordItem::getKeyword)
+        .toList();
+
+    // 키워드 빈도 맵
+    Map<String, Integer> keywordFrequency = keywordResponse.getKeywords().stream()
+        .collect(Collectors.toMap(
+            TrendKeywordItem::getKeyword,
+            TrendKeywordItem::getFrequency
+        ));
+    log.info("키워드 빈도 맵 {}", keywordFrequency);
 
     String systemPrompt = """
           너는 검색 트렌드 수집을 위한 데이터 수집 에이전트이다.
@@ -169,38 +152,8 @@ public class TrendDataAgent {
           ────────────────────────────────────────────
           ⚠️ 키워드 선정 및 확장 규칙 (핵심)
           ────────────────────────────────────────────
-          - 키워드는 뉴스에서 추출된 keywordPool을 기준으로 선정한다.
-          - 단, keywordPool에 포함된 키워드와
-            의미적으로 직접 연결된 개념 키워드는 제한적으로 허용한다.
-          - 키워드는 무조건 10개를 선정한다.
-
-          - 개념 확장은 다음을 모두 허용한다:
-            1) 상위 개념 (예: LLM → AI)
-            2) 하위 개념 (예: Cloud → AWS, Azure)
-            3) 동의·대표 개념
-
-          - 단, 확장된 키워드는 반드시 다음 조건을 만족해야 한다:
-            a) keywordPool의 키워드들과 명확한 의미적 연결 관계가 있을 것
-            b) 뉴스 및 targetRole 맥락에서 설명 가능할 것
-            c) 키워드 수를 채우기 위한 임의 확장이 아닐 것
-
-          - 뉴스·keywordPool·직무와 무관한 키워드는 생성해서는 안 된다.
-
-          ────────────────────────────────────────────
-          ⚠️ 검색 데이터 결합 규칙
-          ────────────────────────────────────────────
-          - 트렌드 키워드 후보에 대해
-            getTrendData를 순차적으로 호출한다.
-          - 호출 성공 여부는 사전에 알 수 없으며,
-            호출 결과를 통해서만 판단한다.
-          - 검색 데이터가 없는 키워드는
-            그래프용 키워드에서는 제외하고,
-          - 키워드의 검색 트렌드 데이터 존재 여부는
-            getTrendData 도구 호출 결과를 통해서만 판단할 수 있다.
-          - getTrendData 호출에 실패하거나
-          - getTrendData 결과의 "results" 배열이 비어 있는 경우,
-            해당 키워드는 검색 데이터가 없는 것으로 간주하며
-            트렌드 키워드에서 제외한다.
+          - 전달된 키워드 각각에 대해 getTrendData를 호출한다
+          - 반드시 10개의 키워드를 선택해야 한다
 
           ────────────────────────────────────────────
           ⚠️ metaNews 사용 규칙
@@ -236,10 +189,6 @@ public class TrendDataAgent {
 
         - 트렌드 키워드 후보에 대해
           getTrendData를 순차적으로 호출한다.
-        - 호출 실패 또는 유효 데이터 없음이 발생한 키워드는
-          제외하고 다음 키워드를 시도한다.
-        - 최종적으로 유효한 트렌드 데이터가 존재하는
-          키워드를 기준으로 rawTrendData를 구성한다.
           """;
 
     String userPrompt = """
@@ -251,10 +200,9 @@ public class TrendDataAgent {
         startDate: %s
         endDate: %s
 
-        [뉴스 기반 키워드 후보 목록]
+        [트렌드 키워드 목록]
         %s
-
-        [뉴스 기반 키워드 빈도]
+        [트렌드 키워드 빈도]
         %s
 
         [시장 분위기 참고용]
@@ -267,8 +215,8 @@ public class TrendDataAgent {
         targetRole,
         startDate,
         endDate,
-        keywordPool.toString(),
-        keywordStats.toString(),
+        trendKeywords.toString(),
+        keywordFrequency.toString(),
         metaNews);
 
     String llmResult = chatClient.prompt()

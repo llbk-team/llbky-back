@@ -43,7 +43,7 @@ public class TrendAnalysisAgent {
         - rawTrendData: 각 키워드의 검색 트렌드 원본 데이터
         - keywordFrequency: 뉴스에서 키워드가 언급된 횟수
         - metaNews: 뉴스 요약 정보
- 너는 계산과 분석만 수행한다.
+        너는 계산과 분석만 수행한다.
         키워드 생성 또는 원본 데이터 수집은 절대 하지 않는다. (TrendDataAgent 역할)
         metaNews는 뉴스 50개에 대한 이슈에 대한 여론을 기반으로 감정을 분석한 내용이다. 이 흐름을 참고하여서 분석한다.
 
