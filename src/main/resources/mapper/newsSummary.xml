@@ -200,9 +200,10 @@
 
       AND (
           <foreach collection="keywords" item="keyword" separator=" OR ">
-              title ILIKE CONCAT('%', #{keyword}, '%')
+             ( title ILIKE CONCAT('%', #{keyword}, '%')
               OR detail_summary ILIKE CONCAT('%', #{keyword}, '%')
               OR CAST(keywords_json AS TEXT) ILIKE CONCAT('%', #{keyword}, '%')
+              )
           </foreach>
       )
       order by published_at DESC, created_at DESC
