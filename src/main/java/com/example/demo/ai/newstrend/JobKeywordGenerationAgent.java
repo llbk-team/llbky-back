@@ -119,6 +119,8 @@ public class JobKeywordGenerationAgent {
             - 반드시 JSON 배열만 출력
             - 정확히 5개
             - 문자열만 포함
+            - **JSON 배열 형식만** 출력: ["키워드1", "키워드2", ...]
+            - 대괄호 [ ]로 시작하고 끝나야 함
 
             """;
 
