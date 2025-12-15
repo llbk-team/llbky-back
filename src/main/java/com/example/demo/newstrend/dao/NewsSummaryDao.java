@@ -51,6 +51,6 @@ public interface NewsSummaryDao {
   // 뉴스 삭제
   public int deleteAllNews(int memberId);
 
-
-  int existsTodayNews(int memberId);
+  // 오늘 수집된 뉴스 존재 여부 확인
+  public int existsTodayNews(int memberId);
 }

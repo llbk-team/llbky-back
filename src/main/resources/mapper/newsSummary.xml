@@ -216,11 +216,11 @@
         where member_id= #{memberId}
     </delete>
 
-    
+    <!-- 오늘 수집된 뉴스 존재 여부 확인 -->
     <select id="existsTodayNews" resultType="int">
       SELECT COUNT(1)
       FROM news_summary
       WHERE member_id = #{memberId}
-        AND published_at >= CURRENT_DATE
+        AND created_at >= CURRENT_DATE
     </select>
 </mapper>

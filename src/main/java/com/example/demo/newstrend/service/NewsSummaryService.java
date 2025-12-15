@@ -305,6 +305,7 @@ public class NewsSummaryService {
         // 변환된 응답 DTO 반환
     }
 
+    // 오늘 수집된 뉴스 존재 여부 확인
     public boolean existsTodayNews(int memberId) {
         return newsSummaryDao.existsTodayNews(memberId) > 0;
     }
