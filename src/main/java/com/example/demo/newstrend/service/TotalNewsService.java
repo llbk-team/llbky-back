@@ -74,137 +74,6 @@ public class TotalNewsService {
     this.jobKeywordGenerationAgent = jobKeywordGenerationAgent;
   }
 
-  /**
-   * SSE 스트리밍으로 뉴스 제공
-   * 1. 기존 DB 데이터 먼저 빠르게 스트리밍 (50ms 간격)
-   * 2. 데이터 부족 시 실시간 수집 + 분석 + 스트리밍
-   */
-  public Flux<NewsAnalysisResponse> streamTodayNews(int memberId, int limit) {
-    log.info("SSE 스트리밍 시작 - memberId: {}, limit: {}", memberId, limit);
-    
-    return Flux.<NewsAnalysisResponse>create(emitter -> {
-        CompletableFuture.runAsync(() -> {
-            try {
-                List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
-                
-                // 1단계: 기존 DB 데이터 먼저 스트리밍
-                List<NewsAnalysisResponse> existing = newsSummaryService.getNewsByJobGroup(
-                    jobGroupKeywords, memberId, "week", null, null, 50);
-                
-                if (existing != null && existing.size() >= 20) {
-                    // 충분한 데이터가 있으면 기존 데이터만 스트리밍
-                    log.info("기존 데이터 충분 - {}건 스트리밍", existing.size());
-                    for (NewsAnalysisResponse news : existing) {
-                        emitter.next(news);
-                        Thread.sleep(50);
-                    }
-                    emitter.complete();
-                    return;
-                }
-                
-                // 2단계: 기존 데이터 먼저 전송
-                log.info("데이터 부족({})건 - 실시간 수집 시작", existing != null ? existing.size() : 0);
-                if (existing != null && !existing.isEmpty()) {
-                    for (NewsAnalysisResponse news : existing) {
-                        emitter.next(news);
-                        Thread.sleep(50);
-                    }
-                }
-                
-                // 3단계: 실시간 수집 + 분석 + 스트리밍
-                streamCollectAndAnalyze(jobGroupKeywords, memberId, limit, emitter);
-                
-            } catch (Exception e) {
-                log.error("스트리밍 중 오류 발생", e);
-                emitter.error(e);
-            }
-        });
-    })
-    .doOnNext(news -> log.debug("스트리밍: {}", news.getTitle()))
-    .doOnComplete(() -> log.info("스트리밍 완료"))
-    .doOnError(error -> log.error("스트리밍 에러", error));
-  }
-
-  /**
-   * 실시간 뉴스 수집 + AI 분석 + SSE 스트리밍
-   * - 수집한 뉴스를 하나씩 분석하면서 즉시 클라이언트에 전송
-   * - 관련성 낮은 뉴스는 필터링
-   */
-  private void streamCollectAndAnalyze(
-      List<String> keywords, 
-      int memberId, 
-      int limit,
-      FluxSink<NewsAnalysisResponse> emitter)  {
- try {
-        log.info("실시간 수집 시작 - keywords: {}, limit: {}", keywords.size(), limit);
-        
-        // 뉴스 수집
-        List<NewsAnalysisRequest> collected = newsCollectorService.collectNews(keywords, memberId, limit);
-        log.info("수집 완료 - {}건", collected.size());
-        
-        if (collected.isEmpty()) {
-            log.warn("수집된 뉴스 없음");
-            emitter.complete();
-            return;
-        }
-        
-        Member member = memberDao.findById(memberId);
-        String jobGroup = (member != null && member.getJobGroup() != null) ? member.getJobGroup() : "기타";
-        
-        int streamedCount = 0;
-        int filteredCount = 0;
-        
-        for (NewsAnalysisRequest newsRequest : collected) {
-            try {
-                int relevanceScore = jobRelevanceAgent.calculateRelevanceScore(newsRequest, jobGroup);
-                if (relevanceScore < 15) {
-                    filteredCount++;
-                    continue;
-                }
-                
-                NewsAnalysisResult analysisResult = newsAIService.analyzeNews(newsRequest);
-                
-                NewsSummary entity = new NewsSummary();
-                entity.setMemberId(newsRequest.getMemberId());
-                entity.setTitle(newsRequest.getTitle());
-                entity.setSourceName(newsRequest.getSourceName());
-                entity.setSourceUrl(newsRequest.getSourceUrl());
-                entity.setPublishedAt(newsRequest.getPublishedAt() != null 
-                    ? newsRequest.getPublishedAt() : LocalDateTime.now());
-                entity.setSummaryText(analysisResult.getFinalSummary());
-                entity.setDetailSummary(analysisResult.getAnalysis().getDetailSummary());
-                entity.setAnalysisJson(objectMapper.writeValueAsString(analysisResult.getAnalysis()));
-                entity.setKeywordsJson(objectMapper.writeValueAsString(analysisResult.getKeywords()));
-                
-                NewsSummary saved = newsSummaryService.saveNewsSummary(entity);
-                
-                if (saved == entity) {
-                    NewsAnalysisResponse response = newsSummaryService.convertToResponse(saved);
-                    emitter.next(response);
-                    streamedCount++;
-                    log.info("스트리밍 전송: {} ({}/{})", newsRequest.getTitle(), streamedCount, collected.size());
-                }
-                
-                Thread.sleep(1000);
-                
-            } catch (Exception e) {
-                log.error("뉴스 분석 실패: {}", newsRequest.getTitle(), e);
-            }
-        }
-        
-        log.info("실시간 스트리밍 완료 - 전송: {}건, 필터링: {}건", streamedCount, filteredCount);
-        emitter.complete();
-        
-    } catch (Exception e) {  // ✅ 전체 예외 처리
-        log.error("streamCollectAndAnalyze 전체 실패", e);
-        emitter.error(e);
-    }
-}
-
-
-
-
-
   // 회원 맞춤 뉴스 피드 조회(오늘 데이터 없으면 자동 수집)
   @Transactional
   public List<NewsAnalysisResponse> getNewsFeed(
@@ -530,7 +399,7 @@ public class TotalNewsService {
       log.info("데이터 부족({} 건) - 대량 수집 시작", weeklyNews != null ? weeklyNews.size() : 0);
 
       // 대량 수집 (100개 요청)
-      int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, 100); // ✅ 100개
+      int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, 50); // ✅ 100개
       log.info("대량 수집 완료 - {}건 분석됨", analyzed);
 
       // 수집 후 다시 조회
