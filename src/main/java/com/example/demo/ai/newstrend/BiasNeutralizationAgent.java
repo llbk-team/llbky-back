@@ -67,10 +67,7 @@ public class BiasNeutralizationAgent {
         String neutralizedText = chatClient.prompt()
             .system(systemPrompt)
             .user(userPrompt)
-            .options(ChatOptions.builder()
-                .temperature(0.3)
-                .maxTokens(2000)
-                .build())
+            
             .call()
             .content();
         

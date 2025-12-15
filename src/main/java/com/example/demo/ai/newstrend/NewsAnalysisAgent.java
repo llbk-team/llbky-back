@@ -136,10 +136,6 @@ public class NewsAnalysisAgent {
         String jsonResponse = chatClient.prompt()
             .system(systemPrompt)
             .user(userPrompt)
-            .options(ChatOptions.builder()
-                .temperature(0.3)
-                .maxTokens(3000)
-                .build())
             .call()
             .content();
         

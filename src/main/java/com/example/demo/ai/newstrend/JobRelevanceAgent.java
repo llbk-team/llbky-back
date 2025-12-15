@@ -76,10 +76,6 @@ public class JobRelevanceAgent {
         String aiResult = chatClient.prompt()     // 프롬프트 생성 시작
                 .system(systemPrompt)              // 시스템 메시지 설정 (AI 역할)
                 .user(userPrompt)                  // 사용자 메시지 설정 (실제 요청)
-                .options(ChatOptions.builder()     // AI 모델 옵션 설정
-                        .temperature(0.0)          // 결정론적 출력 (0.0 = 일관성 최대, 1.0 = 창의성 최대)
-                        .maxTokens(10)             // 최대 토큰 수 제한 (숫자만 받을 것이므로 10개면 충분)
-                        .build())                  // ChatOptions 빌드
                 .call()                            // AI 모델 호출 (동기 방식)
                 .content()                         // 응답 내용 추출 (String)
                 .trim();                           // 앞뒤 공백 제거

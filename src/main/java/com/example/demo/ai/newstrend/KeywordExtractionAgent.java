@@ -78,10 +78,6 @@ public class KeywordExtractionAgent {
         String jsonResponse = chatClient.prompt()
             .system(systemPrompt)
             .user(userPrompt)
-            .options(ChatOptions.builder()
-                .temperature(0.3)
-                .maxTokens(500)
-                .build())
             .call()
             .content();
         
