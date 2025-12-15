@@ -371,7 +371,7 @@ public class TotalNewsService {
     List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 15);
 
     // 2단계 데이터 없으면 자동 수집
-    if (todayNews == null || todayNews.isEmpty()&& todayNews.size()>=5) {
+    if (todayNews == null || todayNews.size() < 5) {
       log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
 
       int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit); // ✅ 통합 메소드 호출
