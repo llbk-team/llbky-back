@@ -304,4 +304,8 @@ public class NewsSummaryService {
         return response;
         // 변환된 응답 DTO 반환
     }
+
+    public boolean existsTodayNews(int memberId) {
+        return newsSummaryDao.existsTodayNews(memberId) > 0;
+    }
 }

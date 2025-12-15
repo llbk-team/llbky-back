@@ -217,5 +217,10 @@
     </delete>
 
     
-
+    <select id="existsTodayNews" resultType="int">
+      SELECT COUNT(1)
+      FROM news_summary
+      WHERE member_id = #{memberId}
+        AND published_at >= CURRENT_DATE
+    </select>
 </mapper>

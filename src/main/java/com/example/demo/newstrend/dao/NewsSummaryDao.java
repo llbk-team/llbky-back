@@ -52,5 +52,5 @@ public interface NewsSummaryDao {
   public int deleteAllNews(int memberId);
 
 
-  
+  int existsTodayNews(int memberId);
 }

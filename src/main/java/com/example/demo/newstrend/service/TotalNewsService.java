@@ -103,27 +103,47 @@ public class TotalNewsService {
     // ✅ 무한 스크롤 요청인지 확인
     boolean isInfiniteScroll = (lastPublishedAt != null || lastSummaryId != null);
 
-    if (feedList == null || feedList.isEmpty()) {
-      // 무한 스크롤이면 그냥 빈 배열 반환 (더 이상 없음)
-      if (isInfiniteScroll) {
-        log.info("무한 스크롤 - 추가 데이터 없음");
-        return new ArrayList<>();
-      }
+    boolean alreadyCollectedToday =
+      newsSummaryService.existsTodayNews(memberId);
 
-      // 초기 로딩이고 데이터 없으면 자동 수집
-      log.info("초기 피드 데이터 없음 - 자동 수집 시작");
-      int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit);
-      log.info("자동 수집 완료 - {}건 분석됨", analyzed);
+    if ((feedList == null || feedList.isEmpty())) {
 
-      // 수집 후 다시 조회
-      feedList = newsSummaryService.getNewsByJobGroup(
-          jobGroupKeywords,
-          memberId,
-          period,
-          null,
-          null,
-          limit);
+        if (isInfiniteScroll) {
+            return new ArrayList<>();
+        }
+
+        if (!alreadyCollectedToday) {
+            log.info("피드 없음 + 오늘 미수집 → 수집");
+            collectAndAnalyzeNews(jobGroupKeywords, memberId, limit);
+
+            feedList = newsSummaryService.getNewsByJobGroup(
+                jobGroupKeywords, memberId, period, null, null, limit
+            );
+        }
     }
+
+
+  //   if (feedList == null || feedList.isEmpty()) {
+  //     // 무한 스크롤이면 그냥 빈 배열 반환 (더 이상 없음)
+  //     if (isInfiniteScroll) {
+  //       log.info("무한 스크롤 - 추가 데이터 없음");
+  //       return new ArrayList<>();
+  //     }
+
+  //     // 초기 로딩이고 데이터 없으면 자동 수집
+  //     log.info("초기 피드 데이터 없음 - 자동 수집 시작");
+  //     int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit);
+  //     log.info("자동 수집 완료 - {}건 분석됨", analyzed);
+
+  //     // 수집 후 다시 조회
+  //     feedList = newsSummaryService.getNewsByJobGroup(
+  //         jobGroupKeywords,
+  //         memberId,
+  //         period,
+  //         null,
+  //         null,
+  //         limit);
+  //   }
 
     log.info("뉴스 피드 조회 완료 - {}건", feedList != null ? feedList.size() : 0);
     return feedList != null ? feedList : new ArrayList<>();
@@ -368,18 +388,28 @@ public class TotalNewsService {
     List<String> jobGroupKeywords = generateJobGroupKeywords(memberId);
 
     // 1단계: 오늘 뉴스 체크 (기존 메서드 활용)
-    List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 15);
+    // List<NewsAnalysisResponse> todayNews = newsSummaryService.getTodayNewsByMember(memberId, 15);
 
-    // 2단계 데이터 없으면 자동 수집
-    if (todayNews == null || todayNews.size() < 5) {
-      log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
+    // // 2단계 데이터 없으면 자동 수집
+    // if (todayNews == null || todayNews.size() < 5) {
+    //   log.info("오늘 뉴스 데이터 없음 - 자동 수집 시작");
 
-      int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit); // ✅ 통합 메소드 호출
+    //   int analyzed = collectAndAnalyzeNews(jobGroupKeywords, memberId, limit); // ✅ 통합 메소드 호출
 
-      log.info("자동 수집 완료 - {}건 분석됨", analyzed);
+    //   log.info("자동 수집 완료 - {}건 분석됨", analyzed);
+    // } else {
+    //   log.info("오늘 뉴스 이미 존재 - {}건", todayNews.size());
+    // }
+    boolean alreadyCollectedToday =
+    newsSummaryService.existsTodayNews(memberId);
+
+    if (!alreadyCollectedToday) {
+        log.info("오늘 뉴스 없음 → 자동 수집");
+        collectAndAnalyzeNews(jobGroupKeywords, memberId, limit);
     } else {
-      log.info("오늘 뉴스 이미 존재 - {}건", todayNews.size());
+        log.info("오늘 뉴스 이미 수집됨");
     }
+
 
     // 3단계: 일주일치 뉴스 조회
 
