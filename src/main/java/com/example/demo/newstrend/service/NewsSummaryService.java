@@ -59,7 +59,6 @@ public class NewsSummaryService {
     }
 
     // 1.오늘 날짜 뉴스 조회 없으면 자동수집
-    @Transactional
     public List<NewsAnalysisResponse> getTodayNewsByMember(int memberId, int limit) throws Exception {
 
         LocalDateTime today = LocalDateTime.now();

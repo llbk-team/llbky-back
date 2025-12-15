@@ -270,7 +270,7 @@ public class TotalNewsService {
 
     // 수집된 모든 뉴스에 대해 관련성 평가
     for (NewsAnalysisRequest news : collectedNews) {
-      try {
+     
         // AI Agent를 통해 뉴스-직군 간 관련성 점수 계산 (0-100점)
         int relevanceScore = jobRelevanceAgent.calculateRelevanceScore(news, jobGroup);
 
@@ -286,11 +286,7 @@ public class TotalNewsService {
         // API 호출 제한(Rate Limit) 방지를 위한 짧은 대기
         Thread.sleep(200); // 200ms 대기 (초당 최대 5회 호출)
 
-      } catch (Exception e) { // AI 평가 실패 시 예외 처리
-        // 평가 실패한 뉴스는 안전하게 포함 (false negative 방지)
-        log.warn("관련성 평가 실패, 포함함: {}", news.getTitle(), e);
-        relevantNews.add(news); // 실패 시 포함 (보수적 접근)
-      }
+     
     }
 
     // 필터링 결과 요약 로그
@@ -310,7 +306,7 @@ public class TotalNewsService {
 
     // 관련성 높은 뉴스에 대해서만 AI 분석 수행 (비용/시간 절약)
     for (NewsAnalysisRequest newsRequest : relevantNews) {
-      try {
+      
         // 4-1. AI 분석 실행 (NewsAIService)
         log.debug("AI 분석 시작: {}", newsRequest.getTitle());
         NewsAnalysisResult analysisResult = newsAIService.analyzeNews(newsRequest);
@@ -347,13 +343,8 @@ public class TotalNewsService {
         }
 
         // API 호출 제한(Rate Limit) 방지를 위한 대기
-        Thread.sleep(1000); // 1초 대기 (AI 분석은 시간이 걸리므로 여유있게 설정)
+        Thread.sleep(2000); // 1초 대기 (AI 분석은 시간이 걸리므로 여유있게 설정)
 
-      } catch (Exception e) { // 분석/저장 실패 시 예외 처리
-        log.error("뉴스 분석 및 저장 실패: {}", newsRequest.getTitle(), e);
-        errorCount++; // 에러 카운트 증가
-        // continue로 다음 뉴스 처리 (전체 프로세스는 계속 진행)
-      }
     }
 
     // ========== 최종 결과 요약 로그 ==========
