@@ -3,11 +3,9 @@ package com.example.demo.ai.newstrend;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.newstrend.dao.TrendInsightDao;
-import com.example.demo.newstrend.dto.response.SentimentResponse;
 import com.example.demo.newstrend.dto.response.TrendAnalyzeResponse;
 import com.example.demo.newstrend.dto.response.TrendDataContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,8 +23,6 @@ public class TrendAnalysisAgent {
   private ChatClient chatClient;
   @Autowired
   private ObjectMapper mapper;
-  @Autowired
-  private SentimetalAnalysisAgent sentimetalAnalysisAgent;
 
   public TrendAnalysisAgent(ChatClient.Builder chatClientBuilder, TrendInsightDao trendInsightDao,
       MemberDao memberDao) {
@@ -102,6 +98,9 @@ public class TrendAnalysisAgent {
            - 구조가 { data: [] } 또는 { results: [ { data: [] } ] } 둘 중 하나일 수 있음
         2) 산술평균 계산 → 반올림하여 int
         3) 배열 비어있으면 0
+        data가 1개라도 있으면 반드시 평균 계산
+        무조건 계산해라
+        예외 금지
 
         ────────────────────────────────────────
         ★ SummaryCard.majorKeyword
