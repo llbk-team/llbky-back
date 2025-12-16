@@ -1,8 +1,6 @@
 package com.example.demo.ai.newstrend;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,7 +19,6 @@ import com.example.demo.newstrend.dto.response.SentimentResponse;
 import com.example.demo.newstrend.dto.response.TrendDataContext;
 import com.example.demo.newstrend.dto.response.TrendKeywordItem;
 import com.example.demo.newstrend.dto.response.TrendKeywordResponse;
-import com.example.demo.newstrend.entity.NewsSummary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +45,6 @@ public class TrendDataAgent {
 
   @Autowired
   private ObjectMapper mapper;
-
-  @Autowired
-  private NewsSummaryDao newsSummaryDao;
 
   public TrendDataAgent(ChatClient.Builder chatClientBuilder, WebClient.Builder webClientBuilder) {
     this.chatClient = chatClientBuilder.build();
