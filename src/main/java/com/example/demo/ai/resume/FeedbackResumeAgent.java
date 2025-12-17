@@ -70,12 +70,9 @@ public class FeedbackResumeAgent {
                 - 항목 전체가 비어 있거나 공란인 경우
 
                 모든 문장은 공식 보고서 톤인 ‘~합니다’ 형태로 작성하며, ‘~한다’와 같은 평서형은 절대 사용하지 않습니다.
-                """;
 
-        String prompt = """
-                다음은 사용자의 이력서 데이터입니다.
                 이력서를 면밀하게 분석하고 지정된 JSON format에 맞춰서 분석 결과를 출력하세요
-
+    
                 분석 항목:
                 1) score.careerScore: 경력 기술의 구체성 및 전문성(0~100)
                 2) score.matchScore: 희망 직무와의 적합도(0~100)
@@ -85,9 +82,13 @@ public class FeedbackResumeAgent {
                 추가 요구사항 (반드시 JSON에 포함해야 함)
                 6) portfolioSuggestions: 포트폴리오 프로젝트에서 추가하면 좋은 내용
                 7) coverLetterSuggestions: 자소서 작성시 강조하면 좋은 내용
-
+                
                 format:
                 %s
+                """.formatted(format);
+
+        String prompt = """
+                다음은 사용자의 이력서 데이터입니다.
 
                 --이력서--
                 [학력]
@@ -105,7 +106,6 @@ public class FeedbackResumeAgent {
                 [희망 직무]
                 %s
                 """.formatted(
-                format,
                 resume.getEducationInfo(),
                 resume.getCareerInfo(),
                 resume.getSkills(),
