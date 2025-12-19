@@ -74,4 +74,14 @@ public interface PortfolioGuideDao {
      */
     public int updateGuideContent(java.util.Map<String, Object> params);
 
+    /**
+     * 회원의 모든 가이드 삭제
+     */
+    public int deleteAllGuides(@Param("memberId") int memberId);
+
+    /**
+     * 특정 가이드 삭제 (회원 검증 포함)
+     */
+    public int deleteGuideById(@Param("guideId") int guideId, @Param("memberId") int memberId);
+
 }

@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.demo.ai.portfolioguide.PortfolioGuideAgent;
 import com.example.demo.member.dao.MemberDao;
@@ -455,6 +456,18 @@ public class PortfolioGuideService {
         // ========== 실제 구현은 PortfolioGuidePdfService 사용 ==========
         pdfService.generateMemberGuidesPdf(guides, response);
 
+    }
+
+    public int deleteGuide(int memberId){
+        int result =portfolioGuideDao.deleteAllGuides(memberId);
+        return result;
+    }
+
+   //특정 가이드 삭제
+    public int deleteGuideById(int guideId, int memberId){
+        int result = portfolioGuideDao.deleteGuideById(guideId, memberId);
+       
+        return result;
     }
 
 }

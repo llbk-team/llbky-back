@@ -131,4 +131,14 @@
         WHERE guide_id = #{guideId}
     </update>
 
+    <delete id="deleteAllGuides">
+        delete from news_summary
+        where member_id= #{memberId}
+    </delete>
+
+    <delete id="deleteGuideById">
+    DELETE FROM portfolio_guide 
+    WHERE guide_id = #{guideId} AND member_id = #{memberId}
+    </delete>
+
 </mapper>
