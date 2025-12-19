@@ -426,13 +426,7 @@ public class PortfolioGuideService {
     }
 
     /**
-     * ⭐ PDF 다운로드 서비스 (iText 사용)
-     * - 가이드 내용을 PDF로 변환하여 다운로드
-     * - PortfolioGuidePdfService 사용
-     * 
-     * @param guide    변환할 PortfolioGuide 엔티티
-     * @param response HTTP 응답 객체 (PDF 파일 스트림 전송용)
-     * @throws Exception PDF 생성 실패 시
+     가이드 PDF를 생성해 응답 스트림으로 내려보내는 서비스
      */
     public void generatePdf(PortfolioGuide guide, HttpServletResponse response)
             throws Exception {

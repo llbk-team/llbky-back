@@ -38,11 +38,8 @@ public class PortfolioGuideController {
     private PortfolioGuideService portfolioGuideService;
 
     /**
-     * ⭐ 새 가이드 생성
+    새 가이드 생성
      * POST http://localhost:8080/portfolio-guide/create
-
-     * @param request 가이드 생성 요청 (JSON → @RequestBody로 매핑)
-     * @return 생성된 PortfolioGuide 엔티티
      */
     @PostMapping("/create") // POST 요청 매핑
     public ResponseEntity<PortfolioGuide> createGuide(@RequestBody GuideRequest request) {
