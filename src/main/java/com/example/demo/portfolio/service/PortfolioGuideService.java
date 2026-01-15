@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.demo.ai.portfolioguide.PortfolioGuideAgent;
+import com.example.demo.ai.portfolioguide.PortfolioGuideAgentDirect;
 import com.example.demo.member.dao.MemberDao;
 import com.example.demo.member.entity.Member;
 import com.example.demo.portfolio.dao.PortfolioGuideDao;
@@ -40,6 +41,8 @@ public class PortfolioGuideService {
     @Autowired
     private PortfolioGuideAgent portfolioGuideAgent;
     @Autowired
+    private PortfolioGuideAgentDirect portfolioGuideAgentDirect;
+    @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     private MemberDao memberDao;
@@ -49,9 +52,7 @@ public class PortfolioGuideService {
     @Autowired
     private PortfolioGuidePdfService pdfService;
 
-    /**
-     * 메인 코칭 메서드
-     */
+    // 메인 코칭 메서드
     public GuideResult provideCoaching(GuideRequest request) throws Exception {
         LocalDateTime startTime = LocalDateTime.now();
 
@@ -83,9 +84,7 @@ public class PortfolioGuideService {
         return result;
     }
 
-    /**
-     * 직무별 표준 가이드라인 조회
-     */
+    // 직무별 표준 가이드라인 조회
     private List<PortfolioStandard> loadStandards(GuideRequest request, Member member) {
         List<PortfolioStandard> standards = null;
 
@@ -115,9 +114,7 @@ public class PortfolioGuideService {
         return standards;
     }
 
-    /**
-     * 가이드 ID로 조회
-     */
+    // 가이드 ID로 조회
     public PortfolioGuide getGuideById(Integer guideId) {
 
         return portfolioGuideDao.selectGuideById(guideId);
@@ -131,9 +128,7 @@ public class PortfolioGuideService {
         return portfolioGuideDao.selectGuidesByMemberId(memberId);
     }
 
-    /**
-     * ⭐ 저장된 피드백 조회 (JSONB → GuideResult 변환)
-     */
+    // 저장된 피드백 조회
     public GuideResult getGuideFeedback(Integer guideId) throws com.fasterxml.jackson.core.JsonProcessingException {
 
         PortfolioGuide guide = portfolioGuideDao.selectGuideById(guideId);
@@ -153,9 +148,7 @@ public class PortfolioGuideService {
         return feedback;
     }
 
-    /**
-     * ⭐ 수정: AI 피드백을 JSONB로 저장
-     */
+    // AI 피드백을 JSONB로 저장
     @Transactional
     private void saveFeedbackToDatabase(Integer guideId, GuideResult feedback)
             throws com.fasterxml.jackson.core.JsonProcessingException {
@@ -180,16 +173,7 @@ public class PortfolioGuideService {
         log.info("피드백 저장 완료 - guideId: {}, 업데이트된 행: {}", guideId, updated);
     }
 
-    /**
-     * ⭐ 새 가이드 생성
-     * - 초기 빈 가이드 구조 생성 (5단계)
-     * - guide_content에 초기 데이터 저장
-     * - guide_feedback는 NULL로 시작
-     * 
-     * @param request 가이드 생성 요청 (memberId, title, standardId)
-     * @return 생성된 PortfolioGuide 엔티티
-     * @throws Exception JSON 변환 실패 시
-     */
+    // 새 가이드 생성
     @Transactional // 트랜잭션 처리: DB 작업 보장
     public PortfolioGuide createGuide(GuideRequest request) throws Exception {
         // INFO 로그: 가이드 생성 시작 시점 기록
@@ -239,17 +223,7 @@ public class PortfolioGuideService {
         return guide; // 생성된 가이드 엔티티 반환
     }
 
-    /**
-     * ⭐ 가이드 저장 (프론트엔드 계산 값 사용)
-     * - 사용자가 입력한 답변을 guide_content에 저장
-     * - guide_feedback는 건드리지 않음 (실시간 AI 코칭용)
-     * - 프론트엔드에서 계산된 진행률과 단계별 진행도 그대로 저장
-     * 
-     * @param request 가이드 저장 요청 (guideId, guideSteps, currentStep,
-     *                completionPercentage)
-     * @return 업데이트된 PortfolioGuide 엔티티
-     * @throws Exception 가이드 없음 또는 JSON 변환 실패 시
-     */
+    // 가이드 저장 (프론트엔드 계산 값 사용)
     @Transactional // 트랜잭션 처리
     public PortfolioGuide saveGuide(GuideProgressSaveRequest request) throws Exception {
         PortfolioGuide existingGuide = portfolioGuideDao.selectGuideById(request.getGuideId());
@@ -285,16 +259,7 @@ public class PortfolioGuideService {
 
     }
 
-    /**
-     * ⭐ 실시간 AI 코칭 (저장 안함이 기본)
-     * - 사용자 입력에 대한 즉각적인 AI 피드백 제공
-     * - DB에 저장하지 않고 실시간으로만 반환
-     * - 필요한 경우에만 optionalSaveFeedback() 호출
-     * 
-     * @param request 코칭 요청 (memberId, inputFieldType, userInput)
-     * @return AI 코칭 결과 (점수, 피드백, 제안사항 등)
-     * @throws Exception AI 호출 실패 시
-     */
+    // 실시간 AI 코칭
     public GuideResult getRealtimeCoaching(GuideRequest request) throws Exception {
         // INFO 로그: AI 코칭 요청 시작
         log.info("AI 코칭 요청 - memberId: {}, fieldType: {}",
@@ -304,15 +269,7 @@ public class PortfolioGuideService {
         return result; // AI 코칭 결과 반환
     }
 
-    /**
-     * ⭐ 저장된 AI 피드백 조회 (guide_feedback 필드)
-     * - DB에 저장된 AI 피드백을 조회하여 반환
-     * - guide_feedback 필드가 NULL이면 예외 발생
-     * 
-     * @param guideId 가이드 ID
-     * @return 저장된 AI 피드백 (GuideResult 객체)
-     * @throws Exception 가이드 없음, 피드백 없음, JSON 변환 실패 시
-     */
+    // 저장된 AI 피드백 조회
     public GuideResult getStoredFeedback(Integer guideId) throws Exception {
         // ========== 가이드 조회 ==========
         PortfolioGuide guide = portfolioGuideDao.selectGuideById(guideId);
@@ -335,13 +292,7 @@ public class PortfolioGuideService {
         return objectMapper.readValue(feedbackJson, GuideResult.class);
     }
 
-    /**
-     * ⭐ 빈 가이드 구조 생성 (5단계)
-     * - 포트폴리오 가이드의 초기 구조 생성
-     * - 각 단계별 제목과 빈 항목들 포함
-     * 
-     * @return 초기 GuideContentData 객체 (5단계 구조)
-     */
+    // 빈 가이드 구조 생성 (5단계)
     private GuideContentData createEmptyGuideStructure() {
         GuideContentData content = new GuideContentData();
         List<GuideStepData> steps = new ArrayList<>();
@@ -373,14 +324,7 @@ public class PortfolioGuideService {
         return content; // 초기 가이드 구조 반환
     }
 
-    /**
-     * 단계별 빈 항목들 생성
-     * - 각 단계에 맞는 초기 항목들 생성
-     * - 단계별로 다른 항목 구성
-     * 
-     * @param stepTitle 단계 제목 (예: "프로젝트 개요")
-     * @return 해당 단계의 빈 항목 리스트
-     */
+    // 단계별 빈 항목들 생성
     private List<GuideItemData> createEmptyStepItems(String stepTitle) {
         List<GuideItemData> items = new ArrayList<>();
 
@@ -409,14 +353,7 @@ public class PortfolioGuideService {
         return items; // 생성된 항목 리스트 반환
     }
 
-    /**
-     * 빈 가이드 항목 생성
-     * - 초기 상태의 GuideItemData 객체 생성
-     * 
-     * @param title       항목 제목
-     * @param placeholder 플레이스홀더 (입력 안내 문구)
-     * @return 빈 GuideItemData 객체
-     */
+    // 빈 가이드 항목 생성
     private GuideItemData createEmptyItem(String title, String placeholder) {
         GuideItemData item = new GuideItemData();
         item.setTitle(title); // 항목 제목 설정
@@ -426,9 +363,7 @@ public class PortfolioGuideService {
         return item;
     }
 
-    /**
-     가이드 PDF를 생성해 응답 스트림으로 내려보내는 서비스
-     */
+    // 가이드 PDF를 생성해 응답 스트림으로 내려보내는 서비스
     public void generatePdf(PortfolioGuide guide, HttpServletResponse response)
             throws Exception {
         // INFO 로그: PDF 생성 요청
@@ -440,14 +375,7 @@ public class PortfolioGuideService {
 
     }
 
-    /**
-     * ⭐ 회원별 전체 가이드 PDF 생성
-     * - 특정 회원의 모든 가이드를 하나의 PDF로 생성
-     * 
-     * @param guides   변환할 가이드 리스트
-     * @param response HTTP 응답 객체 (PDF 파일 스트림 전송용)
-     * @throws Exception PDF 생성 실패 시
-     */
+    // 회원별 전체 가이드 PDF 생성
     public void generateMemberPdf(List<PortfolioGuide> guides,
             HttpServletResponse response) throws Exception {
         // INFO 로그: 회원별 PDF 생성 요청
@@ -458,15 +386,35 @@ public class PortfolioGuideService {
 
     }
 
-    public int deleteGuide(int memberId){
-        int result =portfolioGuideDao.deleteAllGuides(memberId);
+    public int deleteGuide(int memberId) {
+        int result = portfolioGuideDao.deleteAllGuides(memberId);
         return result;
     }
 
-   //특정 가이드 삭제
-    public int deleteGuideById(int guideId, int memberId){
+    // 특정 가이드 삭제
+    public int deleteGuideById(int guideId, int memberId) {
         int result = portfolioGuideDao.deleteGuideById(guideId, memberId);
-       
+
+        return result;
+    }
+
+    // Direct 방식 테스트용
+    public GuideResult provideCoachingDirect(GuideRequest request) {
+        LocalDateTime startTime = LocalDateTime.now();
+        log.info("코칭 요청 (Direct) - memberId: {}, inputFieldType: {}",
+                request.getMemberId(), request.getInputFieldType());
+
+        // 1. Member 조회
+        Member member = memberDao.findById(request.getMemberId());
+        if (member == null) {
+            throw new NoSuchElementException("존재하지 않는 회원입니다: " + request.getMemberId());
+        }
+
+        GuideResult result = portfolioGuideAgentDirect.evaluateDirect(request, member);
+
+        Duration duration = Duration.between(startTime, LocalDateTime.now());
+        log.info("AI 코칭 완료 (Direct) - 처리시간: {}ms", duration.toMillis());
+
         return result;
     }
 

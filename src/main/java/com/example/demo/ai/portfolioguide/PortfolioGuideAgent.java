@@ -1,8 +1,11 @@
 package com.example.demo.ai.portfolioguide;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.stereotype.Component;
 
@@ -63,6 +66,10 @@ public class PortfolioGuideAgent {
         Member member,
         List<PortfolioStandard> standards ) throws Exception{
 
+        // 0. 성능 측정 시작
+        LocalDateTime startTime = LocalDateTime.now();
+        long startMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
         BeanOutputConverter<GuideResult> converter = 
             new BeanOutputConverter<>(GuideResult.class);
         
@@ -75,7 +82,9 @@ public class PortfolioGuideAgent {
         Integer careerYears = member.getCareerYears();
         
         // 3. 표준 가이드라인 구성
+        LocalDateTime guidelineStart = LocalDateTime.now();
         String standardsGuidelines = buildStandardsGuidelines(standards);
+        long promptGenerationTime = Duration.between(guidelineStart, LocalDateTime.now()).toMillis();
         
         // 4. 프롬프트 구성 - String.formatted() 방식
         String prompt = """
@@ -147,21 +156,53 @@ public class PortfolioGuideAgent {
                 format
             );
 
-        // 5. LLM 호출
-        String json = chatClient.prompt()
+        // 5. LLM 호출 및 토큰 사용량 추적
+        LocalDateTime llmCallStart = LocalDateTime.now();
+        ChatResponse chatResponse = chatClient.prompt()
             .user(prompt)
             .call()
-            .content();
+            .chatResponse();
+
+        String json = chatResponse.getResult().getOutput().getText();
+        long llmCallTime = Duration.between(llmCallStart, LocalDateTime.now()).toMillis();
+
+        // 토큰 사용량 로그 출력 및 프롬프트 길이 분석
+        if (chatResponse.getMetadata() != null && chatResponse.getMetadata().getUsage() != null) {
+            var usage = chatResponse.getMetadata().getUsage();
+            int promptCharLength = prompt.length();
+            log.info("=== 토큰 사용량 (DB 기반 실시간 코칭) ===");
+            log.info("입력 필드: {}, 현재 단계: {}", request.getInputFieldType(), request.getCurrentStep());
+            log.info("입력 토큰: {} tokens (프롬프트 길이: {} chars, 비율: ~{} chars/token)",
+                     usage.getPromptTokens(), promptCharLength,
+                     promptCharLength / Math.max(usage.getPromptTokens(), 1));
+           
+            log.info("총 토큰: {} tokens", usage.getTotalTokens());
+            log.info("DB에서 조회한 평가기준 개수: {} 개", standards != null ? standards.size() : 0);
+            log.info("===============================");
+        }
 
         // 6. JSON -> DTO 변환
         GuideResult result = converter.convert(json);
 
+        // 7. 성능 측정 완료
+        LocalDateTime endTime = LocalDateTime.now();
+        long endMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        
+        Duration processingTime = Duration.between(startTime, endTime);
+        long memoryUsed = endMemory - startMemory;
+
+        // 8. 성능 지표 로그 출력
+        log.info("=== 성능 지표 ===");
+        log.info("전체 처리 시간: {} ms", processingTime.toMillis());
+        log.info("프롬프트 생성 시간: {} ms", promptGenerationTime);
+        log.info("LLM 호출 시간: {} ms", llmCallTime);
+        log.info("메모리 사용량: {} bytes (~{} KB)", memoryUsed, memoryUsed / 1024);
+        log.info("평가기준 개수: {} 개", standards != null ? standards.size() : 0);
+        log.info("================");
+
         return result ;
-       
+        
     }
-
-    
-
 
     /**
      * 표준 가이드라인 텍스트 구성

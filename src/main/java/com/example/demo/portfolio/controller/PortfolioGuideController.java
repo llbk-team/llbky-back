@@ -41,10 +41,7 @@ public class PortfolioGuideController {
     @Autowired // Spring 의존성 주입
     private PortfolioGuideService portfolioGuideService;
 
-    /**
-    새 가이드 생성
-     * POST http://localhost:8080/portfolio-guide/create
-     */
+    //새 가이드 생성
     @PostMapping("/create") // POST 요청 매핑
     public ResponseEntity<PortfolioGuide> createGuide(@RequestBody GuideRequest request) {
         try {
@@ -68,15 +65,7 @@ public class PortfolioGuideController {
         }
     }
 
-    /**
-     * ⭐ 가이드 내용 저장 (사용자 최종 답변)
-     * PUT http://localhost:8080/portfolio-guide/save
-     * Content-Type: application/json
-     * Body: {"guideId": 1, "currentStep": 2, "guideSteps": [...]}
-     * 
-     * @param request 가이드 저장 요청 (JSON → @RequestBody로 매핑)
-     * @return 업데이트된 PortfolioGuide 엔티티
-     */
+    // 가이드 내용 저장
     @PutMapping("/save") // PUT 요청 매핑 (업데이트 용도)
     public ResponseEntity<PortfolioGuide> saveGuide(@RequestBody GuideProgressSaveRequest request) {
         try {
@@ -100,15 +89,7 @@ public class PortfolioGuideController {
         }
     }
 
-    /**
-     * ⭐ 실시간 AI 코칭
-     * POST http://localhost:8080/portfolio-guide/coaching
-     * Content-Type: application/json
-     * Body: {"memberId": 1, "userInput": "...", "inputFieldType": "프로젝트명"}
-     * 
-     * @param request AI 코칭 요청 (JSON → @RequestBody로 매핑)
-     * @return AI 코칭 결과 (점수, 피드백, 제안사항)
-     */
+    // 실시간 AI 코칭
     @PostMapping("/coaching") // POST 요청 매핑
     public ResponseEntity<GuideResult> getRealtimeCoaching(@RequestBody GuideRequest request) {
         try {
@@ -128,14 +109,7 @@ public class PortfolioGuideController {
         }
     }
 
-    /**
-     * ⭐ 가이드 단일 조회 (@ModelAttribute 사용)
-     * GET http://localhost:8080/portfolio-guide/{guideId}?memberId=1
-     * 
-     * @param guideId 가이드 ID (URL 경로에서 추출)
-     * @param request 검색 조건 (쿼리 파라미터 → @ModelAttribute로 매핑)
-     * @return 조회된 PortfolioGuide 엔티티
-     */
+    // 가이드 단일 조회
     @GetMapping("/{guideId}") // GET 요청 매핑 (경로 변수 포함)
     public ResponseEntity<PortfolioGuide> getGuide(@PathVariable Integer guideId) { // 쿼리 파라미터 바인딩
 
@@ -151,11 +125,7 @@ public class PortfolioGuideController {
         return ResponseEntity.ok(guide);
     }
 
-    /**
-     * ⭐ 회원별 가이드 목록 조회 (@ModelAttribute 사용)
-     * GET http://localhost:8080/portfolio-guide/member/{memberId}
-     * 
-     */
+    // 회원별 가이드 목록 조회
     @GetMapping("/member/{memberId}")
     public ResponseEntity<List<PortfolioGuide>> getGuidesByMember(@PathVariable Integer memberId) {
         log.info("회원별 가이드 목록 조회 - memberId: {}", memberId);
@@ -163,9 +133,7 @@ public class PortfolioGuideController {
         return ResponseEntity.ok(guides);
     }
 
-    /**
-     * ⭐ 저장된 AI 피드백 조회 (@ModelAttribute 사용)
-    */
+    // 저장된 AI 피드백 조회 (@ModelAttribute 사용)
     @GetMapping("/{guideId}/feedback") // GET 요청 매핑
     public ResponseEntity<GuideResult> getGuideFeedback(
             @PathVariable Integer guideId, // URL 경로에서 guideId 추출
@@ -195,14 +163,7 @@ public class PortfolioGuideController {
         }
     }
 
-    /**
-     * ⭐ PDF 다운로드 (@ModelAttribute 사용)
-     * GET http://localhost:8080/portfolio-guide/{guideId}/pdf?memberId=1
-     * 
-     * @param guideId  가이드 ID (URL 경로에서 추출)
-     * @param request  검색 조건 (쿼리 파라미터 → @ModelAttribute로 매핑)
-     * @param response HTTP 응답 객체 (PDF 파일 스트림 전송용)
-     */
+    // PDF 다운로드 (@ModelAttribute 사용)
     @GetMapping("/{guideId}/pdf") // GET 요청 매핑
     public void downloadGuidePdf(
             @PathVariable Integer guideId, // URL 경로에서 guideId 추출
@@ -211,7 +172,6 @@ public class PortfolioGuideController {
         try {
             // INFO 로그: PDF 다운로드 요청
             log.info("PDF 다운로드 - guideId: {}", guideId);
-
 
             // 서비스 계층 호출: 가이드 조회
             PortfolioGuide guide = portfolioGuideService.getGuideById(guideId);
@@ -232,17 +192,10 @@ public class PortfolioGuideController {
         }
     }
 
-    /**
-     * ⭐ 회원별 전체 가이드 PDF 다운로드
-     * GET http://localhost:8080/portfolio-guide/member/{memberId}/pdf
-     * 
-     * @param memberId 회원 ID (URL 경로에서 추출)
-     * @param request  검색 조건 (쿼리 파라미터 → @ModelAttribute로 매핑)
-     * @param response HTTP 응답 객체 (PDF 파일 스트림 전송용)
-     */
+    // 회원별 전체 가이드 PDF 다운로드
     @GetMapping("/member/{memberId}/pdf") // GET 요청 매핑
     public void downloadMemberGuidesPdf(
-            @PathVariable Integer memberId, // URL 경로에서 memberId 추출        
+            @PathVariable Integer memberId, // URL 경로에서 memberId 추출
             HttpServletResponse response) { // HTTP 응답 객체
 
         try {
@@ -266,42 +219,43 @@ public class PortfolioGuideController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500 상태 코드
         }
     }
-   //회원의 모든 가이드 삭제
+
+    // 회원의 모든 가이드 삭제
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteAllGuides(@RequestParam("memberId") int memberId) {
         try {
             int result = portfolioGuideService.deleteGuide(memberId);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("deletedCount", result);
             response.put("message", result + "개의 가이드가 삭제되었습니다.");
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             log.error("가이드 삭제 API 실패 - memberId: {}", memberId, e);
-            
+
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("error", e.getMessage());
-            
+
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
-   //특정 가이드 삭제
+    // 특정 가이드 삭제
     @DeleteMapping("/{guideId}")
     public ResponseEntity<Map<String, Object>> deleteGuideById(
             @PathVariable("guideId") int guideId,
             @RequestParam("memberId") int memberId) {
         try {
             log.info("가이드 삭제 요청 - guideId: {}, memberId: {}", guideId, memberId);
-            
+
             int result = portfolioGuideService.deleteGuideById(guideId, memberId);
-            
+
             Map<String, Object> response = new HashMap<>();
-            
+
             if (result > 0) {
                 response.put("status", "success");
                 response.put("message", "가이드가 성공적으로 삭제되었습니다.");
@@ -312,16 +266,25 @@ public class PortfolioGuideController {
                 response.put("message", "가이드를 찾을 수 없거나 삭제 권한이 없습니다.");
                 return ResponseEntity.status(404).body(response);
             }
-            
+
         } catch (Exception e) {
             log.error("가이드 삭제 실패 - guideId: {}, memberId: {}", guideId, memberId, e);
-            
+
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "가이드 삭제 중 오류가 발생했습니다: " + e.getMessage());
-            
+
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
+    //Direct 방식 테스트용 엔드포인트
+    @PostMapping("/coaching-direct")
+    public ResponseEntity<GuideResult> getCoachingDirect(@RequestBody GuideRequest request) throws Exception {
+       log.info("Direct 방식 코칭 요청 - memberId: {}", request.getMemberId());
+    
+        GuideResult result = portfolioGuideService.provideCoachingDirect(request);
+        return ResponseEntity.ok(result);
+    }
+    
 
 }
